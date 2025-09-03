@@ -1,81 +1,97 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import Input from "../components/ui/Input";
+import Textarea from "../components/ui/Textarea";
+import Select from "../components/ui/Select";
 
 export default function ActivityForm({ mode = "create" }) {
-  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    category: "",
+    title: "",
+    theme: "",
+    date: "",
+    description: "",
+    attachments: "",
+  });
+
+  const update = (k) => (eOrV) =>
+    setForm((s) => ({ ...s, [k]: eOrV?.target ? eOrV.target.value : eOrV }));
 
   return (
-    <div className="space-y-6">
-      <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:underline"
+    <div className="px-6 md:px-10 py-6">
+      <Link
+        to="/aktivitas"
+        className="text-sm text-neutral-600 hover:underline"
       >
-        <span className="i-tabler-chevron-left" /> Kembali
-      </button>
+        ← Kembali
+      </Link>
+      <h2 className="mt-2 text-xl md:text-2xl font-semibold">
+        Event dan Proker
+      </h2>
 
-      <h2 className="text-xl font-bold">Event dan Proker</h2>
+      <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Select
+            label="Kategori"
+            value={form.category}
+            onChange={update("category")}
+            placeholder="Pilih kategori Aktivitas"
+            options={[
+              { value: "event", label: "Event" },
+              { value: "proker", label: "Proker" },
+            ]}
+          />
 
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <div>
-            <p className="mb-2 text-sm font-semibold">Kategori</p>
-            <select className="h-11 w-full rounded-lg border border-gray-200 bg-white px-3">
-              <option>Pilih kategori Aktivitas</option>
-              <option>Event</option>
-              <option>Proker</option>
-            </select>
-          </div>
+          <div />
+          <Input
+            label="Judul"
+            value={form.title}
+            onChange={update("title")}
+            placeholder="Tuliskan Nama kegiatan"
+            className="md:col-span-2"
+          />
 
-          <div className="md:col-span-2">
-            <p className="mb-2 text-sm font-semibold">Judul</p>
-            <input
-              className="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-3"
-              placeholder="Tuliskan Nama kegiatan"
-            />
-          </div>
+          <Input
+            label="Tema"
+            value={form.theme}
+            onChange={update("theme")}
+            placeholder="Tuliskan Tema kegiatan"
+          />
+          <Input
+            label="Tanggal Publikasi"
+            type="date"
+            value={form.date}
+            onChange={update("date")}
+            placeholder="dd/mm/yyyy"
+          />
 
-          <div>
-            <p className="mb-2 text-sm font-semibold">Tema</p>
-            <input
-              className="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-3"
-              placeholder="Tuliskan Tema kegiatan"
-            />
-          </div>
+          <Textarea
+            label="Deskripsi"
+            value={form.description}
+            onChange={update("description")}
+            placeholder="Tuliskan Deskripsi kegiatan"
+            className="md:col-span-2"
+          />
 
-          <div>
-            <p className="mb-2 text-sm font-semibold">Tanggal Publikasi</p>
-            <div className="relative">
-              <span className="i-tabler-calendar absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="date"
-                className="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 pr-10"
-              />
-            </div>
-          </div>
-
-          <div className="md:col-span-2">
-            <p className="mb-2 text-sm font-semibold">Deskripsi</p>
-            <textarea
-              rows={6}
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 p-3"
-              placeholder="Tuliskan Deskripsi kegiatan"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <p className="mb-2 text-sm font-semibold">Lampiran</p>
-            <div className="relative">
-              <span className="i-tabler-paperclip absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <select className="h-11 w-full appearance-none rounded-lg border border-gray-200 bg-white px-3 pr-10">
-                <option>Tambahkan Lampiran</option>
-              </select>
-            </div>
-          </div>
+          <Select
+            label="Lampiran"
+            value={form.attachments}
+            onChange={update("attachments")}
+            placeholder="Tambahkan Lampiran"
+            options={[
+              { value: "foto", label: "Foto" },
+              { value: "dokumen", label: "Dokumen" },
+              { value: "tautan", label: "Tautan" },
+            ]}
+            className="md:col-span-2"
+          />
         </div>
 
-        <div className="mt-6 flex justify-end">
-          <button className="cursor-not-allowed rounded-lg bg-gray-200 px-4 py-2 text-gray-500">
-            Unggah Aktivitas
-          </button>
+        <div className="mt-6 flex justify-end gap-3">
+          <Link to="/aktivitas" className="btn-outline-primary px-4 py-2">
+            Batal
+          </Link>
+          <button className="btn-primary">Unggah Aktivitas</button>
         </div>
       </div>
     </div>

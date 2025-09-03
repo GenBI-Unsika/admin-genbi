@@ -1,72 +1,93 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import Input from "../components/ui/Input";
+import Textarea from "../components/ui/Textarea";
+import Select from "../components/ui/Select";
 
 export default function ArticleForm({ mode = "create" }) {
-  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    title: "",
+    publishDate: "",
+    description: "",
+    attachment: "",
+    cover: null,
+  });
+
+  const update = (k) => (eOrV) =>
+    setForm((s) => ({ ...s, [k]: eOrV?.target ? eOrV.target.value : eOrV }));
+
   return (
-    <div className="space-y-6">
-      <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:underline"
-      >
-        <span className="i-tabler-chevron-left" /> Kembali
-      </button>
+    <div className="px-6 md:px-10 py-6">
+      <Link to="/artikel" className="text-sm text-neutral-600 hover:underline">
+        ← Kembali
+      </Link>
+      <h2 className="mt-2 text-xl md:text-2xl font-semibold">Artikel</h2>
 
-      <h2 className="text-xl font-bold">Artikel</h2>
+      <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
+        <Input
+          label="Judul"
+          value={form.title}
+          onChange={update("title")}
+          placeholder="Tuliskan Nama kegiatan"
+          className="mb-4"
+        />
 
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <div className="md:col-span-2">
-            <input
-              className="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-3"
-              placeholder="Tuliskan Nama kegiatan"
-            />
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Cover Upload */}
           <div>
-            <p className="mb-2 text-sm font-semibold">Cover</p>
-            <label className="block cursor-pointer">
-              <div className="rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 p-3 text-center">
-                <span className="i-tabler-upload mr-2" /> Unggah file
-              </div>
-              <input type="file" className="sr-only" />
+            <label className="mb-1 block text-sm font-medium text-neutral-700">
+              Cover
             </label>
-          </div>
-
-          <div>
-            <p className="mb-2 text-sm font-semibold">Tanggal Publikasi</p>
-            <div className="relative">
-              <span className="i-tabler-calendar absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <label className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm cursor-pointer">
+              <span className="opacity-70 truncate">
+                {form.cover?.name || "Unggah file"}
+              </span>
               <input
-                type="date"
-                className="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 pr-10"
+                type="file"
+                className="hidden"
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, cover: e.target.files?.[0] || null }))
+                }
+                accept="image/*"
               />
-            </div>
-          </div>
-
-          <div className="md:col-span-2">
-            <p className="mb-2 text-sm font-semibold">Deskripsi</p>
-            <textarea
-              rows={6}
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 p-3"
-              placeholder="Tuliskan Deskripsi kegiatan"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <p className="mb-2 text-sm font-semibold">Lampiran</p>
-            <label className="block cursor-pointer">
-              <div className="rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 p-3 text-center">
-                <span className="i-tabler-upload mr-2" /> Unggah file
-              </div>
-              <input type="file" className="sr-only" />
             </label>
           </div>
+
+          <Input
+            label="Tanggal Publikasi"
+            type="date"
+            value={form.publishDate}
+            onChange={update("publishDate")}
+            placeholder="dd/mm/yyyy"
+          />
         </div>
 
-        <div className="mt-6 flex justify-end">
-          <button className="cursor-not-allowed rounded-lg bg-gray-200 px-4 py-2 text-gray-500">
-            Unggah Aktivitas
-          </button>
+        <Textarea
+          className="mt-4"
+          label="Deskripsi"
+          value={form.description}
+          onChange={update("description")}
+          placeholder="Tuliskan Deskripsi kegiatan"
+        />
+
+        <Select
+          className="mt-4"
+          label="Lampiran"
+          value={form.attachment}
+          onChange={update("attachment")}
+          placeholder="Tambahkan Lampiran"
+          options={[
+            { value: "foto", label: "Foto" },
+            { value: "dokumen", label: "Dokumen" },
+            { value: "tautan", label: "Tautan" },
+          ]}
+        />
+
+        <div className="mt-6 flex justify-end gap-3">
+          <Link to="/artikel" className="btn-outline-primary px-4 py-2">
+            Batal
+          </Link>
+          <button className="btn-primary">Unggah Artikel</button>
         </div>
       </div>
     </div>
