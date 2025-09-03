@@ -1,192 +1,73 @@
-import StatCard from "../components/StatCard";
+import StatCard from '../components/StatCard';
+import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar } from 'recharts';
+import { GraduationCap, Users, CalendarDays, FileText, Download } from 'lucide-react';
+
+const formatID = (n) => new Intl.NumberFormat('id-ID').format(n);
+
+const chartData = [
+  { day: '21', views: 300, insights: 560 },
+  { day: '22', views: 410, insights: 450 },
+  { day: '23', views: 90, insights: 120 },
+  { day: '24', views: 330, insights: 820 },
+  { day: '25', views: 420, insights: 450 },
+  { day: '26', views: 450, insights: 830 },
+  { day: '27', views: 230, insights: 650 },
+  { day: '28', views: 400, insights: 980 },
+  { day: '29', views: 260, insights: 600 },
+  { day: '30', views: 620, insights: 660 },
+];
 
 export default function Dashboard() {
-  // data dummy untuk tampilan awal
-  const stats = [
-    {
-      title: "Total Beasiswa",
-      value: "128",
-      description: "Program aktif yang sedang berjalan.",
-      icon: "tabler--award",
-      trend: "up",
-      trendValue: "+6%",
-    },
-    {
-      title: "Pendaftar Bulan Ini",
-      value: "1.247",
-      description: "Akumulasi semua program bulan berjalan.",
-      icon: "tabler--users",
-      trend: "up",
-      trendValue: "+12%",
-    },
-    {
-      title: "Aktivitas Aktif",
-      value: "23",
-      description: "Kegiatan mentoring, webinar, workshop.",
-      icon: "tabler--activity",
-      trend: "down",
-      trendValue: "-3%",
-    },
-    {
-      title: "Artikel Terbit",
-      value: "56",
-      description: "Publikasi yang tayang di portal.",
-      icon: "tabler--news",
-      trend: "up",
-      trendValue: "+2%",
-    },
-  ];
-
-  const recentActivities = [
-    {
-      id: "act-1",
-      title: "Webinar: Tips Menulis Esai Beasiswa",
-      when: "Hari ini, 15:00",
-      status: "Terjadwal",
-    },
-    {
-      id: "act-2",
-      title: "Mentoring Batch 7",
-      when: "Besok, 10:00",
-      status: "Penuh",
-    },
-    {
-      id: "act-3",
-      title: "Workshop CV & Portofolio",
-      when: "Jum'at, 09:00",
-      status: "Sisa 12 kursi",
-    },
-  ];
-
-  const closingSoon = [
-    {
-      id: "sch-1",
-      name: "Scholarship A - STEM",
-      deadline: "3 hari lagi",
-    },
-    {
-      id: "sch-2",
-      name: "Scholarship B - Exchange",
-      deadline: "5 hari lagi",
-    },
-    {
-      id: "sch-3",
-      name: "Scholarship C - Research",
-      deadline: "7 hari lagi",
-    },
-  ];
-
-  const drafts = [
-    { id: "art-1", title: "Panduan LPDP 2025", updated: "2 jam lalu" },
-    { id: "art-2", title: "Checklist Dokumen Beasiswa", updated: "Kemarin" },
-  ];
-
   return (
-    <div className="px-6 py-6">
-      {/* Header */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-neutral-900">Dashboard</h1>
-          <p className="mt-1 text-neutral-600">
-            Ringkasan cepat statistik dan aktivitas terakhir.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button className="btn-outline-primary">Export</button>
-          <button className="btn-primary">Tambah Aktivitas</button>
-        </div>
+    <div className="px-6 md:px-10 py-6">
+      {/* 4 kartu statistik */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <StatCard title="Jumlah Pendaftar Beasiswa" value={formatID(671)} unit="peserta" icon={<GraduationCap size={22} className="text-primary-500" />} to="/beasiswa" />
+        <StatCard title="Jumlah Pengunjung Proker" value={formatID(1243)} unit="pengunjung" icon={<Users size={22} className="text-primary-500" />} to="/aktivitas" />
+        <StatCard title="Jumlah Pengunjung Event" value={formatID(1159)} unit="pengunjung" icon={<CalendarDays size={22} className="text-primary-500" />} to="/aktivitas" />
+        <StatCard title="Jumlah Pengunjung Artikel" value={formatID(987)} unit="peserta" icon={<FileText size={22} className="text-primary-500" />} to="/artikel" />
       </div>
 
-      {/* Stats */}
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {stats.map((s) => (
-          <StatCard key={s.title} {...s} />
-        ))}
-      </section>
+      {/* Grafik Pengunjung Website */}
+      <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 md:p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-base md:text-lg font-semibold text-neutral-900">Grafik Pengunjung Website</h3>
+          <button type="button" className="grid h-9 w-9 place-items-center rounded-lg border border-neutral-200 bg-neutral-50 text-neutral-500" aria-label="Unduh data" title="Unduh data">
+            <Download size={18} />
+          </button>
+        </div>
 
-      {/* 2 Kolom: Aktivitas & Beasiswa */}
-      <section className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Aktivitas Terbaru */}
-        <div className="lg:col-span-2 rounded-xl border border-neutral-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
-            <h3 className="text-neutral-900">Aktivitas Terbaru</h3>
-            <a
-              href="/aktivitas"
-              className="text-sm font-medium text-primary-600 hover:underline"
-            >
-              Lihat semua
-            </a>
+        <div className="h-[360px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} barGap={8}>
+              <CartesianGrid stroke="var(--neutral-200)" strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="day" tick={{ fill: 'var(--neutral-600)', fontSize: 12 }} tickLine={false} axisLine={{ stroke: 'var(--neutral-200)' }} />
+              <YAxis tick={{ fill: 'var(--neutral-600)', fontSize: 12 }} tickLine={false} axisLine={{ stroke: 'var(--neutral-200)' }} width={30} />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: 12,
+                  border: '1px solid var(--neutral-200)',
+                  boxShadow: 'none',
+                }}
+                cursor={{ fill: 'rgba(0,0,0,0.03)' }}
+              />
+              <Bar dataKey="views" name="Views" fill="var(--secondary-400)" radius={[6, 6, 0, 0]} maxBarSize={36} />
+              <Bar dataKey="insights" name="Insights" fill="var(--primary-400)" radius={[6, 6, 0, 0]} maxBarSize={36} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="mt-4 flex items-center justify-center gap-6 text-sm">
+          <div className="flex items-center gap-2 text-neutral-700">
+            <span className="inline-block h-3 w-3 rounded-sm" style={{ background: 'var(--secondary-400)' }} />
+            Views
           </div>
-
-          <ul className="divide-y divide-neutral-200">
-            {recentActivities.map((a) => (
-              <li key={a.id} className="px-5 py-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-neutral-900">{a.title}</p>
-                    <p className="mt-1 text-sm text-neutral-600">{a.when}</p>
-                  </div>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700">
-                    <i className="icon-[tabler--clock] text-sm" aria-hidden />
-                    {a.status}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Beasiswa mendekati deadline */}
-        <div className="rounded-xl border border-neutral-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
-            <h3 className="text-neutral-900">Mendekati Deadline</h3>
-            <a
-              href="/beasiswa"
-              className="text-sm font-medium text-primary-600 hover:underline"
-            >
-              Kelola
-            </a>
+          <div className="flex items-center gap-2 text-neutral-700">
+            <span className="inline-block h-3 w-3 rounded-sm" style={{ background: 'var(--primary-400)' }} />
+            Insights
           </div>
-
-          <ul className="divide-y divide-neutral-200">
-            {closingSoon.map((s) => (
-              <li key={s.id} className="px-5 py-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-neutral-800">{s.name}</p>
-                  <span className="text-sm text-secondary-700">
-                    {s.deadline}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
         </div>
-      </section>
-
-      {/* Artikel Draft */}
-      <section className="mt-6 rounded-xl border border-neutral-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
-          <h3 className="text-neutral-900">Draft Artikel</h3>
-          <a
-            href="/artikel"
-            className="text-sm font-medium text-primary-600 hover:underline"
-          >
-            Lihat semua
-          </a>
-        </div>
-
-        <ul className="divide-y divide-neutral-200">
-          {drafts.map((d) => (
-            <li key={d.id} className="px-5 py-3">
-              <div className="flex items-center justify-between">
-                <p className="text-neutral-800">{d.title}</p>
-                <span className="text-sm text-neutral-600">{d.updated}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
+      </div>
     </div>
   );
 }

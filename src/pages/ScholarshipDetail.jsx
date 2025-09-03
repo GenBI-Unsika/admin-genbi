@@ -1,29 +1,28 @@
-import { Link, useParams } from "react-router-dom";
-import Input from "../components/ui/Input";
-import Textarea from "../components/ui/Textarea";
+import { Link, useParams } from 'react-router-dom';
+import Input from '../components/ui/Input';
+import Textarea from '../components/ui/Textarea';
 
 const DATA = {
   1: {
-    name: "Devi Fitriani Maulana",
-    email: "2010631250000@student.unsika.ac.id",
-    birth: "2001-01-01",
-    gender: "Perempuan",
-    nik: "3710101010101010",
-    fakultas: "Fakultas Ilmu Komputer",
-    npm: "2010631250000",
-    prodi: "Sistem Informasi",
-    semester: "8",
-    ipk: "3,91",
-    usia: "22",
-    know: "Ya",
-    about:
-      "GenBI (Generasi Baru Indonesia) adalah komunitas dari penerima beasiswa Bank Indonesia...",
+    name: 'Devi Fitriani Maulana',
+    email: '2010631250000@student.unsika.ac.id',
+    birth: '2001-01-01',
+    gender: 'Perempuan',
+    nik: '3710101010101010',
+    fakultas: 'Fakultas Ilmu Komputer',
+    npm: '2010631250000',
+    prodi: 'Sistem Informasi',
+    semester: '8',
+    ipk: '3,91',
+    usia: '22',
+    know: 'Ya',
+    about: 'GenBI (Generasi Baru Indonesia) adalah komunitas dari penerima beasiswa Bank Indonesia...',
   },
 };
 
 export default function ScholarshipDetail() {
   const { id } = useParams();
-  const d = DATA[id] || DATA["1"];
+  const d = DATA[id] || DATA['1'];
 
   return (
     <div className="px-6 md:px-10 py-6">
@@ -56,18 +55,9 @@ export default function ScholarshipDetail() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            label="Apakah kamu mengetahui komunitas GenBI Unsika?"
-            value={d.know}
-            readOnly
-          />
+          <Input label="Apakah kamu mengetahui komunitas GenBI Unsika?" value={d.know} readOnly />
           <div />
-          <Textarea
-            label="Jika kamu mengetahuinya, Jelaskan apa yang kamu ketahui mengenai GenBI Unsika?"
-            value={d.about}
-            readOnly
-            className="md:col-span-2"
-          />
+          <Textarea label="Jika kamu mengetahuinya, Jelaskan apa yang kamu ketahui mengenai GenBI Unsika?" value={d.about} readOnly className="md:col-span-2" />
         </div>
 
         <div className="mt-6 flex justify-end">

@@ -1,56 +1,30 @@
-export default function StatCard({
-  title,
-  value,
-  description,
-  icon, // contoh: "tabler--award"
-  trend, // "up" | "down" | null
-  trendValue, // contoh: "+12%" atau "-3%"
-}) {
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm hover:shadow-md transition-all">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          {icon ? (
-            <span
-              className={[
-                "inline-flex size-10 items-center justify-center rounded-lg",
-                "bg-primary-50 text-primary-600",
-              ].join(" ")}
-            >
-              <i className={`icon-[${icon}] text-xl`} aria-hidden />
-            </span>
-          ) : null}
-          <div>
-            <p className="text-sm text-neutral-600">{title}</p>
-            <p className="mt-1 text-2xl font-semibold text-neutral-900">
-              {value}
-            </p>
+import { Link } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
+
+export default function StatCard({ title, value, unit, icon, to }) {
+  const inner = (
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-5">
+      <div className="flex items-center gap-4">
+        <div className="grid h-12 w-12 place-items-center rounded-xl border border-neutral-200 bg-primary-50 text-primary-500">{icon}</div>
+        <div>
+          <div className="text-sm font-semibold text-neutral-800">{title}</div>
+          <div className="mt-1 text-neutral-500">
+            <span className="text-xl font-semibold text-neutral-900">{value}</span> {unit}
           </div>
         </div>
-
-        {trend && trendValue ? (
-          <span
-            className={[
-              "inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium",
-              trend === "up"
-                ? "bg-primary-50 text-primary-700"
-                : "bg-secondary-50 text-secondary-700",
-            ].join(" ")}
-          >
-            <i
-              className={`icon-[${
-                trend === "up" ? "tabler--trending-up" : "tabler--trending-down"
-              }] text-sm`}
-              aria-hidden
-            />
-            {trendValue}
-          </span>
-        ) : null}
       </div>
 
-      {description ? (
-        <p className="mt-3 text-sm text-neutral-600">{description}</p>
-      ) : null}
+      <div className="shrink-0 grid h-9 w-9 place-items-center rounded-lg border border-neutral-200 bg-neutral-50 text-neutral-500">
+        <ChevronRight size={18} />
+      </div>
     </div>
+  );
+
+  return to ? (
+    <Link to={to} className="block transition-transform hover:-translate-y-0.5">
+      {inner}
+    </Link>
+  ) : (
+    inner
   );
 }

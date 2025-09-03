@@ -50,6 +50,14 @@
   --neutral-700: rgba(64, 66, 82, 1);
   --neutral-800: rgba(40, 42, 57, 1);
   --neutral-900: rgba(17, 18, 36, 1);
+
+    --success-50:  #ecfdf5;
+  --success-200: #a7f3d0;
+  --success-700: #047857;
+
+  --warning-50:  #fffbeb;
+  --warning-200: #fde68a;
+  --warning-700: #b45309;
 }
 
 /* bg utilities */
