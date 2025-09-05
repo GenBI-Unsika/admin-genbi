@@ -10,13 +10,14 @@ const ImageWithFallback = ({ src, alt, className, fallback }) => {
   return <img src={src || fallback || 'https://placehold.co/800x450'} alt={alt} className={className} loading="lazy" decoding="async" onError={onError} />;
 };
 
-const MediaCard = ({ title, subtitle, image, description, category, date, href, to, gradientClass = 'from-[var(--primary-500)] to-[var(--primary-400)]', subtitleWordsLimit = 10, badge, className = '' }) => {
+export default function MediaCard({ title, subtitle, image, description, category, date, href, to, state, gradientClass = 'from-[var(--primary-500)] to-[var(--primary-400)]', subtitleWordsLimit = 10, badge, className = '' }) {
   const Wrapper = to ? Link : href ? 'a' : 'div';
   const wrapperProps = to ? { to } : href ? { href } : {};
 
-  return (
+  const Card = (
     <article
       className={`group bg-white rounded-xl overflow-hidden border border-[#F3F5F9] shadow-sm h-full flex flex-col transform-gpu transition-transform duration-200 ease-out cursor-pointer hover:scale-[1.02] hover:shadow-xl-primary-500/30 ${className}`}
+      aria-label={`Edit aktivitas: ${title}`}
     >
       <div className="relative w-full aspect-[16/9] bg-gray-100 overflow-hidden">
         <ImageWithFallback src={image} alt={title} className="absolute inset-0 w-full h-full object-cover transform-gpu transition-transform duration-300 ease-out group-hover:scale-[1.03] motion-reduce:transform-none" />
@@ -48,7 +49,15 @@ const MediaCard = ({ title, subtitle, image, description, category, date, href, 
       </Wrapper>
     </article>
   );
-};
+
+  return to ? (
+    <Link to={to} state={state} className="block focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]">
+      {Card}
+    </Link>
+  ) : (
+    Card
+  );
+}
 
 MediaCard.propTypes = {
   title: PropTypes.string.isRequired,
@@ -63,5 +72,3 @@ MediaCard.propTypes = {
   badge: PropTypes.string,
   className: PropTypes.string,
 };
-
-export default MediaCard;

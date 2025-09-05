@@ -28,6 +28,10 @@ export default function AdminUserForm({ mode: modeProp }) {
     <div className="px-6 md:px-10 py-6">
       {/* Breadcrumb */}
       <nav className="mb-4 flex items-center text-sm text-neutral-600">
+        <Link to="/dashboard" className="hover:text-neutral-800 hover:underline">
+          Dashboard
+        </Link>
+        <ChevronRight className="mx-2 h-4 w-4 text-neutral-400" />
         <Link to="/admin/users" className="hover:text-neutral-800 hover:underline">
           Kelola User
         </Link>

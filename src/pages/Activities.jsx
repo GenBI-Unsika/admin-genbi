@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import EventCard from '../components/cards/EventCard';
 import ProkerCard from '../components/cards/ProkerCard';
+import { ChevronRight } from 'lucide-react';
 
 const MOCK = [
   {
@@ -58,6 +59,13 @@ export default function Activities() {
 
   return (
     <div className="px-6 md:px-10 py-6">
+      <nav className="mb-4 flex items-center text-sm text-neutral-600">
+        <Link to="/dashboard" className="hover:text-neutral-800 hover:underline">
+          Dashboard
+        </Link>
+        <ChevronRight className="mx-2 h-4 w-4 text-neutral-400" />
+        <span className="text-neutral-900 font-medium">Aktifitas</span>
+      </nav>
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
           {/* judul diperkecil */}
@@ -120,7 +128,8 @@ export default function Activities() {
               date={item.date}
               cover={item.cover}
               description={item.description} // <- tampilkan deskripsi di card
-              onClick={() => {}}
+              to={`/aktivitas/${item.id}/edit`}
+              state={{ event: item }}
             />
           ) : (
             <ProkerCard
@@ -130,7 +139,8 @@ export default function Activities() {
               date={item.date}
               cover={item.cover}
               description={item.description} // <- tampilkan deskripsi di card
-              onClick={() => {}}
+              to={`/aktivitas/${item.id}/edit`}
+              state={{ proker: item }}
             />
           )
         )}

@@ -2,13 +2,14 @@ import PropTypes from 'prop-types';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const ArticleCard = ({ title, excerpt, image, description, date, readTime, badge, href, to, placeholder = 'https://placehold.co/800x500', className = '' }) => {
+export default function ArticleCard({ title, excerpt, image, description, date, readTime, badge, href, to, state, placeholder = 'https://placehold.co/800x500', className = '' }) {
   const Wrapper = to ? Link : href ? 'a' : 'div';
   const wrapperProps = to ? { to } : href ? { href } : {};
 
-  return (
+  const Card = (
     <article
-      className={`group bg-white rounded-xl overflow-hidden border border-[#F3F5F9] shadow-sm h-full flex flex-col transform-gpu transition-transform duration-200 ease-out cursor-pointer hover:scale-[1.02] hover:shadow-xl-primary-500/30 ${className}`}
+      className={`group bg-white rounded-xl overflow-hidden border border-[#F3F5F9] shadow-sm h-full flex flex-col transform-gpu transition-transform duration-200 ease-out cursor-pointer hover:scale-[1.02] hover:shadow-xl-primary-500/30  ${className}`}
+      aria-label={`Edit artikel: ${title}`}
     >
       <div className="relative">
         <div className="w-full aspect-[16/10] bg-gray-100 overflow-hidden">
@@ -55,7 +56,15 @@ const ArticleCard = ({ title, excerpt, image, description, date, readTime, badge
       </Wrapper>
     </article>
   );
-};
+
+  return to ? (
+    <Link to={to} state={state} className="block focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]">
+      {Card}
+    </Link>
+  ) : (
+    Card
+  );
+}
 
 ArticleCard.propTypes = {
   title: PropTypes.string.isRequired,
@@ -68,5 +77,3 @@ ArticleCard.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
 };
-
-export default ArticleCard;
