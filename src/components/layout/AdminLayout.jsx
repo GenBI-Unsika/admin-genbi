@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, ChevronLeft, ChevronRight, GraduationCap, Users, Newspaper, LayoutGrid, LogOut, Search, ChevronDown, User2 } from 'lucide-react';
+import { Menu, ChevronLeft, ChevronRight, GraduationCap, Users, Newspaper, LayoutGrid, LogOut, Search, ChevronDown, User2, ChartNoAxesGantt, BookOpen } from 'lucide-react';
 
 // Tambah item Kelola User (gunakan User2 biar beda dengan Aktivitas)
 const navItems = [
@@ -9,6 +9,8 @@ const navItems = [
   { to: '/aktivitas', label: 'Aktivitas', icon: Users },
   { to: '/artikel', label: 'Artikel', icon: Newspaper },
   { to: '/admin/users', label: 'Kelola User', icon: User2 },
+  { to: '/cms', label: 'Kelola Konten Web', icon: ChartNoAxesGantt },
+  { to: '/pusat-informasi', label: 'Pusat Informasi', icon: BookOpen },
 ];
 
 export default function AdminLayout() {
@@ -34,7 +36,7 @@ export default function AdminLayout() {
   const Brand = useMemo(
     () => (
       <div className="flex items-center gap-3 px-3 py-3">
-        <img src="/favicon-genbi.webp" alt="GenBI Unsika" className="h-8 w-8 rounded-md border border-neutral-200 object-cover" />
+        <img src="/favicon-genbi.webp" alt="GenBI Unsika" className="h-8 w-8 p-1 rounded-md border border-neutral-200 object-cover" />
         {!collapsed && <p className="text-base font-semibold text-neutral-900">GenBI Unsika</p>}
       </div>
     ),
@@ -89,7 +91,7 @@ export default function AdminLayout() {
           <div className="mt-auto px-2 pb-4">
             <button
               type="button"
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 active:scale-[0.99] transition"
+              className="flex w-full items-center justify-center gap-2 rounded-xl scale-100 hover:scale-101 bg-neutral-300 hover:bg-red-600 border border-neutral-200 px-3 py-2.5 text-sm font-medium text-white transition"
               onClick={doLogout}
             >
               <LogOut className="h-4 w-4" />

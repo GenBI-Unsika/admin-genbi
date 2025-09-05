@@ -1,20 +1,9 @@
-import PropTypes from "prop-types";
-import { Calendar, Clock, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import PropTypes from 'prop-types';
+import { Calendar, Clock, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const ArticleCard = ({
-  title,
-  excerpt,
-  image,
-  date,
-  readTime,
-  badge,
-  href,
-  to,
-  placeholder = "https://placehold.co/800x500",
-  className = "",
-}) => {
-  const Wrapper = to ? Link : href ? "a" : "div";
+const ArticleCard = ({ title, excerpt, image, description, date, readTime, badge, href, to, placeholder = 'https://placehold.co/800x500', className = '' }) => {
+  const Wrapper = to ? Link : href ? 'a' : 'div';
   const wrapperProps = to ? { to } : href ? { href } : {};
 
   return (
@@ -34,26 +23,15 @@ const ArticleCard = ({
             }}
           />
         </div>
-        {badge && (
-          <span className="absolute top-3 right-3 bg-[#E3EEFC] text-[#01319F] text-xs font-medium px-2 py-1 rounded-md leading-none">
-            {badge}
-          </span>
-        )}
+        {badge && <span className="absolute top-3 right-3 bg-[#E3EEFC] text-[#01319F] text-xs font-medium px-2 py-1 rounded-md leading-none">{badge}</span>}
       </div>
 
-      <Wrapper
-        {...wrapperProps}
-        aria-label={title}
-        className="p-4 flex-1 flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2"
-      >
-        <h4 className="font-semibold text-neutral-800 mb-1 leading-snug line-clamp-2">
-          {title}
-        </h4>
-        {excerpt && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{excerpt}</p>
-        )}
+      <Wrapper {...wrapperProps} aria-label={title} className="p-4 flex-1 flex flex-col space-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2">
+        <h6 className="font-semibold text-neutral-800 leading-snug line-clamp-2">{title}</h6>
+        {description && <p className="text-xs text-neutral-600 line-clamp-2">{description}</p>}
+        {excerpt && <p className="text-sm text-gray-600 mb-3 line-clamp-2">{excerpt}</p>}
 
-        <div className="mt-0.5 flex items-center gap-3 text-sm text-gray-500">
+        <div className="flex items-center gap-3 text-xs text-gray-500">
           {date && (
             <span className="inline-flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />

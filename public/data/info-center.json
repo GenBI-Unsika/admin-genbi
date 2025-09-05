@@ -1,0 +1,845 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2025-01-15",
+    "description": "Dokumentasi teknis dan panduan pengguna yang komprehensif untuk sistem administrasi beasiswa dan manajemen aktivitas mahasiswa. Dokumen ini bertujuan untuk menjadi referensi utama bagi semua peran pengguna."
+  },
+  "sections": [
+    {
+      "id": "getting-started",
+      "title": "Panduan Memulai",
+      "description": "Bagian ini berisi panduan esensial yang akan membantu pengguna baru untuk memahami dasar-dasar pengoperasian, navigasi, dan fungsionalitas inti dalam sistem admin.",
+      "icon": "PlayCircle",
+      "items": [
+        {
+          "id": "overview",
+          "title": "Gambaran Umum Sistem",
+          "summary": "Memberikan pengenalan komprehensif mengenai platform admin, mencakup tujuan utama, arsitektur dasar, dan modul-modul fungsional yang tersedia.",
+          "content": "Platform administrasi ini adalah solusi terpusat yang dirancang secara khusus untuk memfasilitasi pengelolaan menyeluruh dari program beasiswa, mulai dari pendaftaran hingga pengumuman. Selain itu, sistem ini juga menangani manajemen aktivitas kemahasiswaan, publikasi artikel atau berita, serta pengelolaan konten dinamis untuk website. Salah satu pilar utamanya adalah dukungan terhadap berbagai peran pengguna (multiple roles), di mana setiap peran memiliki hak akses yang telah didefinisikan secara spesifik untuk menjamin keamanan, efisiensi, dan integritas data.",
+          "tags": ["gambaran umum", "pengenalan", "platform"],
+          "codeExample": null,
+          "relatedLinks": ["role_management", "authentication"]
+        },
+        {
+          "id": "quick_start",
+          "title": "Panduan Cepat Penggunaan",
+          "summary": "Instruksi langkah-demi-langkah yang ringkas dan mudah diikuti agar pengguna dapat segera mulai menggunakan fungsionalitas utama sistem tanpa hambatan.",
+          "content": "Berikut adalah empat langkah fundamental untuk memulai interaksi Anda dengan sistem: \n1. Lakukan proses login dengan menggunakan kredensial (email dan kata sandi) yang telah diberikan oleh administrator. \n2. Setelah berhasil masuk, verifikasi peran (role) yang tertera pada profil Anda untuk memastikan kesesuaian dengan tugas dan wewenang Anda. \n3. Manfaatkan menu navigasi yang terletak di sidebar (bilah sisi) untuk menjelajahi dan mengakses berbagai modul yang tersedia. \n4. Anda kini siap untuk mulai mengelola data, seperti aplikasi beasiswa, konten, atau pengguna, sesuai dengan hak akses yang melekat pada peran Anda.",
+          "tags": ["panduan cepat", "tutorial", "memulai"],
+          "steps": [
+            {
+              "step": 1,
+              "title": "Masuk ke Dalam Sistem",
+              "description": "Masuk ke dalam sistem dengan menggunakan alamat email dan kata sandi yang sebelumnya telah didaftarkan dan diverifikasi oleh administrator.",
+              "action": "Klik tombol 'Login' yang terdapat di halaman utama sistem."
+            },
+            {
+              "step": 2,
+              "title": "Verifikasi Peran Pengguna",
+              "description": "Setelah berhasil login, sangat penting untuk memeriksa dan memastikan bahwa peran (role) yang ditampilkan pada akun Anda telah sesuai dengan tanggung jawab dan lingkup pekerjaan yang akan Anda laksanakan di dalam sistem.",
+              "action": "Periksa badge peran yang biasanya ditampilkan di pojok kanan atas layar antarmuka."
+            },
+            {
+              "step": 3,
+              "title": "Navigasi Menu Utama",
+              "description": "Gunakan panel navigasi atau bilah sisi (sidebar) yang intuitif sebagai pusat kendali utama Anda untuk mengakses berbagai fitur, modul, dan halaman pengelolaan yang ada di dalam sistem.",
+              "action": "Klik pada menu yang diinginkan dari daftar yang tersedia di bilah sisi."
+            }
+          ]
+        },
+        {
+          "id": "authentication",
+          "title": "Mekanisme Autentikasi dan Keamanan",
+          "summary": "Penjelasan mendalam mengenai mekanisme login yang diterapkan, protokol keamanan, serta kebijakan yang mengatur perlindungan akun pengguna.",
+          "content": "Sistem ini mengimplementasikan metode autentikasi modern berbasis JSON Web Token (JWT) yang aman, dilengkapi dengan mekanisme refresh token untuk menjaga sesi pengguna tetap valid tanpa harus login berulang kali. Sesi pengguna secara default memiliki durasi aktif selama 24 jam. Apabila terdeteksi adanya aktivitas dari pengguna sebelum sesi berakhir, sistem akan secara otomatis memperpanjang durasi sesi tersebut untuk memastikan kenyamanan penggunaan dan kontinuitas kerja.",
+          "tags": ["autentikasi", "keamanan", "jwt", "sesi"],
+          "security": {
+            "sessionDuration": "24 jam",
+            "refreshToken": "7 hari",
+            "passwordPolicy": "Kata sandi wajib memiliki panjang minimal 8 karakter dan harus merupakan kombinasi dari huruf (baik huruf besar maupun kecil), angka, serta setidaknya satu karakter simbol (contoh: @, #, $, %)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "roles",
+      "title": "Manajemen Peran & Hak Akses",
+      "description": "Penjelasan rinci mengenai definisi setiap peran pengguna dalam sistem beserta matriks perizinan (permission matrix) yang mengatur hak akses mereka terhadap berbagai modul.",
+      "icon": "Shield",
+      "items": [
+        {
+          "id": "role_super_admin",
+          "title": "Super Admin",
+          "summary": "Merupakan peran dengan otoritas tertinggi, biasanya dipegang oleh pemilik program atau penanggung jawab utama.",
+          "content": "Peran Super Admin memegang otoritas tertinggi dalam hierarki sistem. Peran ini secara eksklusif dipegang oleh Steering Committee dari Bank Indonesia sebagai pemilik program. Super Admin memiliki akses tanpa batas ke seluruh fitur, modul, dan data, serta memiliki kewenangan penuh untuk mengubah konfigurasi fundamental sistem, mengelola semua akun pengguna, dan membuat keputusan strategis.",
+          "tags": ["peran", "akses", "otoritas", "pengaturan"],
+          "permissions": {
+            "dashboard": ["melihat", "menulis", "menghapus", "mengonfigurasi"],
+            "beasiswa": ["membuat", "melihat", "memperbarui", "menghapus", "menyetujui", "menolak"],
+            "aktivitas": ["membuat", "melihat", "memperbarui", "menghapus", "menerbitkan"],
+            "artikel": ["membuat", "melihat", "memperbarui", "menghapus", "menerbitkan"],
+            "users": ["membuat", "melihat", "memperbarui", "menghapus", "mengelola_peran"],
+            "cms": ["membuat", "melihat", "memperbarui", "menghapus", "menerbitkan"],
+            "system": ["mengonfigurasi", "mencadangkan", "memulihkan", "melihat_log"]
+          },
+          "responsibilities": [
+            "Melakukan pengawasan menyeluruh terhadap seluruh operasi dan aktivitas dalam sistem.",
+            "Memberikan persetujuan akhir untuk kebijakan baru dan perubahan signifikan pada sistem.",
+            "Melakukan pemantauan secara berkala terhadap performa, keamanan, dan kesehatan sistem.",
+            "Bertanggung jawab penuh atas manajemen akun pengguna dan penetapan peran."
+          ]
+        },
+        {
+          "id": "role_admin",
+          "title": "Admin",
+          "summary": "Bertindak sebagai pengelola teknis platform yang bertanggung jawab atas operasional harian sistem.",
+          "content": "Peran Admin dipegang oleh tim Developer atau IT yang memiliki tanggung jawab utama atas pemeliharaan teknis dan kelancaran operasional sistem. Mereka bekerja di bawah arahan langsung dari Super Admin dan berfokus pada aspek-aspek teknis seperti perbaikan bug, pembaruan sistem, dan manajemen database, tanpa terlibat dalam pengambilan keputusan strategis terkait program.",
+          "tags": ["peran", "teknis", "pemeliharaan", "developer"],
+          "permissions": {
+            "dashboard": ["melihat", "mengonfigurasi"],
+            "beasiswa": ["melihat", "memperbarui"],
+            "aktivitas": ["melihat", "memperbarui"],
+            "artikel": ["melihat", "memperbarui"],
+            "users": ["melihat", "memperbarui"],
+            "cms": ["membuat", "melihat", "memperbarui", "menghapus"],
+            "system": ["mode_perawatan", "melihat_log", "mencadangkan"]
+          },
+          "responsibilities": [
+            "Melaksanakan pemeliharaan sistem rutin dan melakukan pembaruan (update) perangkat lunak.",
+            "Mengidentifikasi, mendiagnosis, dan memperbaiki bug atau masalah teknis (troubleshooting).",
+            "Mengelola dan mengoptimalkan database untuk memastikan performa dan integritas data.",
+            "Melakukan pemantauan performa server dan aplikasi secara berkelanjutan."
+          ]
+        },
+        {
+          "id": "role_reviewer",
+          "title": "Reviewer",
+          "summary": "Bertugas melakukan verifikasi, evaluasi, dan seleksi awal terhadap aplikasi beasiswa yang masuk.",
+          "content": "Peran Reviewer diemban oleh Tim Seleksi yang ditugaskan secara khusus untuk melakukan peninjauan dan evaluasi mendalam terhadap setiap aplikasi beasiswa yang diajukan. Mereka bekerja berdasarkan kriteria yang telah ditetapkan dan melapor langsung kepada Super Admin dengan memberikan skor serta rekomendasi keputusan (diterima atau ditolak) untuk setiap kandidat.",
+          "tags": ["peran", "seleksi", "review", "evaluasi"],
+          "permissions": {
+            "dashboard": ["melihat"],
+            "beasiswa": ["melihat", "mereview", "memberi_komentar", "memberi_rekomendasi"],
+            "users": ["melihat_pendaftar"],
+            "reports": ["membuat", "melihat"]
+          },
+          "workflow": [
+            "Menerima alokasi atau penugasan aplikasi beasiswa yang harus ditinjau.",
+            "Melakukan proses evaluasi secara objektif berdasarkan kriteria seleksi yang telah ditentukan.",
+            "Memberikan catatan, komentar konstruktif, dan skor kuantitatif pada setiap aplikasi.",
+            "Mengirimkan hasil review beserta rekomendasi akhir kepada sistem untuk proses approval lebih lanjut."
+          ],
+          "evaluation_criteria": [
+            "Kelengkapan dan keabsahan dokumen administrasi yang dilampirkan.",
+            "Evaluasi performa akademik berdasarkan transkrip nilai dan prestasi.",
+            "Penilaian kebutuhan finansial calon penerima beasiswa.",
+            "Kualitas dan substansi dari esai atau personal statement yang ditulis."
+          ]
+        },
+        {
+          "id": "role_advisor",
+          "title": "Advisor",
+          "summary": "Memberikan persetujuan final (approval) terhadap kandidat, biasanya dipegang oleh pimpinan atau pembina.",
+          "content": "Peran Advisor dipegang oleh Pimpinan Kampus atau Pejabat Bank Indonesia yang memiliki wewenang untuk memberikan persetujuan final. Mereka meninjau daftar kandidat yang telah direkomendasikan oleh para Reviewer dan membuat keputusan akhir yang mengikat mengenai siapa saja yang berhak menerima beasiswa.",
+          "tags": ["peran", "persetujuan", "final", "pimpinan"],
+          "permissions": {
+            "dashboard": ["melihat", "melihat_laporan"],
+            "beasiswa": ["melihat_rekomendasi", "menyetujui", "menolak"],
+            "reports": ["melihat", "ringkasan"]
+          },
+          "workflow": [
+            "Melakukan peninjauan ulang terhadap daftar pendek (shortlist) kandidat yang direkomendasikan.",
+            "Mengevaluasi laporan ringkasan dan analisis yang telah disiapkan oleh tim Reviewer.",
+            "Memberikan keputusan final untuk setiap kandidat: Disetujui (Approved) atau Ditolak (Rejected).",
+            "Memberikan tanda tangan digital atau pengesahan resmi pada dokumentasi hasil keputusan."
+          ]
+        },
+        {
+          "id": "role_student",
+          "title": "Student",
+          "summary": "Merupakan peran dasar untuk semua pengguna yang mendaftar beasiswa atau mengikuti program.",
+          "content": "Ini adalah peran standar yang diberikan kepada semua client atau pengguna yang pertama kali membuat akun di platform. Peran ini memungkinkan mereka untuk mendaftar pada program beasiswa yang sedang dibuka, mengikuti aktivitas yang tersedia, dan mengelola profil serta dokumen pribadi mereka.",
+          "tags": ["peran", "pengguna", "mahasiswa"],
+          "permissions": {
+            "profile": ["melihat", "memperbarui"],
+            "applications": ["membuat", "melihat", "memperbarui_draf"],
+            "documents": ["mengunggah", "melihat", "memperbarui"],
+            "activities": ["melihat", "mendaftar"]
+          },
+          "features_available": [
+            "Manajemen profil pribadi dan data akademik.",
+            "Fasilitas untuk mengunggah dan mengelola dokumen pendukung.",
+            "Pelacakan status aplikasi beasiswa secara real-time.",
+            "Pendaftaran untuk berbagai kegiatan dan acara yang diselenggarakan.",
+            "Pusat notifikasi untuk semua pembaruan penting."
+          ]
+        },
+        {
+          "id": "role_awardee",
+          "title": "Awardee",
+          "summary": "Peran khusus untuk penerima beasiswa yang memberikan akses ke fitur komunitas dan konten eksklusif.",
+          "content": "Peran Awardee diberikan secara otomatis kepada mahasiswa yang aplikasinya telah disetujui dan secara resmi diterima sebagai penerima beasiswa. Peran ini membuka akses ke berbagai fitur tambahan yang tidak tersedia untuk peran Student, seperti forum komunitas, marketplace, dan konten eksklusif yang dirancang untuk pengembangan diri mereka.",
+          "tags": ["peran", "penerima", "komunitas", "eksklusif"],
+          "permissions": {
+            "profile": ["melihat", "memperbarui"],
+            "community": ["melihat", "membuat", "memperbarui", "berinteraksi"],
+            "marketplace": ["melihat", "membuat", "bertransaksi"],
+            "events": ["melihat", "mendaftar", "membuat"],
+            "exclusive_content": ["melihat"]
+          },
+          "exclusive_features": [
+            "Akses penuh ke jaringan alumni untuk koneksi profesional.",
+            "Partisipasi dalam program mentorship dengan para senior dan profesional.",
+            "Akses ke sumber daya pengembangan karir seperti informasi lowongan kerja.",
+            "Undangan eksklusif untuk mengikuti lokakarya dan seminar premium."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dashboard",
+      "title": "Dasbor Utama",
+      "description": "Menyajikan ringkasan visual dari data dan metrik kunci untuk pemantauan sistem secara keseluruhan.",
+      "icon": "LayoutGrid",
+      "items": [
+        {
+          "id": "dashboard_overview",
+          "title": "Ringkasan Dasbor",
+          "summary": "Tampilan utama yang menyajikan statistik vital dan metrik-metrik penting dalam bentuk visual yang mudah dipahami.",
+          "content": "Dasbor utama menyediakan pandangan komprehensif dari semua aktivitas vital yang terjadi di dalam sistem. Ini mencakup statistik pendaftaran beasiswa secara real-time, grafik aktivitas pengguna, indikator kesehatan sistem, dan pintasan cepat ke fungsi-fungsi yang paling sering digunakan.",
+          "tags": ["dasbor", "ringkasan", "statistik"],
+          "widgets": [
+            {
+              "name": "Total Aplikasi Masuk",
+              "type": "counter",
+              "description": "Menampilkan jumlah total aplikasi beasiswa yang telah diajukan di semua program."
+            },
+            {
+              "name": "Pengguna Aktif",
+              "type": "counter",
+              "description": "Menghitung jumlah pengguna unik yang login dan aktif dalam 30 hari terakhir."
+            },
+            {
+              "name": "Review Tertunda",
+              "type": "counter",
+              "description": "Menunjukkan jumlah aplikasi yang telah diajukan namun masih menunggu untuk direview."
+            },
+            {
+              "name": "Tren Aplikasi Beasiswa",
+              "type": "chart",
+              "description": "Menampilkan grafik tren volume aplikasi yang masuk dari bulan ke bulan untuk analisis."
+            }
+          ]
+        },
+        {
+          "id": "dashboard_analytics",
+          "title": "Analitik & Laporan",
+          "summary": "Menyediakan fitur analitik data mendalam dan kemampuan untuk menghasilkan laporan yang dapat dikustomisasi.",
+          "content": "Fitur analitik ini memungkinkan pengguna dengan hak akses tertentu untuk mendapatkan wawasan mendalam mengenai performa program, tingkat konversi pendaftaran, pola perilaku pengguna, dan demografi pendaftar. Laporan dapat dihasilkan dan diekspor dalam berbagai format.",
+          "tags": ["analitik", "laporan", "wawasan"],
+          "reports_available": ["Laporan Aplikasi Bulanan", "Laporan Keterlibatan Pengguna", "Laporan Distribusi Beasiswa Berdasarkan Wilayah/Universitas", "Laporan Partisipasi Aktivitas Mahasiswa"]
+        }
+      ]
+    },
+    {
+      "id": "beasiswa",
+      "title": "Manajemen Beasiswa",
+      "description": "Modul lengkap untuk mengelola seluruh siklus hidup program beasiswa, dari pembuatan program hingga seleksi penerima.",
+      "icon": "GraduationCap",
+      "items": [
+        {
+          "id": "beasiswa_program",
+          "title": "Pengelolaan Program Beasiswa",
+          "summary": "Memungkinkan admin untuk membuat, mengedit, dan mengelola berbagai jenis program beasiswa.",
+          "content": "Modul ini berfungsi sebagai pusat kendali untuk membuat, memperbarui, dan mengelola berbagai program beasiswa. Setiap program dapat memiliki kriteria kelayakan, linimasa pendaftaran, dan alur proses seleksi yang berbeda dan dapat dikonfigurasi secara fleksibel.",
+          "tags": ["beasiswa", "program", "manajemen"],
+          "features": [
+            "Membuat program beasiswa baru dengan detail lengkap.",
+            "Menetapkan kriteria kelayakan (eligibility) yang spesifik.",
+            "Mendefinisikan linimasa dan periode pendaftaran.",
+            "Mengonfigurasi tahapan dan alur proses seleksi.",
+            "Mengelola dan membatasi kuota jumlah pendaftar."
+          ],
+          "workflow": [
+            {
+              "step": "Pembuatan Program",
+              "description": "Mengatur informasi dasar program, persyaratan yang dibutuhkan, dan linimasa keseluruhan."
+            },
+            {
+              "step": "Definisi Kriteria",
+              "description": "Mendefinisikan kriteria kelayakan baik dari segi akademik, finansial, maupun persyaratan lainnya."
+            },
+            {
+              "step": "Periode Pendaftaran",
+              "description": "Menetapkan tanggal dan waktu pembukaan serta penutupan pendaftaran secara presisi."
+            },
+            {
+              "step": "Proses Review",
+              "description": "Mengonfigurasi alur kerja proses review dan menugaskan reviewer ke program tersebut."
+            }
+          ]
+        },
+        {
+          "id": "beasiswa_applications",
+          "title": "Pengelolaan Aplikasi Beasiswa",
+          "summary": "Antarmuka khusus untuk melakukan review, penilaian, dan pengelolaan aplikasi yang masuk dari para pendaftar.",
+          "content": "Menyediakan antarmuka yang terstruktur dan efisien bagi para Reviewer untuk melakukan evaluasi mendalam terhadap setiap aplikasi. Fitur ini mencakup sistem penilaian (scoring), kolom komentar, dan alat untuk membuat rekomendasi keputusan kepada Advisor.",
+          "tags": ["aplikasi", "review", "evaluasi"],
+          "application_status": [
+            {
+              "status": "Draf",
+              "description": "Aplikasi sedang dalam proses pengisian oleh mahasiswa dan belum diserahkan."
+            },
+            {
+              "status": "Terkirim",
+              "description": "Aplikasi telah final diserahkan oleh mahasiswa dan sedang dalam antrian untuk direview."
+            },
+            {
+              "status": "Dalam Review",
+              "description": "Aplikasi sedang aktif dalam proses peninjauan dan evaluasi oleh tim Reviewer."
+            },
+            {
+              "status": "Telah Direview",
+              "description": "Proses review telah selesai dan hasilnya sedang menunggu persetujuan akhir dari Advisor."
+            },
+            {
+              "status": "Disetujui",
+              "description": "Aplikasi telah disetujui oleh Advisor dan mahasiswa dinyatakan sebagai penerima beasiswa."
+            },
+            {
+              "status": "Ditolak",
+              "description": "Aplikasi ditolak setelah melalui proses review dan approval, dengan alasan yang tercatat."
+            }
+          ],
+          "review_process": {
+            "scoring_criteria": ["Pencapaian Akademik (Bobot 30%)", "Kebutuhan Finansial (Bobot 25%)", "Kualitas Esai/Personal Statement (Bobot 20%)", "Aktivitas Ekstrakurikuler & Organisasi (Bobot 15%)", "Surat Rekomendasi (Bobot 10%)"],
+            "scoring_scale": "Menggunakan skala penilaian 1-10 untuk setiap kriteria."
+          }
+        },
+        {
+          "id": "beasiswa_selection",
+          "title": "Alat Bantu Proses Seleksi",
+          "summary": "Menyediakan perangkat canggih untuk membantu proses seleksi dan perangkingan kandidat secara efisien.",
+          "content": "Fitur ini menyediakan perangkat canggih untuk membantu tim seleksi, termasuk perangkingan kandidat secara otomatis berdasarkan skor, pembuatan daftar pendek (shortlist) dengan filter kustom, dan memfasilitasi proses pengambilan keputusan kolektif.",
+          "tags": ["seleksi", "perangkingan", "keputusan"],
+          "selection_tools": [
+            "Perangkingan otomatis berdasarkan total skor yang telah dihitung.",
+            "Opsi pemfilteran kustom berdasarkan berbagai atribut data.",
+            "Operasi massal (batch operations) untuk mempercepat pengambilan keputusan.",
+            "Kemampuan ekspor data kandidat dan hasil seleksi ke dalam format laporan."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aktivitas",
+      "title": "Manajemen Aktivitas",
+      "description": "Modul untuk mengelola berbagai acara, kegiatan, dan program pengembangan untuk mahasiswa dan penerima beasiswa.",
+      "icon": "Users",
+      "items": [
+        {
+          "id": "aktivitas_events",
+          "title": "Manajemen Acara",
+          "summary": "Memungkinkan pembuatan dan pengelolaan berbagai jenis acara atau aktivitas kemahasiswaan.",
+          "content": "Sebuah platform terintegrasi untuk membuat, menjadwalkan, mempublikasikan, dan mengelola berbagai aktivitas seperti lokakarya, seminar, acara networking, dan kegiatan komunitas lainnya. Setiap acara dapat dikonfigurasi dengan detail lengkap, termasuk deskripsi, jadwal, lokasi, dan pembicara.",
+          "tags": ["acara", "aktivitas", "manajemen"],
+          "event_types": ["Lokakarya (Workshop)", "Seminar", "Acara Jaringan (Networking Event)", "Pengabdian Masyarakat", "Pameran Karir (Career Fair)", "Pertemuan Alumni"],
+          "event_features": [
+            "Pembuatan acara dengan informasi yang sangat detail dan deskriptif.",
+            "Manajemen pendaftaran peserta secara online.",
+            "Pengaturan batas kapasitas peserta dan sistem daftar tunggu (waitlist).",
+            "Notifikasi email otomatis untuk pendaftar dan peserta.",
+            "Sistem check-in/check-out peserta (misalnya, dengan kode QR).",
+            "Pengumpulan umpan balik dan survei pasca-acara."
+          ]
+        },
+        {
+          "id": "aktivitas_registration",
+          "title": "Manajemen Registrasi Peserta",
+          "summary": "Mengelola proses pendaftaran, partisipasi, dan kehadiran peserta dalam setiap acara yang diselenggarakan.",
+          "content": "Sistem ini dirancang untuk mengelola seluruh alur registrasi peserta, melacak tingkat kehadiran secara akurat, dan memantau tingkat partisipasi di berbagai acara untuk evaluasi efektivitas program.",
+          "tags": ["registrasi", "partisipasi", "kehadiran"],
+          "registration_features": [
+            "Formulir pendaftaran online yang dapat disesuaikan.",
+            "Integrasi dengan sistem pembayaran (jika acara berbayar).",
+            "Manajemen daftar tunggu (waitlist) otomatis jika kapasitas penuh.",
+            "Email konfirmasi pendaftaran otomatis kepada peserta.",
+            "Pembuatan kode QR unik untuk setiap peserta guna mempermudah proses check-in."
+          ]
+        },
+        {
+          "id": "aktivitas_reporting",
+          "title": "Pelaporan Aktivitas",
+          "summary": "Menyediakan analitik dan laporan mendalam mengenai pelaksanaan dan keberhasilan setiap kegiatan.",
+          "content": "Menyediakan perangkat pelaporan yang komprehensif untuk melacak keberhasilan acara, menganalisis tingkat partisipasi, merangkum skor umpan balik dari peserta, dan melakukan analisis Return on Investment (ROI) untuk setiap kegiatan yang dilaksanakan.",
+          "tags": ["laporan", "analitik", "umpan balik"],
+          "report_types": ["Laporan Kehadiran Acara", "Ringkasan Umpan Balik Peserta", "Analisis ROI Acara", "Peringkat Acara Terpopuler"]
+        }
+      ]
+    },
+    {
+      "id": "artikel",
+      "title": "Manajemen Artikel",
+      "description": "Sistem manajemen konten (CMS) yang didedikasikan untuk pembuatan, pengelolaan, dan publikasi artikel atau postingan blog.",
+      "icon": "Newspaper",
+      "items": [
+        {
+          "id": "artikel_editor",
+          "title": "Editor Konten",
+          "summary": "Menyediakan editor teks kaya fitur (rich text editor) untuk membuat dan memformat artikel secara intuitif.",
+          "content": "Editor WYSIWYG (What You See Is What You Get) canggih yang mendukung penyisipan konten multimedia (gambar, video), opsi pemformatan teks yang luas, dan dilengkapi dengan alat optimasi SEO dasar untuk membantu penulis menghasilkan konten yang berkualitas dan ramah mesin pencari.",
+          "tags": ["editor", "konten", "wysiwyg"],
+          "editor_features": [
+            "Pemformatan teks kaya (bold, italic, list, dll.).",
+            "Fasilitas unggah gambar dan media lainnya.",
+            "Penyorotan sintaks untuk blok kode (code syntax highlighting).",
+            "Pembuatan tabel yang mudah.",
+            "Manajemen tautan internal dan eksternal.",
+            "Pengisian meta tag SEO (judul dan deskripsi).",
+            "Penyimpanan draf otomatis untuk mencegah kehilangan data."
+          ]
+        },
+        {
+          "id": "artikel_publishing",
+          "title": "Alur Kerja Penerbitan",
+          "summary": "Menjelaskan alur kerja editorial mulai dari draf, proses review, hingga publikasi artikel.",
+          "content": "Sistem ini menerapkan alur kerja editorial yang terstruktur, mendukung berbagai status artikel seperti draf, dalam peninjauan, disetujui, hingga diterbitkan. Fitur ini juga mendukung penjadwalan publikasi di masa depan dan menyimpan riwayat versi (version control) untuk setiap perubahan.",
+          "tags": ["penerbitan", "alur kerja", "editorial"],
+          "publishing_states": [
+            {
+              "state": "Draf",
+              "description": "Artikel sedang dalam proses penulisan dan hanya dapat dilihat oleh penulisnya."
+            },
+            {
+              "state": "Dalam Peninjauan",
+              "description": "Artikel telah diserahkan untuk ditinjau dan dievaluasi oleh editor."
+            },
+            {
+              "state": "Disetujui",
+              "description": "Artikel telah disetujui oleh editor dan siap untuk dijadwalkan atau diterbitkan."
+            },
+            {
+              "state": "Diterbitkan",
+              "description": "Artikel sudah tayang di website dan dapat diakses oleh publik."
+            },
+            {
+              "state": "Diarsipkan",
+              "description": "Artikel telah ditarik dari tampilan publik namun tetap tersimpan di dalam sistem."
+            }
+          ]
+        },
+        {
+          "id": "artikel_seo",
+          "title": "Optimasi SEO",
+          "summary": "Menyediakan alat bantu terintegrasi untuk mengoptimalkan artikel agar lebih mudah ditemukan di mesin pencari.",
+          "content": "Fitur SEO bawaan yang membantu mengoptimalkan visibilitas artikel di mesin pencari. Ini termasuk kemampuan untuk mengedit meta tag, menganalisis kepadatan kata kunci, dan melihat pratinjau tampilan artikel saat dibagikan di media sosial.",
+          "tags": ["seo", "optimasi", "visibilitas"],
+          "seo_tools": [
+            "Penyuntingan Meta Title dan Description.",
+            "Analisis kepadatan kata kunci (Keyword Density).",
+            "Skor keterbacaan (Readability Score) konten.",
+            "Pratinjau tampilan di Media Sosial (Social Media Preview).",
+            "Pembuatan Schema Markup otomatis untuk rich snippets."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "users",
+      "title": "Manajemen Pengguna",
+      "description": "Modul yang didedikasikan untuk administrasi akun pengguna, termasuk penetapan peran dan perizinan.",
+      "icon": "User2",
+      "items": [
+        {
+          "id": "user_management",
+          "title": "Pengelolaan Akun Pengguna",
+          "summary": "Menyediakan operasi CRUD (Create, Read, Update, Delete) yang lengkap untuk semua akun pengguna.",
+          "content": "Sistem manajemen pengguna yang komprehensif untuk membuat, membaca, memperbarui, dan menghapus akun pengguna. Dilengkapi dengan fitur operasi massal, impor pengguna dari file CSV/Excel, dan opsi pemfilteran lanjutan untuk memudahkan pengelolaan.",
+          "tags": ["pengguna", "crud", "manajemen"],
+          "user_operations": [
+            "Membuat akun pengguna baru secara individual.",
+            "Impor pengguna secara massal dari file CSV/Excel.",
+            "Memperbarui informasi dan detail pengguna.",
+            "Menonaktifkan atau mengaktifkan kembali akun pengguna.",
+            "Manajemen proses reset kata sandi untuk pengguna.",
+            "Penanganan status verifikasi email."
+          ],
+          "user_fields": ["Informasi Pribadi (Nama, Email, Telepon).", "Informasi Akademik (Universitas, Jurusan, Angkatan).", "Pengaturan Akun (Peran, Status, Perizinan Kustom).", "Status Kelengkapan Profil Pengguna."]
+        },
+        {
+          "id": "role_assignment",
+          "title": "Penetapan Peran",
+          "summary": "Antarmuka untuk mengelola peran (roles) dan perizinan (permissions) yang dimiliki oleh setiap pengguna.",
+          "content": "Menyediakan antarmuka visual untuk menetapkan dan mengubah peran pengguna, memberikan perizinan kustom yang melampaui pengaturan default peran, dan mengelola hierarki peran. Setiap perubahan peran atau perizinan dicatat dalam jejak audit (audit trail) untuk keamanan.",
+          "tags": ["peran", "perizinan", "penugasan"],
+          "role_management": [
+            "Menetapkan peran primer dan sekunder kepada pengguna.",
+            "Menetapkan perizinan kustom (overrides) untuk kasus-kasus khusus.",
+            "Penetapan peran secara massal untuk banyak pengguna sekaligus.",
+            "Pelacakan riwayat perubahan peran untuk setiap pengguna.",
+            "Tampilan matriks perizinan untuk visualisasi hak akses."
+          ]
+        },
+        {
+          "id": "user_analytics",
+          "title": "Analitik Pengguna",
+          "summary": "Menyajikan data analitik dan wawasan mendalam mengenai perilaku dan aktivitas pengguna di dalam sistem.",
+          "content": "Fitur analitik canggih untuk memahami tingkat keterlibatan pengguna, pola aktivitas mereka, fitur apa yang paling sering digunakan, dan statistik penggunaan sistem secara keseluruhan untuk membantu pengambilan keputusan strategis.",
+          "tags": ["analitik", "perilaku", "wawasan"],
+          "analytics_metrics": [
+            "Linimasa aktivitas pengguna secara individual.",
+            "Statistik penggunaan setiap fitur atau modul.",
+            "Pola frekuensi login dan waktu aktif pengguna.",
+            "Tingkat penyelesaian aplikasi beasiswa.",
+            "Analisis retensi dan tingkat churn pengguna."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cms",
+      "title": "Manajemen Konten (CMS)",
+      "description": "Modul untuk mengelola konten website publik, seperti halaman arahan (landing pages) dan halaman informasi.",
+      "icon": "ChartNoAxesGantt",
+      "items": [
+        {
+          "id": "cms_pages",
+          "title": "Manajemen Halaman",
+          "summary": "Mengelola semua halaman statis dan halaman arahan (landing pages) yang ada di website.",
+          "content": "Menyediakan pembangun halaman visual (visual page builder) yang memungkinkan pengguna non-teknis untuk membuat dan mengedit halaman arahan, halaman 'Tentang Kami', dan konten statis lainnya dengan antarmuka seret-dan-lepas (drag-and-drop) yang intuitif.",
+          "tags": ["halaman", "pembangun", "statis"],
+          "page_types": ["Halaman Arahan (Landing Pages)", "Halaman Tentang Kami", "Halaman Informasi Program", "Halaman FAQ (Frequently Asked Questions)", "Halaman Kontak", "Halaman Syarat & Ketentuan dan Kebijakan Privasi"],
+          "builder_features": [
+            "Pembangun halaman dengan antarmuka seret-dan-lepas (drag-and-drop).",
+            "Pustaka komponen pra-bangun (misalnya, tombol, galeri, formulir).",
+            "Alat untuk memastikan desain yang responsif di berbagai perangkat.",
+            "Dukungan untuk penambahan kode CSS/HTML kustom.",
+            "Kemampuan untuk melakukan pengujian A/B pada desain halaman."
+          ]
+        },
+        {
+          "id": "cms_media",
+          "title": "Pustaka Media",
+          "summary": "Berfungsi sebagai repositori terpusat untuk mengelola semua aset multimedia.",
+          "content": "Sebuah sistem manajemen media terpusat untuk menyimpan, mengatur, dan mengelola gambar, video, dan dokumen. Dilengkapi dengan fitur optimasi otomatis dan integrasi dengan Content Delivery Network (CDN) untuk mempercepat waktu muat.",
+          "tags": ["media", "aset", "optimasi"],
+          "media_features": [
+            "Pengunggahan file secara massal (bulk upload).",
+            "Optimasi gambar otomatis untuk web.",
+            "Transcoding video ke berbagai format.",
+            "Pengorganisasian file menggunakan folder dan tag.",
+            "Pelacakan penggunaan setiap aset media.",
+            "Integrasi dengan Content Delivery Network (CDN)."
+          ]
+        },
+        {
+          "id": "cms_navigation",
+          "title": "Manajemen Navigasi",
+          "summary": "Mengelola struktur menu dan navigasi utama pada website publik.",
+          "content": "Menyediakan antarmuka yang mudah digunakan untuk mengatur dan memodifikasi navigasi website, struktur menu, tautan, dan alur perjalanan pengguna (user journey) di seluruh situs.",
+          "tags": ["navigasi", "menu", "struktur"],
+          "navigation_features": [
+            "Pembuatan menu dengan struktur hierarkis (sub-menu).",
+            "Dukungan untuk navigasi multi-level.",
+            "Optimasi menu untuk tampilan mobile.",
+            "Analitik untuk melihat menu mana yang paling sering diklik.",
+            "Pengujian A/B untuk struktur menu yang berbeda."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "panduan",
+      "title": "Panduan Penggunaan Detail",
+      "description": "Kumpulan tutorial langkah-demi-langkah dan praktik terbaik (best practices) untuk penggunaan sistem yang efektif.",
+      "icon": "BookOpen",
+      "items": [
+        {
+          "id": "panduan_login",
+          "title": "Panduan Login & Autentikasi",
+          "summary": "Menjelaskan cara masuk ke dalam sistem dengan aman dan mengelola keamanan akun Anda.",
+          "content": "Panduan langkah-demi-langkah yang mencakup proses login, pemulihan kata sandi, pengaturan autentikasi dua faktor (2FA), dan berbagai tips penting untuk menjaga keamanan akun Anda dari akses yang tidak sah.",
+          "tags": ["login", "autentikasi", "keamanan"],
+          "login_steps": [
+            {
+              "step": 1,
+              "title": "Akses Halaman Login",
+              "description": "Buka peramban web (browser) Anda dan navigasikan ke alamat URL sistem yang telah ditentukan.",
+              "tips": "Sangat disarankan untuk menggunakan peramban web versi terbaru untuk performa dan keamanan terbaik."
+            },
+            {
+              "step": 2,
+              "title": "Masukkan Kredensial",
+              "description": "Masukkan alamat email dan kata sandi yang telah terdaftar dan terkait dengan akun Anda.",
+              "tips": "Kata sandi bersifat case-sensitive, pastikan tombol Caps Lock pada keyboard Anda tidak aktif."
+            },
+            {
+              "step": 3,
+              "title": "Verifikasi 2FA (jika aktif)",
+              "description": "Jika autentikasi dua faktor diaktifkan, masukkan kode verifikasi yang dihasilkan oleh aplikasi authenticator Anda.",
+              "tips": "Jika Anda tidak dapat mengakses kode, segera hubungi admin untuk meminta reset."
+            }
+          ],
+          "troubleshooting": [
+            {
+              "problem": "Lupa Kata Sandi",
+              "solution": "Klik tautan 'Lupa Kata Sandi' di halaman login, masukkan email Anda, dan ikuti instruksi yang dikirimkan ke email tersebut."
+            },
+            {
+              "problem": "Akun Terkunci",
+              "solution": "Akun akan terkunci setelah beberapa kali gagal login. Tunggu selama 15 menit agar terbuka otomatis atau hubungi admin untuk bantuan lebih cepat."
+            }
+          ]
+        },
+        {
+          "id": "panduan_dashboard",
+          "title": "Navigasi dan Kustomisasi Dasbor",
+          "summary": "Panduan lengkap tentang cara menggunakan dan memahami berbagai komponen yang ada di dasbor.",
+          "content": "Panduan komprehensif untuk membantu Anda menavigasi dasbor secara efisien, memahami setiap widget statistik, menyesuaikan tampilan sesuai preferensi Anda, dan memaksimalkan produktivitas kerja Anda di dalam sistem.",
+          "tags": ["dasbor", "navigasi", "produktivitas"],
+          "dashboard_components": [
+            {
+              "component": "Navigasi Sidebar",
+              "description": "Ini adalah menu utama yang menyediakan akses ke semua fitur dan modul dalam sistem.",
+              "usage": "Cukup klik pada item menu untuk bernavigasi ke halaman yang Anda inginkan."
+            },
+            {
+              "component": "Widget Statistik",
+              "description": "Kartu-kartu ini menampilkan metrik kunci dan Key Performance Indicators (KPI) secara visual.",
+              "usage": "Arahkan kursor ke atas widget untuk detail lebih lanjut, atau klik untuk melihat data yang lebih dalam (drill-down)."
+            },
+            {
+              "component": "Aktivitas Terbaru",
+              "description": "Menampilkan linimasa dari aktivitas-aktivitas terbaru yang terjadi di dalam sistem.",
+              "usage": "Gunakan ini untuk memantau perubahan data dan pembaruan penting secara real-time."
+            }
+          ]
+        },
+        {
+          "id": "panduan_best_practices",
+          "title": "Praktik Terbaik Penggunaan Sistem",
+          "summary": "Kumpulan rekomendasi dan praktik terbaik yang disarankan saat menggunakan sistem.",
+          "content": "Berisi kumpulan praktik terbaik, tips, dan rekomendasi yang dirancang untuk membantu Anda menggunakan sistem secara optimal, menjaga kualitas data, dan meningkatkan efisiensi kerja sehari-hari.",
+          "tags": ["praktik terbaik", "tips", "optimasi"],
+          "practices": [
+            {
+              "category": "Entri Data",
+              "tips": [
+                "Selalu lakukan pencadangan (backup) data penting sebelum melakukan operasi massal.",
+                "Gunakan konvensi penamaan yang konsisten untuk menjaga keteraturan data.",
+                "Lakukan validasi ulang terhadap data yang Anda masukkan sebelum mengirimkannya.",
+                "Lakukan pembersihan data secara berkala untuk menjaga performa sistem."
+              ]
+            },
+            {
+              "category": "Keamanan",
+              "tips": [
+                "Selalu logout dari sistem setelah Anda selesai menggunakannya, terutama di komputer publik.",
+                "Jangan pernah membagikan kredensial login Anda dengan siapa pun.",
+                "Segera laporkan aktivitas mencurigakan yang Anda temui kepada admin.",
+                "Perbarui kata sandi Anda secara berkala, misalnya setiap 3 bulan sekali."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "api-reference",
+      "title": "Referensi API",
+      "description": "Dokumentasi teknis yang ditujukan bagi para developer untuk berinteraksi dengan sistem secara terprogram.",
+      "icon": "Code",
+      "items": [
+        {
+          "id": "api_authentication",
+          "title": "Autentikasi API",
+          "summary": "Menjelaskan alur autentikasi dan otorisasi untuk mengakses endpoint API.",
+          "content": "Dokumentasi teknis yang lengkap mengenai alur autentikasi API menggunakan JWT (JSON Web Tokens), mekanisme pembaruan token (refresh mechanisms), dan praktik terbaik keamanan yang harus diikuti saat berintegrasi dengan API.",
+          "tags": ["api", "autentikasi", "jwt"],
+          "authentication_flow": {
+            "login": {
+              "endpoint": "POST /api/auth/login",
+              "parameters": {
+                "email": "string (wajib)",
+                "password": "string (wajib)"
+              },
+              "response": {
+                "access_token": "Token JWT untuk akses API.",
+                "refresh_token": "Token untuk memperbarui akses.",
+                "expires_in": "Waktu kedaluwarsa token dalam detik.",
+                "user": "Objek pengguna dengan informasi dasar."
+              }
+            }
+          },
+          "codeExample": {
+            "language": "javascript",
+            "code": "// Permintaan login\nconst response = await fetch('/api/auth/login', {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    email: 'user@example.com',\n    password: 'password123'\n  })\n});\n\nconst { access_token, refresh_token } = await response.json();\n\n// Gunakan token pada permintaan berikutnya\nconst apiResponse = await fetch('/api/beasiswa', {\n  headers: {\n    'Authorization': `Bearer ${access_token}`\n  }\n});"
+          }
+        },
+        {
+          "id": "api_beasiswa",
+          "title": "API Beasiswa",
+          "summary": "Kumpulan endpoint yang berkaitan dengan manajemen program beasiswa.",
+          "content": "Dokumentasi API yang lengkap untuk operasi CRUD (Create, Read, Update, Delete) pada data program beasiswa, aplikasi yang masuk, dan proses review yang terkait.",
+          "tags": ["api", "beasiswa", "endpoint"],
+          "endpoints": [
+            {
+              "method": "GET",
+              "path": "/api/beasiswa",
+              "description": "Mengambil daftar semua program beasiswa.",
+              "parameters": {
+                "page": "integer (opsional, default: 1)",
+                "limit": "integer (opsional, default: 10)",
+                "status": "string (opsional, filter berdasarkan status)",
+                "search": "string (opsional, query pencarian)"
+              },
+              "response": {
+                "data": "Array berisi objek-objek beasiswa.",
+                "pagination": "Metadata untuk paginasi."
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/beasiswa",
+              "description": "Membuat sebuah program beasiswa baru.",
+              "parameters": {
+                "title": "string (wajib)",
+                "description": "string (wajib)",
+                "eligibility_criteria": "object (wajib)",
+                "application_deadline": "datetime (wajib)",
+                "max_applicants": "integer (opsional)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "troubleshooting",
+      "title": "Penyelesaian Masalah",
+      "description": "Panduan dan solusi untuk berbagai masalah umum yang mungkin dihadapi pengguna saat menggunakan sistem.",
+      "icon": "AlertTriangle",
+      "items": [
+        {
+          "id": "common_issues",
+          "title": "Masalah Umum dan Solusinya",
+          "summary": "Menyediakan solusi langkah-demi-langkah untuk eror dan masalah yang paling sering terjadi.",
+          "content": "Kumpulan masalah yang sering ditemui oleh pengguna, disertai dengan penjelasan penyebabnya dan panduan solusi langkah-demi-langkah, serta tips pencegahan agar tidak terulang kembali.",
+          "tags": ["penyelesaian masalah", "eror", "solusi"],
+          "issues": [
+            {
+              "problem": "Gagal Mengunggah File",
+              "symptoms": ["Pesan eror 'Ukuran file terlalu besar'", "Proses unggah berhenti di 0%", "Pesan 'Format file tidak didukung'"],
+              "causes": ["Ukuran file melebihi batas maksimal (10MB)", "Format file tidak didukung oleh sistem", "Masalah koneksi jaringan yang tidak stabil"],
+              "solutions": [
+                "Kompres ukuran file atau bagi file besar menjadi beberapa bagian.",
+                "Konversi file ke format yang didukung (PDF, JPG, PNG, DOC).",
+                "Periksa stabilitas koneksi internet Anda.",
+                "Coba unggah kembali pada jam-jam tidak sibuk."
+              ]
+            },
+            {
+              "problem": "Sesi Habis (Session Timeout)",
+              "symptoms": ["Tiba-tiba diarahkan kembali ke halaman login", "Perubahan yang dibuat tidak tersimpan", "Muncul pesan eror 'Akses ditolak'"],
+              "causes": ["Tidak ada aktivitas selama lebih dari 24 jam", "Sistem sedang dalam mode pemeliharaan", "Cookie pada peramban web dinonaktifkan"],
+              "solutions": ["Login kembali menggunakan kredensial Anda.", "Aktifkan cookie di pengaturan peramban web Anda.", "Bersihkan cache dan cookie pada peramban web Anda.", "Hubungi admin jika masalah ini terus berlanjut."]
+            },
+            {
+              "problem": "Data yang Dimasukkan Tidak Tersimpan",
+              "symptoms": ["Formulir kembali kosong setelah menekan tombol simpan", "Perubahan hilang setelah me-refresh halaman", "Tidak ada pesan konfirmasi keberhasilan"],
+              "causes": ["Terjadi eror validasi yang tidak terlihat di layar", "Koneksi terputus saat proses penyimpanan", "Tidak memiliki izin yang cukup untuk menyimpan data"],
+              "solutions": [
+                "Gulir ke atas halaman untuk memeriksa pesan eror yang mungkin muncul.",
+                "Pastikan semua kolom yang wajib diisi telah terisi dengan benar.",
+                "Periksa kembali koneksi internet Anda.",
+                "Verifikasi perizinan peran Anda dengan admin."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "performance_issues",
+          "title": "Masalah Performa Sistem",
+          "summary": "Tips dan trik untuk mengoptimalkan performa dan kecepatan muat sistem di sisi pengguna.",
+          "content": "Berisi berbagai tips dan solusi yang dapat Anda terapkan untuk meningkatkan performa sistem, mengurangi waktu muat halaman, dan mengoptimalkan pengalaman pengguna secara keseluruhan.",
+          "tags": ["performa", "kecepatan", "optimasi"],
+          "optimization_tips": [
+            "Bersihkan cache peramban web secara teratur.",
+            "Gunakan versi terbaru dari peramban web modern (Chrome, Firefox, Safari).",
+            "Tutup tab yang tidak digunakan untuk membebaskan memori.",
+            "Periksa kecepatan koneksi internet Anda.",
+            "Nonaktifkan ekstensi peramban yang tidak perlu.",
+            "Gunakan koneksi kabel (wired) daripada WiFi jika memungkinkan untuk stabilitas."
+          ]
+        },
+        {
+          "id": "contact_support",
+          "title": "Menghubungi Tim Dukungan",
+          "summary": "Informasi dan prosedur tentang cara menghubungi tim dukungan teknis untuk mendapatkan bantuan.",
+          "content": "Menyediakan informasi kontak yang jelas dan prosedur yang harus diikuti ketika Anda memerlukan bantuan teknis lebih lanjut dari tim dukungan kami.",
+          "tags": ["dukungan", "kontak", "bantuan"],
+          "contact_methods": [
+            {
+              "method": "Email",
+              "contact": "support@beasiswa-system.com",
+              "response_time": "Dalam 24 jam kerja",
+              "best_for": "Masalah yang tidak mendesak, memerlukan penjelasan detail dan lampiran."
+            },
+            {
+              "method": "Live Chat",
+              "availability": "Senin-Jumat, 09:00-17:00 WIB",
+              "response_time": "Real-time",
+              "best_for": "Pertanyaan cepat, masalah yang mendesak dan butuh respons segera."
+            },
+            {
+              "method": "Telepon Dukungan",
+              "contact": "+62-21-XXXX-XXXX",
+              "availability": "Senin-Jumat, 09:00-17:00 WIB",
+              "best_for": "Masalah sistem yang kritis dan berdampak luas."
+            }
+          ],
+          "support_tips": [
+            "Sertakan tangkapan layar (screenshot) saat melaporkan masalah visual.",
+            "Jelaskan langkah-langkah untuk mereproduksi masalah yang Anda alami.",
+            "Sebutkan peran Anda dan informasi peramban web yang Anda gunakan.",
+            "Salin dan tempel pesan eror spesifik yang muncul jika ada."
+          ]
+        }
+      ]
+    }
+  ],
+  "quickAnswers": [
+    {
+      "id": "qa_login",
+      "question": "Bagaimana cara saya masuk ke dalam sistem?",
+      "answer": "Kunjungi alamat URL sistem, kemudian masukkan email dan kata sandi yang telah terdaftar pada kolom yang tersedia, lalu klik tombol 'Login'.",
+      "relatedSections": ["panduan_login", "authentication"],
+      "tags": ["login", "cepat"]
+    },
+    {
+      "id": "qa_password_reset",
+      "question": "Saya lupa kata sandi, bagaimana cara mengaturnya ulang?",
+      "answer": "Pada halaman login, klik tautan 'Lupa Kata Sandi', masukkan alamat email Anda, dan ikuti instruksi pemulihan yang dikirimkan ke kotak masuk email Anda.",
+      "relatedSections": ["panduan_login"],
+      "tags": ["kata sandi", "reset", "cepat"]
+    },
+    {
+      "id": "qa_file_upload",
+      "question": "Mengapa file saya tidak bisa diunggah?",
+      "answer": "Ada dua kemungkinan utama: ukuran file Anda melebihi batas 10MB atau format file tidak didukung. Pastikan file berformat PDF, JPG, PNG, atau DOC dan ukurannya sesuai.",
+      "relatedSections": ["common_issues"],
+      "tags": ["unggah", "file", "cepat"]
+    },
+    {
+      "id": "qa_role_permissions",
+      "question": "Bagaimana cara saya mengetahui hak akses (permissions) dari peran saya?",
+      "answer": "Anda dapat melihat badge peran Anda yang biasanya tertera di pojok kanan atas layar. Untuk detail lengkap, silakan merujuk ke bagian 'Manajemen Peran & Hak Akses' dalam dokumentasi ini.",
+      "relatedSections": ["roles"],
+      "tags": ["peran", "izin", "cepat"]
+    }
+  ],
+  "searchIndex": {
+    "keywords": ["login", "kata sandi", "reset", "unggah", "file", "peran", "izin", "beasiswa", "aplikasi", "review", "dasbor", "pengguna", "artikel", "cms", "aktivitas", "acara", "api", "autentikasi", "penyelesaian masalah"],
+    "categories": ["getting-started", "roles", "dashboard", "beasiswa", "aktivitas", "artikel", "users", "cms", "panduan", "api-reference", "troubleshooting"]
+  }
+}

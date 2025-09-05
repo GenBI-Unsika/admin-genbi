@@ -10,7 +10,7 @@ const ImageWithFallback = ({ src, alt, className, fallback }) => {
   return <img src={src || fallback || 'https://placehold.co/800x450'} alt={alt} className={className} loading="lazy" decoding="async" onError={onError} />;
 };
 
-const MediaCard = ({ title, subtitle, image, category, date, href, to, gradientClass = 'from-[var(--primary-500)] to-[var(--primary-400)]', subtitleWordsLimit = 10, badge, className = '' }) => {
+const MediaCard = ({ title, subtitle, image, description, category, date, href, to, gradientClass = 'from-[var(--primary-500)] to-[var(--primary-400)]', subtitleWordsLimit = 10, badge, className = '' }) => {
   const Wrapper = to ? Link : href ? 'a' : 'div';
   const wrapperProps = to ? { to } : href ? { href } : {};
 
@@ -26,11 +26,12 @@ const MediaCard = ({ title, subtitle, image, category, date, href, to, gradientC
       <Wrapper
         {...wrapperProps}
         aria-label={title}
-        className={`p-4 bg-gradient-to-r ${gradientClass} text-white rounded-b-xl flex-1 flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2`}
+        className={`p-4 bg-gradient-to-r ${gradientClass} text-white rounded-b-xl flex-1 flex flex-col space-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2`}
       >
         <div>
           {category && <span className="inline-flex w-fit items-center bg-white/15 text-white text-[11px] leading-none px-2 py-0.5 rounded-full mb-2 border border-white/25">{category}</span>}
-          <h4 className="font-semibold text-white mb-1 leading-snug">{title}</h4>
+          <h6 className="font-semibold text-white leading-snug">{title}</h6>
+          {description && <p className="text-xs mt-2 text-white/80 line-clamp-2">{description}</p>}
           {subtitle && (
             <p className="text-sm text-white/85" title={subtitle}>
               {limitWords(subtitle, subtitleWordsLimit)}
@@ -39,7 +40,7 @@ const MediaCard = ({ title, subtitle, image, category, date, href, to, gradientC
         </div>
 
         {date && (
-          <div className="mt-auto pt-3 flex items-center gap-2 text-xs text-white/85">
+          <div className="mt-auto pt-2 flex items-center gap-2 text-xs text-white/85">
             <Calendar className="w-4 h-4 opacity-90" aria-hidden="true" />
             <time dateTime={date}>{formatDateID(date)}</time>
           </div>
