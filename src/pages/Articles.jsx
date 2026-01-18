@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ArticleCard from '../components/cards/ArticleCard';
+import EmptyState from '../components/EmptyState';
+import { Plus } from 'lucide-react';
 
 const MOCK = [
   {
@@ -69,19 +71,27 @@ export default function Articles() {
       </div>
 
       {/* Grid: 4 kolom di xl */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {data.map((a) => (
-          <ArticleCard
-            key={a.id}
-            title={a.title}
-            author={a.author}
-            date={a.date}
-            cover={a.cover}
-            description={a.description} // <- tampilkan deskripsi di card
-            onClick={() => {}}
-          />
-        ))}
-      </div>
+      {data.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {data.map((a) => (
+            <ArticleCard key={a.id} title={a.title} author={a.author} date={a.date} cover={a.cover} description={a.description} onClick={() => {}} />
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          icon={q.trim() ? 'search' : 'files'}
+          title={q.trim() ? 'Tidak ada hasil' : 'Belum ada artikel'}
+          description={q.trim() ? 'Coba kata kunci lain untuk pencarian artikel.' : 'Artikel yang Anda buat akan muncul di sini.'}
+          action={
+            !q.trim() && (
+              <Link to="/artikel/new" className="inline-flex items-center gap-1.5 rounded-lg border border-primary-600/20 bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">
+                <Plus className="h-4 w-4" />
+                Tulis Artikel Baru
+              </Link>
+            )
+          }
+        />
+      )}
     </div>
   );
 }

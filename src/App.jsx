@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from './components/layout/AdminLayout';
+import { authLogout, authRefresh, fetchMe, hasAccessToken } from './utils/api';
+import { fetchMeViaTrpc } from './utils/me';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -19,7 +22,50 @@ import AdminUserForm from './pages/AdminUserForm';
 
 // Guard sederhana berbasis localStorage
 const RequireAuth = ({ children }) => {
-  const authed = !!localStorage.getItem('authToken');
+  const [checking, setChecking] = useState(true);
+  const [authed, setAuthed] = useState(hasAccessToken());
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        if (!hasAccessToken()) {
+          try {
+            await authRefresh();
+          } catch {
+            // ignore; user will be redirected to /login
+          }
+        }
+
+        if (hasAccessToken()) {
+          let me;
+          try {
+            me = await fetchMeViaTrpc();
+          } catch {
+            try {
+              await authRefresh();
+              me = await fetchMeViaTrpc();
+            } catch {
+              // fallback to REST (keeps compatibility during migration)
+              me = await fetchMe();
+            }
+          }
+          if (me?.role !== 'admin') {
+            await authLogout();
+          }
+        }
+      } finally {
+        if (!alive) return;
+        setAuthed(hasAccessToken());
+        setChecking(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (checking) return null;
   return authed ? children : <Navigate to="/login" replace />;
 };
 
@@ -39,7 +85,8 @@ export default function App() {
           </RequireAuth>
         }
       >
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Navigate to="/dashboard/traffic" replace />} />
+        <Route path="/dashboard/:tab" element={<Dashboard />} />
 
         {/* Beasiswa */}
         <Route path="/beasiswa" element={<ScholarshipList />} />
@@ -56,7 +103,8 @@ export default function App() {
         <Route path="/artikel/:id/edit" element={<ArticleForm mode="edit" />} />
 
         {/* Kelola User Admin */}
-        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/users" element={<Navigate to="/admin/users/accounts" replace />} />
+        <Route path="/admin/users/:tab" element={<AdminUsers />} />
         <Route path="/admin/users/new" element={<AdminUserForm mode="create" />} />
         <Route path="/admin/users/:id/edit" element={<AdminUserForm mode="edit" />} />
 

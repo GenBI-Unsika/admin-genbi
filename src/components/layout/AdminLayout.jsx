@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, ChevronLeft, ChevronRight, GraduationCap, Users, Newspaper, LayoutGrid, LogOut, Search, ChevronDown, User2, ChartNoAxesGantt, BookOpen } from 'lucide-react';
+import { authLogout } from '../../utils/api';
 
 // Tambah item Kelola User (gunakan User2 biar beda dengan Aktivitas)
 const navItems = [
@@ -43,9 +44,12 @@ export default function AdminLayout() {
     [collapsed]
   );
 
-  const doLogout = () => {
-    localStorage.removeItem('authToken');
-    navigate('/login', { replace: true });
+  const doLogout = async () => {
+    try {
+      await authLogout();
+    } finally {
+      navigate('/login', { replace: true });
+    }
   };
 
   return (
