@@ -1,7 +1,9 @@
-import { FileQuestion, Inbox, Search, AlertCircle, UserX, FileX, Calendar, ClipboardList } from 'lucide-react';
+import { FileQuestion, Inbox, Search, AlertCircle, UserX, FileX, Calendar, ClipboardList, PackageOpen } from 'lucide-react';
 
 const icons = {
   inbox: Inbox,
+  box: PackageOpen,
+  empty: PackageOpen,
   search: Search,
   error: AlertCircle,
   users: UserX,
@@ -15,7 +17,7 @@ const icons = {
  * EmptyState - Komponen reusable untuk menampilkan state kosong dengan desain menarik
  *
  * @param {Object} props
- * @param {string} props.icon - Nama icon: 'inbox' | 'search' | 'error' | 'users' | 'files' | 'calendar' | 'clipboard'
+ * @param {string} props.icon - Nama icon: 'box' | 'empty' | 'inbox' | 'search' | 'error' | 'users' | 'files' | 'calendar' | 'clipboard'
  * @param {string} props.title - Judul utama
  * @param {string} props.description - Deskripsi detail
  * @param {React.ReactNode} props.action - Optional button atau action element
