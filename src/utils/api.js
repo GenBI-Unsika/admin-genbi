@@ -10,6 +10,15 @@ function normalizeErrorMessage(message, status) {
   const msg = String(message || '').trim();
   if (!msg) return status ? `Request failed (${status})` : 'Terjadi kesalahan.';
 
+  // Avoid leaking raw permission messages into UI; let the UI render a proper forbidden state.
+  if (status === 403) {
+    return 'Anda tidak memiliki izin untuk mengakses fitur ini.';
+  }
+
+  if (status === 401) {
+    return 'Sesi Anda telah berakhir. Silakan login kembali.';
+  }
+
   // Prisma/MySQL connection issues (avoid leaking raw prisma invocation text)
   if (msg.includes("Can't reach database server") || msg.includes('Invalid `prisma.') || msg.includes('prisma.') || /P1001\b/.test(msg)) {
     return 'Database server tidak bisa diakses. Pastikan MySQL/MariaDB berjalan di localhost:3306.';
@@ -116,4 +125,39 @@ export async function fetchMe() {
 
 export function hasAccessToken() {
   return !!getAccessToken();
+}
+
+// Generic API helpers
+export async function apiGet(path) {
+  const payload = await apiRequest(path, { method: 'GET' });
+  return payload?.data || payload;
+}
+
+export async function apiPost(path, body) {
+  const payload = await apiRequest(path, { method: 'POST', body });
+  return payload?.data || payload;
+}
+
+export async function apiPatch(path, body) {
+  const payload = await apiRequest(path, { method: 'PATCH', body });
+  return payload?.data || payload;
+}
+
+export async function apiPut(path, body) {
+  const payload = await apiRequest(path, { method: 'PUT', body });
+  return payload?.data || payload;
+}
+
+export async function apiDelete(path) {
+  const payload = await apiRequest(path, { method: 'DELETE' });
+  return payload?.data || payload;
+}
+
+export async function apiUpload(path, file, options = {}) {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (options.folder) formData.append('folder', options.folder);
+
+  const payload = await apiRequest(path, { method: 'POST', body: formData });
+  return payload?.data || payload;
 }
