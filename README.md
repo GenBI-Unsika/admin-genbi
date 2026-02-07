@@ -1,12 +1,50 @@
-# React + Vite
+# Admin GenBI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Admin dashboard untuk manajemen GenBI Unsika.
 
-Currently, two official plugins are available:
+## Quick Start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+Berjalan di `http://localhost:5174`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Environment
+
+Buat `.env.local`:
+
+```env
+VITE_API_BASE_URL=http://localhost:4000/api/v1
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
+```
+
+## Routes
+
+| Route          | Halaman             |
+| -------------- | ------------------- |
+| `/dashboard`   | Dashboard           |
+| `/beasiswa`    | Pendaftar Beasiswa  |
+| `/aktivitas`   | Event & Proker      |
+| `/artikel`     | Artikel & Publikasi |
+| `/divisi`      | Kelola Divisi       |
+| `/anggota`     | Kelola Anggota      |
+| `/kas`         | Treasury            |
+| `/poin`        | Poin Kegiatan       |
+| `/dispensasi`  | Kelola Dispensasi   |
+| `/cms`         | CMS Website         |
+| `/admin/users` | Kelola Admin Users  |
+| `/login`       | Login               |
+
+## Build
+
+```bash
+npm run build
+```
+
+Output: `dist/`
+
+## Dokumentasi
+
+Lihat `../Documentation/` untuk dokumentasi lengkap.
