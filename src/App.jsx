@@ -1,24 +1,30 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from './components/layout/AdminLayout';
 import { authLogout, authRefresh, fetchMe, hasAccessToken } from './utils/api';
 import { fetchMeViaTrpc } from './utils/me';
 
-// Pages
-import Dashboard from './pages/Dashboard';
-import ScholarshipList from './pages/ScholarshipList';
-import ScholarshipDetail from './pages/ScholarshipDetail';
-import Activities from './pages/Activities';
-import ActivityForm from './pages/ActivityForm';
-import Articles from './pages/Articles';
-import ArticleForm from './pages/ArticleForm';
-import CMSSettings from './pages/CMSSettings';
-import InfoCenter from './pages/InfoCenter';
-
-// Tambahan
-import Login from './pages/Login';
-import AdminUsers from './pages/AdminUsers';
-import AdminUserForm from './pages/AdminUserForm';
+// Route-level code splitting
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const ScholarshipList = React.lazy(() => import('./pages/ScholarshipList'));
+const ScholarshipDetail = React.lazy(() => import('./pages/ScholarshipDetail'));
+const Activities = React.lazy(() => import('./pages/Activities'));
+const ActivityForm = React.lazy(() => import('./pages/ActivityForm'));
+const Articles = React.lazy(() => import('./pages/Articles'));
+const ArticleForm = React.lazy(() => import('./pages/ArticleForm'));
+const CMSSettings = React.lazy(() => import('./pages/CMSSettings'));
+const InfoCenter = React.lazy(() => import('./pages/InfoCenter'));
+const Login = React.lazy(() => import('./pages/Login'));
+const AdminUsers = React.lazy(() => import('./pages/AdminUsers'));
+const AdminUserForm = React.lazy(() => import('./pages/AdminUserForm'));
+const Divisions = React.lazy(() => import('./pages/Divisions'));
+const DivisionForm = React.lazy(() => import('./pages/DivisionForm'));
+const Teams = React.lazy(() => import('./pages/Teams'));
+const TeamForm = React.lazy(() => import('./pages/TeamForm'));
+const Treasury = React.lazy(() => import('./pages/Treasury'));
+const Dispensations = React.lazy(() => import('./pages/Dispensations'));
+const Points = React.lazy(() => import('./pages/Points'));
+const Profile = React.lazy(() => import('./pages/Profile'));
 
 // Guard sederhana berbasis localStorage
 const RequireAuth = ({ children }) => {
@@ -38,26 +44,36 @@ const RequireAuth = ({ children }) => {
         }
 
         if (hasAccessToken()) {
-          let me;
           try {
-            me = await fetchMeViaTrpc();
-          } catch {
+            let me;
             try {
-              await authRefresh();
               me = await fetchMeViaTrpc();
             } catch {
-              // fallback to REST (keeps compatibility during migration)
-              me = await fetchMe();
+              try {
+                await authRefresh();
+                me = await fetchMeViaTrpc();
+              } catch {
+                // fallback to REST (keeps compatibility during migration)
+                me = await fetchMe();
+              }
             }
-          }
-          if (me?.role !== 'admin') {
+
+            // If we still can't resolve the current user, treat it as unauthenticated.
+            // Server-side admin panel roles: super_admin, admin, koordinator.
+            const allowedRoles = new Set(['super_admin', 'admin', 'koordinator']);
+            if (!me || !allowedRoles.has(me?.role)) {
+              await authLogout();
+            }
+          } catch {
+            // Any unexpected failure in auth bootstrap should not leave a stale token behind.
             await authLogout();
           }
         }
       } finally {
-        if (!alive) return;
-        setAuthed(hasAccessToken());
-        setChecking(false);
+        if (alive) {
+          setAuthed(hasAccessToken());
+          setChecking(false);
+        }
       }
     })();
     return () => {
@@ -71,51 +87,75 @@ const RequireAuth = ({ children }) => {
 
 export default function App() {
   return (
-    <Routes>
-      {/* Root -> login */}
-      <Route index element={<Navigate to="/login" replace />} />
-      {/* Public */}
-      <Route path="/login" element={<Login />} />
+    <React.Suspense fallback={<div className="p-6 text-sm text-neutral-500">Memuat...</div>}>
+      <Routes>
+        {/* Root -> login */}
+        <Route index element={<Navigate to="/login" replace />} />
+        {/* Public */}
+        <Route path="/login" element={<Login />} />
 
-      {/* Protected area */}
-      <Route
-        element={
-          <RequireAuth>
-            <AdminLayout />
-          </RequireAuth>
-        }
-      >
-        <Route path="/dashboard" element={<Navigate to="/dashboard/traffic" replace />} />
-        <Route path="/dashboard/:tab" element={<Dashboard />} />
+        {/* Protected area */}
+        <Route
+          element={
+            <RequireAuth>
+              <AdminLayout />
+            </RequireAuth>
+          }
+        >
+          <Route path="/dashboard" element={<Navigate to="/dashboard/traffic" replace />} />
+          <Route path="/dashboard/:tab" element={<Dashboard />} />
 
-        {/* Beasiswa */}
-        <Route path="/beasiswa" element={<ScholarshipList />} />
-        <Route path="/beasiswa/:id" element={<ScholarshipDetail />} />
+          {/* Beasiswa */}
+          <Route path="/beasiswa" element={<ScholarshipList />} />
+          <Route path="/beasiswa/:id" element={<ScholarshipDetail />} />
 
-        {/* Aktivitas */}
-        <Route path="/aktivitas" element={<Activities />} />
-        <Route path="/aktivitas/new" element={<ActivityForm mode="create" />} />
-        <Route path="/aktivitas/:id/edit" element={<ActivityForm mode="edit" />} />
+          {/* Aktivitas */}
+          <Route path="/aktivitas" element={<Activities />} />
+          <Route path="/aktivitas/new" element={<ActivityForm mode="create" />} />
+          <Route path="/aktivitas/:id/edit" element={<ActivityForm mode="edit" />} />
 
-        {/* Artikel */}
-        <Route path="/artikel" element={<Articles />} />
-        <Route path="/artikel/new" element={<ArticleForm mode="create" />} />
-        <Route path="/artikel/:id/edit" element={<ArticleForm mode="edit" />} />
+          {/* Artikel */}
+          <Route path="/artikel" element={<Articles />} />
+          <Route path="/artikel/new" element={<ArticleForm mode="create" />} />
+          <Route path="/artikel/:id/edit" element={<ArticleForm mode="edit" />} />
 
-        {/* Kelola User Admin */}
-        <Route path="/admin/users" element={<Navigate to="/admin/users/accounts" replace />} />
-        <Route path="/admin/users/:tab" element={<AdminUsers />} />
-        <Route path="/admin/users/new" element={<AdminUserForm mode="create" />} />
-        <Route path="/admin/users/:id/edit" element={<AdminUserForm mode="edit" />} />
+          {/* Divisi */}
+          <Route path="/divisi" element={<Divisions />} />
+          <Route path="/divisi/new" element={<DivisionForm />} />
+          <Route path="/divisi/:id/edit" element={<DivisionForm />} />
 
-        {/* CMS */}
-        <Route path="/cms" element={<CMSSettings />} />
+          {/* Anggota */}
+          <Route path="/anggota" element={<Teams />} />
+          <Route path="/anggota/new" element={<TeamForm />} />
+          <Route path="/anggota/:id/edit" element={<TeamForm />} />
 
-        <Route path="/pusat-informasi" element={<InfoCenter />} />
-      </Route>
+          {/* Rekapitulasi Kas */}
+          <Route path="/kas" element={<Treasury />} />
 
-      {/* Fallback -> login */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+          {/* Poin Kegiatan */}
+          <Route path="/poin" element={<Points />} />
+
+          {/* Dispensasi */}
+          <Route path="/dispensasi" element={<Dispensations />} />
+
+          {/* Kelola User Admin */}
+          <Route path="/admin/users" element={<Navigate to="/admin/users/accounts" replace />} />
+          <Route path="/admin/users/:tab" element={<AdminUsers />} />
+          <Route path="/admin/users/new" element={<AdminUserForm mode="create" />} />
+          <Route path="/admin/users/:id/edit" element={<AdminUserForm mode="edit" />} />
+
+          {/* CMS */}
+          <Route path="/cms" element={<CMSSettings />} />
+
+          {/* Profil */}
+          <Route path="/profile" element={<Profile />} />
+
+          <Route path="/pusat-informasi" element={<InfoCenter />} />
+        </Route>
+
+        {/* Fallback -> login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </React.Suspense>
   );
 }
