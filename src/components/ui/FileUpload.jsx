@@ -1,0 +1,480 @@
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { Upload, X, File, Image as ImageIcon, FileText, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { apiUpload } from '../../utils/api';
+
+export default function FileUpload({
+  label,
+  accept = '*/*',
+  multiple = false,
+  maxSize = 5 * 1024 * 1024, // 5MB default
+  folder = 'uploads',
+  value = [],
+  onChange,
+  placeholder = 'Seret file ke sini atau klik untuk memilih',
+  className = '',
+  showPreview = true,
+  uploadEndpoint = '/upload',
+  deferUpload = false,
+}) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const inputRef = useRef(null);
+  const objectUrlsRef = useRef(new Set());
+
+  const files = useMemo(() => (Array.isArray(value) ? value : value ? [value] : []), [value]);
+
+  useEffect(() => {
+    // Revoke any object URLs that are no longer referenced by `files`
+    const activeUrls = new Set(files.map((f) => f?.url).filter((u) => typeof u === 'string' && u.startsWith('blob:')));
+
+    for (const url of Array.from(objectUrlsRef.current)) {
+      if (!activeUrls.has(url)) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          // ignore
+        }
+        objectUrlsRef.current.delete(url);
+      }
+    }
+  }, [files]);
+
+  useEffect(() => {
+    const urls = objectUrlsRef.current;
+    return () => {
+      for (const url of urls) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          // ignore
+        }
+      }
+      urls.clear();
+    };
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const validateFile = (file) => {
+    if (file.size > maxSize) {
+      return `File "${file.name}" terlalu besar. Maksimal ${Math.round(maxSize / 1024 / 1024)}MB`;
+    }
+    return null;
+  };
+
+  const uploadFile = async (file) => {
+    try {
+      const result = await apiUpload(uploadEndpoint, file, { folder });
+      return {
+        name: file.name,
+        url: result?.url || result?.fileUrl || result,
+        type: file.type,
+        size: file.size,
+      };
+    } catch (err) {
+      throw new Error(`Gagal mengupload "${file.name}": ${err.message}`);
+    }
+  };
+
+  const toLocalFileObject = (file) => {
+    const isImage = Boolean(file.type?.startsWith('image/'));
+    const url = showPreview && isImage ? URL.createObjectURL(file) : undefined;
+    if (url) objectUrlsRef.current.add(url);
+
+    return {
+      name: file.name,
+      url,
+      type: file.type,
+      size: file.size,
+      file,
+      isLocal: true,
+    };
+  };
+
+  const processFiles = async (fileList) => {
+    setError('');
+    const newFiles = Array.from(fileList);
+
+    // Validate all files first
+    for (const file of newFiles) {
+      const validationError = validateFile(file);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+    }
+
+    if (deferUpload) {
+      const localFiles = newFiles.map(toLocalFileObject);
+      const result = multiple ? [...files, ...localFiles] : localFiles;
+      onChange?.(result);
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const uploadedFiles = await Promise.all(newFiles.map(uploadFile));
+      const result = multiple ? [...files, ...uploadedFiles] : uploadedFiles;
+      onChange?.(result);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles.length > 0) {
+      processFiles(droppedFiles);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const selectedFiles = e.target.files;
+    if (selectedFiles.length > 0) {
+      processFiles(selectedFiles);
+    }
+    // Reset input so same file can be selected again
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  const removeFile = (index) => {
+    const fileToRemove = files[index];
+    if (fileToRemove?.isLocal && typeof fileToRemove.url === 'string' && fileToRemove.url.startsWith('blob:')) {
+      try {
+        URL.revokeObjectURL(fileToRemove.url);
+      } catch {
+        // ignore
+      }
+      objectUrlsRef.current.delete(fileToRemove.url);
+    }
+
+    const newFiles = files.filter((_, i) => i !== index);
+    onChange?.(multiple ? newFiles : null);
+  };
+
+  const getFileIcon = (file) => {
+    if (file.type?.startsWith('image/')) return <ImageIcon className="w-5 h-5 text-primary-500" />;
+    if (file.type?.includes('pdf')) return <FileText className="w-5 h-5 text-red-500" />;
+    return <File className="w-5 h-5 text-neutral-500" />;
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  };
+
+  return (
+    <div className={className}>
+      {label && <label className="mb-2 block text-sm font-medium text-neutral-700">{label}</label>}
+
+      {/* Drop Zone */}
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => inputRef.current?.click()}
+        className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+          isDragging ? 'border-primary-400 bg-primary-50' : 'border-neutral-300 hover:border-primary-300 hover:bg-neutral-50'
+        } ${uploading ? 'pointer-events-none opacity-70' : ''}`}
+      >
+        <input ref={inputRef} type="file" accept={accept} multiple={multiple} onChange={handleFileSelect} className="hidden" />
+
+        {uploading ? (
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+            <span className="text-sm text-neutral-600">Mengupload...</span>
+          </div>
+        ) : (
+          <>
+            <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragging ? 'text-primary-500' : 'text-neutral-400'}`} />
+            <p className="text-sm text-neutral-600">{placeholder}</p>
+            <p className="text-xs text-neutral-400 mt-1">Maksimal {Math.round(maxSize / 1024 / 1024)}MB per file</p>
+          </>
+        )}
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mt-2 text-sm text-red-600 flex items-center gap-1">
+          <X className="w-4 h-4" />
+          {error}
+        </div>
+      )}
+
+      {/* File List / Preview */}
+      {showPreview && files.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {files.map((file, index) => (
+            <div key={index} className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg border border-neutral-200">
+              {file.type?.startsWith('image/') && file.url ? (
+                <img src={file.url} alt={file.name} className="w-12 h-12 object-cover rounded-lg" />
+              ) : (
+                <div className="w-12 h-12 flex items-center justify-center bg-white rounded-lg border border-neutral-200">{getFileIcon(file)}</div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-neutral-800 truncate">{file.name}</p>
+                {file.size && <p className="text-xs text-neutral-500">{formatFileSize(file.size)}</p>}
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeFile(index);
+                }}
+                className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Simplified version for single cover image
+export function CoverUpload({ label = 'Cover', value, onChange, className = '', deferUpload = false }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const inputRef = useRef(null);
+  const objectUrlsRef = useRef(new Set());
+
+  useEffect(() => {
+    // Revoke any unused object URLs (e.g. value replaced by remote url)
+    const activeUrl = typeof value?.url === 'string' && value.url.startsWith('blob:') ? value.url : null;
+    for (const url of Array.from(objectUrlsRef.current)) {
+      if (!activeUrl || url !== activeUrl) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          // ignore
+        }
+        objectUrlsRef.current.delete(url);
+      }
+    }
+  }, [value]);
+
+  useEffect(() => {
+    const urls = objectUrlsRef.current;
+    return () => {
+      for (const url of urls) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          // ignore
+        }
+      }
+      urls.clear();
+    };
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      await uploadImage(file);
+    }
+  };
+
+  const uploadImage = async (file) => {
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Ukuran file maksimal 5MB');
+      return;
+    }
+
+    if (deferUpload) {
+      setError('');
+      // Revoke previous local preview if any
+      if (value?.isLocal && typeof value?.url === 'string' && value.url.startsWith('blob:')) {
+        try {
+          URL.revokeObjectURL(value.url);
+        } catch {
+          // ignore
+        }
+        objectUrlsRef.current.delete(value.url);
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      objectUrlsRef.current.add(objectUrl);
+      onChange?.({ url: objectUrl, name: file.name, type: file.type, size: file.size, file, isLocal: true });
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+    try {
+      const result = await apiUpload('/upload', file, { folder: 'covers' });
+      onChange?.({ url: result?.url || result?.fileUrl || result, name: file.name });
+    } catch {
+      setError('Gagal mengupload gambar');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (file) await uploadImage(file);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <div className={className}>
+      {label && <label className="mb-2 block text-sm font-medium text-neutral-700">{label}</label>}
+
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => !value && inputRef.current?.click()}
+        className={`relative border-2 border-dashed rounded-xl overflow-hidden transition-all ${
+          value ? 'border-transparent' : isDragging ? 'border-primary-400 bg-primary-50' : 'border-neutral-300 hover:border-primary-300 cursor-pointer'
+        } ${uploading ? 'pointer-events-none opacity-70' : ''}`}
+      >
+        <input ref={inputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+
+        {value?.url ? (
+          <div className="relative aspect-video">
+            <img src={value.url} alt="Cover" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all group">
+              <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    inputRef.current?.click();
+                  }}
+                  className="px-3 py-2 bg-white rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+                >
+                  Ganti
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange?.(null);
+                  }}
+                  className="px-3 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="aspect-video flex flex-col items-center justify-center p-6">
+            {uploading ? (
+              <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+            ) : (
+              <>
+                <ImageIcon className={`w-10 h-10 mb-2 ${isDragging ? 'text-primary-500' : 'text-neutral-400'}`} />
+                <p className="text-sm text-neutral-600">Seret gambar atau klik untuk memilih</p>
+                <p className="text-xs text-neutral-400 mt-1">PNG, JPG, WEBP (Maks 5MB)</p>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+    </div>
+  );
+}
+
+// Link input component for URL attachments
+export function LinkInput({ value = [], onChange, label, className = '' }) {
+  const [inputValue, setInputValue] = useState('');
+  const [error, setError] = useState('');
+
+  const addLink = () => {
+    if (!inputValue.trim()) return;
+
+    // Basic URL validation
+    try {
+      new URL(inputValue);
+    } catch {
+      setError('URL tidak valid');
+      return;
+    }
+
+    setError('');
+    onChange?.([...value, { url: inputValue, type: 'link' }]);
+    setInputValue('');
+  };
+
+  const removeLink = (index) => {
+    onChange?.(value.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className={className}>
+      {label && <label className="mb-2 block text-sm font-medium text-neutral-700">{label}</label>}
+
+      <div className="flex gap-2">
+        <div className="flex-1 relative">
+          <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+          <input
+            type="url"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addLink())}
+            placeholder="https://example.com"
+            className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-neutral-200 outline-none focus:ring-2 focus:ring-primary-200"
+          />
+        </div>
+        <button type="button" onClick={addLink} className="px-4 py-2.5 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors">
+          Tambah
+        </button>
+      </div>
+
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+
+      {value.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {value.map((link, index) => (
+            <div key={index} className="flex items-center gap-3 p-2 bg-neutral-50 rounded-lg border border-neutral-200">
+              <LinkIcon className="w-4 h-4 text-primary-500 shrink-0" />
+              <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex-1 text-sm text-primary-600 hover:underline truncate">
+                {link.url}
+              </a>
+              <button type="button" onClick={() => removeLink(index)} className="p-1 hover:bg-red-50 text-red-500 rounded transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
