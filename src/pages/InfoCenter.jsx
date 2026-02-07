@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronDown, Search as SearchIcon, BookOpen, ListTree, Shield, Users, KeyRound, X, ExternalLink } from 'lucide-react';
+import EmptyState from '../components/EmptyState';
+import { apiGet } from '../utils/api';
 
 const pickIcon = (item) => {
   const tags = (item?.tags || []).map((t) => String(t).toLowerCase());
@@ -15,7 +17,8 @@ export default function InfoCenter() {
   const { hash } = useLocation();
 
   const [loading, setLoading] = useState(true);
-  const [sections, setSections] = useState([]); // data JSON
+  const [sections, setSections] = useState([]); // data from API
+  const [loadError, setLoadError] = useState(null);
   const [openSec, setOpenSec] = useState({}); // { [sectionId]: boolean }
   const [activeSectionId, setActiveSectionId] = useState(null);
   const [activeItemId, setActiveItemId] = useState(null);
@@ -27,7 +30,6 @@ export default function InfoCenter() {
   const contentRef = useRef(null); // NEW: main content scroll container
   const [safeTop, setSafeTop] = useState(0); // distance from viewport top where we should start sticking
   const [topbarHeight, setTopbarHeight] = useState(0);
-  const [sidebarTop, setSidebarTop] = useState(0);
 
   const recalcSticky = () => {
     const contTop = containerRef.current?.getBoundingClientRect().top ?? 0;
@@ -35,7 +37,6 @@ export default function InfoCenter() {
     setSafeTop(fallbackTop);
     const tbH = topbarRef.current?.offsetHeight ?? 0;
     setTopbarHeight(tbH);
-    setSidebarTop(fallbackTop + tbH);
   };
 
   useEffect(() => {
@@ -52,13 +53,13 @@ export default function InfoCenter() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch JSON (tanpa hardcode)
+  // Fetch from API (no JSON-based public file)
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const res = await fetch('/data/info-center.json', { cache: 'no-store' });
-        const json = await res.json();
+        setLoadError(null);
+        const json = await apiGet('/info-center');
         if (!alive) return;
         const secs = Array.isArray(json?.sections) ? json.sections : [];
         setSections(secs);
@@ -89,6 +90,8 @@ export default function InfoCenter() {
         setActiveItemId(activeItmId);
       } catch (e) {
         console.error(e);
+        if (!alive) return;
+        setLoadError(e);
       } finally {
         if (alive) setLoading(false);
         requestAnimationFrame(recalcSticky);
@@ -134,10 +137,8 @@ export default function InfoCenter() {
 
   // helper: scroll contentRef to top where we use to previously call window.scrollTo
   const scrollContentToTop = () => {
-    try {
-      // Ganti target scroll ke window (seluruh halaman)
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch {}
+    // Ganti target scroll ke window (seluruh halaman)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // --- Render
@@ -196,6 +197,14 @@ export default function InfoCenter() {
                 <div key={i} className="h-6 w-11/12 rounded-md bg-neutral-100" />
               ))}
             </div>
+          ) : loadError ? (
+            <div className="py-6">
+              <EmptyState icon="error" title="Gagal memuat dokumentasi" description={loadError?.message || 'Terjadi kesalahan.'} variant="warning" />
+            </div>
+          ) : sections.length === 0 ? (
+            <div className="py-6">
+              <EmptyState icon="inbox" title="Belum ada konten" description="Konten dokumentasi akan segera ditambahkan." />
+            </div>
           ) : (
             <nav className="pb-8">
               {sections.map((sec) => {
@@ -249,13 +258,19 @@ export default function InfoCenter() {
         {/* Content area */}
         <main ref={contentRef} className="w-full">
           <div className="mx-auto max-w-[800px] px-0 md:px-6">
-            {loading || !activeItem ? (
+            {loading ? (
               <div className="space-y-3 rounded-xl border border-neutral-200 bg-white p-6">
                 <div className="h-6 w-1/2 rounded-md bg-neutral-100" />
                 <div className="h-4 w-3/4 rounded-md bg-neutral-100" />
                 <div className="h-4 w-2/3 rounded-md bg-neutral-100" />
                 <div className="h-40 w-full rounded-lg bg-neutral-50" />
               </div>
+            ) : loadError ? (
+              <EmptyState icon="error" title="Gagal memuat dokumentasi" description={loadError?.message || 'Terjadi kesalahan.'} variant="warning" />
+            ) : sections.length === 0 ? (
+              <EmptyState icon="inbox" title="Belum ada konten" description="Konten dokumentasi akan segera ditambahkan." />
+            ) : !activeItem ? (
+              <EmptyState icon="inbox" title="Tidak ada item" description="Pilih item dokumentasi dari sidebar." />
             ) : (
               <article className="rounded-2xl  bg-white p-5 md:p-7 transition ">
                 <header className="mb-4">

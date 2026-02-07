@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import EmptyState from '../components/EmptyState';
-import { apiRequest, apiUrl } from '../utils/api';
+import { apiRequest } from '../utils/api';
 
 // === Konfigurasi dokumen (sinkron dengan ScholarshipRegister) ===
 const DOCS = [
@@ -81,18 +81,36 @@ export default function ScholarshipDetail() {
 
   const fmtIDDate = (iso) => new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 
+  const openFileObject = async (fileObjectId) => {
+    try {
+      const payload = await apiRequest(`/files/${fileObjectId}/link`, { method: 'GET' });
+      const url = payload?.data?.previewUrl || payload?.data?.downloadUrl;
+      if (!url) throw new Error('Link file tidak tersedia');
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      const msg = e?.message || 'Gagal membuka file.';
+      toast.error(msg);
+    }
+  };
+
   const renderDocRow = (doc) => {
     const val = d?.files?.[doc.key] ?? '';
     const isLink = doc.key === 'videoUrl';
     const hasFile = Boolean(val);
 
-    const href = (() => {
-      if (!hasFile) return '';
-      if (isLink) return String(val);
+    const { href, onClick } = (() => {
+      if (!hasFile) return { href: '', onClick: undefined };
+      if (isLink) return { href: String(val), onClick: undefined };
       const s = String(val);
-      if (s.startsWith('http://') || s.startsWith('https://')) return s;
+      if (s.startsWith('http://') || s.startsWith('https://')) return { href: s, onClick: undefined };
       // assume FileObject ID
-      return apiUrl(`/files/${s}/download`);
+      return {
+        href: '#',
+        onClick: (e) => {
+          e.preventDefault();
+          openFileObject(s);
+        },
+      };
     })();
 
     return (
@@ -108,7 +126,7 @@ export default function ScholarshipDetail() {
                 Buka Tautan
               </a>
             ) : (
-              <a href={href} target="_blank" rel="noreferrer" className="text-primary-600 hover:underline text-sm">
+              <a href={href} onClick={onClick} target={onClick ? undefined : '_blank'} rel={onClick ? undefined : 'noreferrer'} className="text-primary-600 hover:underline text-sm">
                 Lihat / Unduh
               </a>
             )

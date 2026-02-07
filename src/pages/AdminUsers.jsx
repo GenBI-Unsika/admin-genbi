@@ -1,55 +1,25 @@
 // AdminUsers.jsx
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Avatar from '../components/Avatar';
 import StatusBadge from '../components/StatusBadge';
-import { Search, Plus, Pencil, Trash2, UserCheck, UserX, ChevronRight, Download } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, UserCheck, UserX, ChevronRight, Loader2, RefreshCw, ChevronDown } from 'lucide-react';
+import { useConfirm } from '../contexts/ConfirmContext.jsx';
+import { apiGet, apiDelete, apiPatch } from '../utils/api';
+import EmptyState from '../components/EmptyState';
 
 /* ---------- Konstanta ---------- */
 const ROLE_DEFS = [
   { role_name: 'super_admin', label: 'Super Admin' },
   { role_name: 'admin', label: 'Admin' },
-  { role_name: 'reviewer', label: 'Reviewer' },
-  { role_name: 'advisor', label: 'Advisor' },
-  { role_name: 'student', label: 'Student' },
+  { role_name: 'koordinator', label: 'Koordinator' },
   { role_name: 'awardee', label: 'Awardee' },
+  { role_name: 'member', label: 'Member' },
+  { role_name: 'alumni', label: 'Alumni' },
 ];
 const roleLabel = (name) => ROLE_DEFS.find((r) => r.role_name === name)?.label || name;
 
 const PER_PAGE = 10;
-
-/** 10.1 Akun Website — data dummy */
-const DUMMY_ACCOUNTS = [
-  { id: 1, name: 'Raina Putri', email: 'raina@example.com', role: 'super_admin', createdAt: '2024-03-07', active: true, verify: 'Terverifikasi' },
-  { id: 2, name: 'Dimas Arya', email: 'dimas@example.com', role: 'reviewer', createdAt: '2024-03-08', active: true, verify: 'Terverifikasi' },
-  { id: 3, name: 'Sari Lestari', email: 'sari@example.com', role: 'student', createdAt: '2024-03-08', active: false, verify: 'Menunggu Verifikasi' },
-  { id: 4, name: 'Devi Maulana', email: 'devi@example.com', role: 'admin', createdAt: '2024-03-09', active: true, verify: 'Terverifikasi' },
-  { id: 5, name: 'Reno Pratama', email: 'reno@example.com', role: 'advisor', createdAt: '2024-03-10', active: true, verify: 'Terverifikasi' },
-  { id: 6, name: 'Laras Wulandari', email: 'laras@example.com', role: 'awardee', createdAt: '2024-03-11', active: true, verify: 'Terverifikasi' },
-  { id: 7, name: 'Bagas Saputra', email: 'bagas@example.com', role: 'reviewer', createdAt: '2024-03-11', active: false, verify: 'Menunggu Verifikasi' },
-  { id: 8, name: 'Nadia Salsabila', email: 'nadia@example.com', role: 'student', createdAt: '2024-03-12', active: true, verify: 'Terverifikasi' },
-  { id: 9, name: 'Fikri Rahman', email: 'fikri@example.com', role: 'admin', createdAt: '2024-03-12', active: true, verify: 'Terverifikasi' },
-  { id: 10, name: 'Rizki Amelia', email: 'rizki@example.com', role: 'awardee', createdAt: '2024-03-13', active: false, verify: 'Menunggu Verifikasi' },
-  { id: 11, name: 'Aulia Shafira', email: 'aulia@example.com', role: 'advisor', createdAt: '2024-03-13', active: true, verify: 'Terverifikasi' },
-  { id: 12, name: 'Yoga Firmansyah', email: 'yoga@example.com', role: 'student', createdAt: '2024-03-14', active: true, verify: 'Terverifikasi' },
-  { id: 13, name: 'Putri Anindya', email: 'putri@example.com', role: 'reviewer', createdAt: '2024-03-14', active: true, verify: 'Terverifikasi' },
-  { id: 14, name: 'Bima Aditya', email: 'bima@example.com', role: 'admin', createdAt: '2024-03-15', active: false, verify: 'Menunggu Verifikasi' },
-  { id: 15, name: 'Maya Kartika', email: 'maya@example.com', role: 'awardee', createdAt: '2024-03-15', active: true, verify: 'Terverifikasi' },
-];
-
-/** 10.3 Subscriber — data dummy */
-const daysAgo = (n) => {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString();
-};
-const DUMMY_SUBSCRIBERS = [
-  { id: 'S-01', email: 'ana@mail.com', subscribedAt: daysAgo(5) },
-  { id: 'S-02', email: 'budi@mail.com', subscribedAt: daysAgo(25) },
-  { id: 'S-03', email: 'chandra@mail.com', subscribedAt: daysAgo(45) },
-  { id: 'S-04', email: 'dina@mail.com', subscribedAt: daysAgo(65) },
-  { id: 'S-05', email: 'eko@mail.com', subscribedAt: daysAgo(95) },
-];
 
 const fmtDateID = (d) => new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 
@@ -57,6 +27,7 @@ export default function AdminUsers() {
   const navigate = useNavigate();
   const { tab: tabParam } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { confirm } = useConfirm();
 
   /* ---------- Tabs via slug (hanya 10.1 & 10.3) ---------- */
   const ALLOWED_TABS = ['accounts', 'subscribers'];
@@ -90,11 +61,54 @@ export default function AdminUsers() {
     setSearchParams(sp, { replace: true });
   };
 
-  /* ========== 10.1 Akun Website ========== */
-  const [accounts, setAccounts] = useState(DUMMY_ACCOUNTS);
+  /* ========== 10.1 Akun Website - Fetch from API ========== */
+  const [accounts, setAccounts] = useState([]);
+  const [loadingAcc, setLoadingAcc] = useState(true);
+  const [errorAcc, setErrorAcc] = useState(null);
+  const [totalAcc, setTotalAcc] = useState(0);
   const [qAcc, setQAcc] = useState(getParam('acc_q', ''));
   const [roleFilter, setRoleFilter] = useState(getParam('acc_role', ''));
   const [pageAcc, setPageAcc] = useState(getIntParam('acc_page', 1));
+
+  const fetchAccounts = useCallback(async () => {
+    setLoadingAcc(true);
+    setErrorAcc(null);
+    try {
+      const params = new URLSearchParams({
+        page: String(pageAcc),
+        limit: String(PER_PAGE),
+      });
+      if (qAcc.trim()) params.set('search', qAcc.trim());
+      if (roleFilter) params.set('role', roleFilter);
+
+      const result = await apiGet(`/users?${params.toString()}`);
+      const mapped = (result.data || result || []).map((u) => ({
+        id: u.id,
+        name: u.name || u.email.split('@')[0],
+        email: u.email,
+        role: u.role,
+        createdAt: u.createdAt,
+        active: u.isActive,
+        verify: u.emailVerified ? 'Terverifikasi' : 'Menunggu Verifikasi',
+        photo: u.avatar,
+      }));
+      setAccounts(mapped);
+      setTotalAcc(result.meta?.total || mapped.length);
+    } catch (err) {
+      setErrorAcc({ status: err?.status, message: err?.message || 'Gagal memuat data user' });
+    } finally {
+      setLoadingAcc(false);
+    }
+  }, [pageAcc, qAcc, roleFilter]);
+
+  useEffect(() => {
+    if (tab === 'accounts') {
+      const timer = setTimeout(() => {
+        fetchAccounts();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [fetchAccounts, tab]);
 
   useEffect(() => {
     setQAcc(getParam('acc_q', ''));
@@ -102,95 +116,39 @@ export default function AdminUsers() {
     setPageAcc(getIntParam('acc_page', 1));
   }, [searchParams]); // eslint-disable-line
 
-  const filteredAcc = useMemo(() => {
-    const s = qAcc.trim().toLowerCase();
-    let list = accounts;
-    if (s) {
-      list = list.filter((u) => [u.name, u.email, roleLabel(u.role), u.verify || ''].join(' | ').toLowerCase().includes(s));
-    }
-    if (roleFilter) list = list.filter((u) => u.role === roleFilter);
-    return list;
-  }, [qAcc, roleFilter, accounts]);
-
-  const totalAcc = filteredAcc.length;
   const totalPagesAcc = Math.max(1, Math.ceil(totalAcc / PER_PAGE));
   const currentAcc = Math.min(pageAcc, totalPagesAcc);
   const startAcc = (currentAcc - 1) * PER_PAGE;
-  const pageItemsAcc = filteredAcc.slice(startAcc, startAcc + PER_PAGE);
 
-  const onDeleteAccount = (id) => {
-    if (confirm('Hapus user ini?')) {
-      setAccounts((prev) => prev.filter((u) => u.id !== id));
-      setTimeout(() => {
-        const newTotal = Math.max(0, totalAcc - 1);
-        const lastPage = Math.max(1, Math.ceil(newTotal / PER_PAGE));
-        if (currentAcc > lastPage) {
-          setPageAcc(lastPage);
-          patchParams({ acc_page: lastPage });
-        }
-      }, 0);
+  const onDeleteAccount = async (id) => {
+    const ok = await confirm({
+      title: 'Nonaktifkan user ini?',
+      description: 'User akan dinonaktifkan dari sistem.',
+      confirmText: 'Nonaktifkan',
+      cancelText: 'Batal',
+      tone: 'danger',
+    });
+
+    if (!ok) return;
+
+    try {
+      await apiDelete(`/users/${id}`);
+      fetchAccounts(); // Refresh list
+    } catch (err) {
+      alert(err.message || 'Gagal menghapus user');
     }
   };
-  const setActive = (id, active) => setAccounts((prev) => prev.map((u) => (u.id === id ? { ...u, active } : u)));
+
+  const setActive = async (id, active) => {
+    try {
+      await apiPatch(`/users/${id}`, { isActive: active });
+      setAccounts((prev) => prev.map((u) => (u.id === id ? { ...u, active } : u)));
+    } catch (err) {
+      alert(err.message || 'Gagal mengubah status user');
+    }
+  };
 
   /* ========== 10.3 Subscriber ========== */
-  const [subs, setSubs] = useState(DUMMY_SUBSCRIBERS);
-  const [qSub, setQSub] = useState(getParam('sub_q', ''));
-  const [pageSub, setPageSub] = useState(getIntParam('sub_page', 1));
-
-  useEffect(() => {
-    setQSub(getParam('sub_q', ''));
-    setPageSub(getIntParam('sub_page', 1));
-  }, [searchParams]); // eslint-disable-line
-
-  const filteredSub = useMemo(() => {
-    const s = qSub.trim().toLowerCase();
-    return s ? subs.filter((x) => x.email.toLowerCase().includes(s)) : subs;
-  }, [qSub, subs]);
-
-  const totalSub = filteredSub.length;
-  const totalPagesSub = Math.max(1, Math.ceil(totalSub / PER_PAGE));
-  const currentSub = Math.min(pageSub, totalPagesSub);
-  const startSub = (currentSub - 1) * PER_PAGE;
-  const pageItemsSub = filteredSub.slice(startSub, startSub + PER_PAGE);
-
-  const sinceDays = (iso) => Math.floor((Date.now() - new Date(iso)) / 86400000);
-  const statsSub = useMemo(() => {
-    const total = subs.length;
-    const in30 = subs.filter((s) => sinceDays(s.subscribedAt) <= 30).length;
-    const in60 = subs.filter((s) => sinceDays(s.subscribedAt) <= 60).length;
-    const in90 = subs.filter((s) => sinceDays(s.subscribedAt) <= 90).length;
-    return { total, in30, in60, in90 };
-  }, [subs]);
-
-  const onDeleteSub = (id) => {
-    if (confirm('Hapus subscriber ini?')) {
-      setSubs((prev) => prev.filter((s) => s.id !== id));
-      setTimeout(() => {
-        const newTotal = Math.max(0, totalSub - 1);
-        const lastPage = Math.max(1, Math.ceil(newTotal / PER_PAGE));
-        if (currentSub > lastPage) {
-          setPageSub(lastPage);
-          patchParams({ sub_page: lastPage });
-        }
-      }, 0);
-    }
-  };
-
-  const exportCSV = () => {
-    const header = ['email', 'tanggal_subscribe'];
-    const rows = subs.map((s) => [s.email, new Date(s.subscribedAt).toISOString()]);
-    const csv = [header.join(','), ...rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `subscribers-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   /* ---------- UI ---------- */
   return (
@@ -241,23 +199,26 @@ export default function AdminUsers() {
                 <div className="flex flex-wrap items-center gap-3">
                   {/* Filter role */}
                   <div className="flex items-center gap-2">
-                    <label className="text-sm text-neutral-700">Role</label>
-                    <select
-                      value={roleFilter}
-                      onChange={(e) => {
-                        setRoleFilter(e.target.value);
-                        setPageAcc(1);
-                        patchParams({ acc_role: e.target.value || undefined, acc_page: 1 });
-                      }}
-                      className="h-9 rounded-lg border border-neutral-200 bg-white px-2.5 text-sm text-neutral-800 outline-none focus:border-primary-500"
-                    >
-                      <option value="">Semua Role</option>
-                      {ROLE_DEFS.map((r) => (
-                        <option key={r.role_name} value={r.role_name}>
-                          {r.label}
-                        </option>
-                      ))}
-                    </select>
+                    <label className="text-sm font-medium text-neutral-700">Role</label>
+                    <div className="relative">
+                      <select
+                        value={roleFilter}
+                        onChange={(e) => {
+                          setRoleFilter(e.target.value);
+                          setPageAcc(1);
+                          patchParams({ acc_role: e.target.value || undefined, acc_page: 1 });
+                        }}
+                        className="h-9 w-40 appearance-none rounded-lg border border-neutral-200 bg-white pl-3 pr-9 text-sm text-neutral-800 outline-none transition hover:border-neutral-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 cursor-pointer"
+                      >
+                        <option value="">Semua Role</option>
+                        {ROLE_DEFS.map((r) => (
+                          <option key={r.role_name} value={r.role_name}>
+                            {r.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={16} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                    </div>
                   </div>
 
                   {/* Search */}
@@ -288,91 +249,95 @@ export default function AdminUsers() {
               </div>
 
               {/* Table Akun */}
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-neutral-500">
-                      <th className="py-3.5 pr-3 font-medium">Nama</th>
-                      <th className="px-3 py-3.5 font-medium">Email</th>
-                      <th className="px-3 py-3.5 font-medium">Role</th>
-                      <th className="px-3 py-3.5 font-medium">Verifikasi</th>
-                      <th className="px-3 py-3.5 font-medium">Dibuat</th>
-                      <th className="px-3 py-3.5 font-medium">Status</th>
-                      <th className="px-3 py-3.5 font-medium">Akun</th>
-                      <th className="px-3 py-3.5 font-medium text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pageItemsAcc.map((u) => (
-                      <tr key={u.id} className="border-t border-neutral-200 text-neutral-800">
-                        <td className="py-3.5 pr-3">
-                          <div className="flex items-center gap-3">
-                            <Avatar name={u.name} src={u.photo || ''} size={32} />
-                            <span className="font-medium">{u.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3.5 text-neutral-600">{u.email}</td>
-                        <td className="px-3 py-3.5">
-                          <span className="inline-flex items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 py-1 text-xs font-medium text-neutral-700">{roleLabel(u.role)}</span>
-                        </td>
-                        <td className="px-3 py-3.5">
-                          <StatusBadge status={u.verify} />
-                        </td>
-                        <td className="px-3 py-3.5 text-neutral-600">{fmtDateID(u.createdAt)}</td>
-                        <td className="px-3 py-3.5">
-                          <StatusBadge status={u.active ? 'Aktif' : 'Nonaktif'} />
-                        </td>
-                        <td className="px-3 py-3.5">
-                          <div role="group" aria-label={`Status akun ${u.name}`} className="inline-flex overflow-hidden rounded-lg border border-neutral-200">
-                            <button
-                              type="button"
-                              aria-pressed={u.active}
-                              onClick={() => setActive(u.id, true)}
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold transition
-                                ${u.active ? 'bg-primary-500 text-white' : 'bg-white text-neutral-600 hover:bg-neutral-50'}`}
-                              title="Aktifkan"
-                            >
-                              <UserCheck className={`h-3.5 w-3.5 ${u.active ? 'text-white' : 'text-neutral-500'}`} />
-                              Aktif
-                            </button>
-                            <div className="w-px bg-neutral-200" />
-                            <button
-                              type="button"
-                              aria-pressed={!u.active}
-                              onClick={() => setActive(u.id, false)}
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold transition
-                                ${!u.active ? 'bg-neutral-400 text-neutral-50' : 'bg-white text-neutral-600 hover:bg-neutral-50'}`}
-                              title="Nonaktifkan"
-                            >
-                              <UserX className={`h-3.5 w-3.5 ${!u.active ? 'text-neutral-50' : 'text-neutral-500'}`} />
-                              Nonaktif
-                            </button>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3.5">
-                          <div className="flex items-center justify-end gap-3">
-                            <button type="button" onClick={() => navigate(`/admin/users/${u.id}/edit`)} className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 hover:underline" title="Edit">
-                              <Pencil className="h-4 w-4" />
-                              Edit
-                            </button>
-                            <button type="button" onClick={() => onDeleteAccount(u.id)} className="inline-flex items-center gap-1.5 text-secondary-600 hover:text-secondary-700 hover:underline" title="Hapus">
-                              <Trash2 className="h-4 w-4" />
-                              Hapus
-                            </button>
-                          </div>
-                        </td>
+              {loadingAcc && accounts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+                  <p className="text-neutral-600">Memuat data user...</p>
+                </div>
+              ) : errorAcc && accounts.length === 0 ? (
+                errorAcc?.status === 403 ? (
+                  <EmptyState icon="error" title="Akses dibatasi" description="Fitur Kelola User hanya dapat diakses oleh Super Admin." variant="warning" />
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16 gap-4">
+                    <p className="text-red-600">{errorAcc?.message || 'Gagal memuat data user'}</p>
+                    <button onClick={fetchAccounts} className="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">
+                      <RefreshCw className="h-4 w-4" />
+                      Coba Lagi
+                    </button>
+                  </div>
+                )
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-neutral-500">
+                        <th className="py-3.5 pr-3 font-medium">Nama</th>
+                        <th className="px-3 py-3.5 font-medium">Email</th>
+                        <th className="px-3 py-3.5 font-medium">Role</th>
+                        <th className="px-3 py-3.5 font-medium">Dibuat</th>
+                        <th className="px-3 py-3.5 font-medium text-center">Akun</th>
+                        <th className="px-3 py-3.5 font-medium text-right">Aksi</th>
                       </tr>
-                    ))}
-                    {pageItemsAcc.length === 0 && (
-                      <tr>
-                        <td colSpan={8} className="py-10 text-center text-neutral-500">
-                          Tidak ada data yang cocok.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {accounts.map((u) => (
+                        <tr key={u.id} className="border-t border-neutral-200 text-neutral-800">
+                          <td className="py-5 pr-3">
+                            <div className="flex items-center gap-3">
+                              <Avatar name={u.name} src={u.photo || ''} size={32} />
+                              <span className="font-medium">{u.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-5 text-neutral-600">{u.email}</td>
+                          <td className="px-3 py-5">
+                            <span className="inline-flex items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 py-1 text-xs font-medium text-neutral-700">{roleLabel(u.role)}</span>
+                          </td>
+                          <td className="px-3 py-5 text-neutral-600">{fmtDateID(u.createdAt)}</td>
+                          <td className="px-3 py-5">
+                            <div role="group" aria-label={`Status akun ${u.name}`} className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                aria-pressed={u.active}
+                                onClick={() => setActive(u.id, true)}
+                                className={`p-1.5 rounded-md transition ${u.active ? 'bg-primary-500 text-white' : 'bg-neutral-100 text-neutral-400 hover:bg-neutral-200'}`}
+                                title="Aktifkan"
+                              >
+                                <UserCheck className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                aria-pressed={!u.active}
+                                onClick={() => setActive(u.id, false)}
+                                className={`p-1.5 rounded-md transition ${!u.active ? 'bg-neutral-400 text-white' : 'bg-neutral-100 text-neutral-400 hover:bg-neutral-200'}`}
+                                title="Nonaktifkan"
+                              >
+                                <UserX className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-3 py-5">
+                            <div className="flex items-center justify-end gap-2">
+                              <button type="button" onClick={() => navigate(`/admin/users/${u.id}/edit`)} className="p-1.5 text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-md transition" title="Edit">
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button type="button" onClick={() => onDeleteAccount(u.id)} className="p-1.5 text-secondary-600 hover:text-secondary-700 hover:bg-secondary-50 rounded-md transition" title="Hapus">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {accounts.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="py-10 text-center text-neutral-500">
+                            Tidak ada data yang cocok.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
               {/* Pagination Akun */}
               <div className="mt-4 flex flex-col items-center justify-between gap-3 text-sm sm:flex-row">
@@ -412,124 +377,7 @@ export default function AdminUsers() {
           )}
 
           {/* ========== TAB: SUBSCRIBER ========== */}
-          {tab === 'subscribers' && (
-            <>
-              {/* Header + search/export */}
-              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <h3 className="text-lg font-semibold text-neutral-900">Subscriber</h3>
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="relative">
-                    <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-                    <input
-                      value={qSub}
-                      onChange={(e) => {
-                        setQSub(e.target.value);
-                        setPageSub(1);
-                        patchParams({ sub_q: e.target.value || undefined, sub_page: 1 });
-                      }}
-                      placeholder="Cari email"
-                      className="h-9 w-56 rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm outline-none placeholder:text-neutral-400 focus:border-primary-500"
-                    />
-                  </div>
-                  <button type="button" onClick={exportCSV} className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50" title="Export CSV">
-                    <Download className="h-4 w-4" />
-                    Export
-                  </button>
-                </div>
-              </div>
-
-              {/* All-time stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                  <div className="text-xs text-neutral-500">Total</div>
-                  <div className="text-lg font-semibold text-neutral-900">{statsSub.total}</div>
-                </div>
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                  <div className="text-xs text-neutral-500">30 hari terakhir</div>
-                  <div className="text-lg font-semibold text-neutral-900">{statsSub.in30}</div>
-                </div>
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                  <div className="text-xs text-neutral-500">60 hari terakhir</div>
-                  <div className="text-lg font-semibold text-neutral-900">{statsSub.in60}</div>
-                </div>
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                  <div className="text-xs text-neutral-500">90 hari terakhir</div>
-                  <div className="text-lg font-semibold text-neutral-900">{statsSub.in90}</div>
-                </div>
-              </div>
-
-              {/* Table Subscriber */}
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-neutral-500">
-                      <th className="py-3.5 pr-3 font-medium">Email</th>
-                      <th className="px-3 py-3.5 font-medium">Tanggal Subscribe</th>
-                      <th className="px-3 py-3.5 font-medium text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pageItemsSub.map((s) => (
-                      <tr key={s.id} className="border-t border-neutral-200 text-neutral-800">
-                        <td className="py-3.5 pr-3">{s.email}</td>
-                        <td className="px-3 py-3.5 text-neutral-600">{fmtDateID(s.subscribedAt)}</td>
-                        <td className="px-3 py-3.5">
-                          <div className="flex items-center justify-end">
-                            <button type="button" onClick={() => onDeleteSub(s.id)} className="inline-flex items-center gap-1.5 text-secondary-600 hover:text-secondary-700 hover:underline" title="Hapus">
-                              <Trash2 className="h-4 w-4" />
-                              Hapus
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {pageItemsSub.length === 0 && (
-                      <tr>
-                        <td colSpan={3} className="py-10 text-center text-neutral-500">
-                          Tidak ada subscriber yang cocok.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination Subscriber */}
-              <div className="mt-4 flex flex-col items-center justify-between gap-3 text-sm sm:flex-row">
-                <div className="text-neutral-600">
-                  Menampilkan <span className="text-neutral-800">{totalSub === 0 ? 0 : startSub + 1}</span>–<span className="text-neutral-800">{Math.min(startSub + PER_PAGE, totalSub)}</span> dari{' '}
-                  <span className="text-neutral-800">{totalSub}</span> data
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="h-8 rounded-md border border-neutral-200 px-3 text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
-                    onClick={() => {
-                      const v = Math.max(1, currentSub - 1);
-                      setPageSub(v);
-                      patchParams({ sub_page: v });
-                    }}
-                    disabled={currentSub === 1}
-                  >
-                    ‹ Prev
-                  </button>
-                  <span className="text-neutral-600">
-                    Hal {currentSub} / {totalPagesSub}
-                  </span>
-                  <button
-                    className="h-8 rounded-md border border-neutral-200 px-3 text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
-                    onClick={() => {
-                      const v = Math.min(totalPagesSub, currentSub + 1);
-                      setPageSub(v);
-                      patchParams({ sub_page: v });
-                    }}
-                    disabled={currentSub === totalPagesSub}
-                  >
-                    Next ›
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
+          {tab === 'subscribers' && <EmptyState icon="inbox" title="Segera Hadir" description="Fitur manajemen subscriber akan tersedia dalam waktu dekat." />}
         </div>
       </div>
     </div>

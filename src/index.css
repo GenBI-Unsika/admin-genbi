@@ -1,18 +1,67 @@
 @import "tailwindcss";
 @import "@fontsource-variable/inter";
-
-@plugin "flyonui";
-@import "flyonui/variants.css";
-
-/* Let Tailwind scan the FlyonUI JS for classes */
-@source "../node_modules/flyonui/flyonui.js";
-@source "../node_modules/flyonui/dist/accordion.js";
-@source "../node_modules/flyonui/dist/index.js";
 @source "../index.html";
 @source "../src/**/*.{js,jsx,ts,tsx}";
 
 /* Iconify plugin (Tabler icons) */
 @plugin "@iconify/tailwind4";
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    transition: background-color 200ms, color 200ms, border-color 200ms, transform 200ms;
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background-color: var(--primary-500);
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--primary-600);
+  }
+
+  .btn-outline-primary {
+    border: 1px solid var(--primary-500);
+    color: var(--primary-600);
+    background-color: transparent;
+  }
+
+  .btn-outline-primary:hover {
+    background-color: var(--primary-50);
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: 0.5rem;
+  }
+}
+
+@layer utilities {
+  .focus-visible\:ring-primary-200:focus-visible {
+    --tw-ring-color: rgba(147, 186, 245, 1);
+  }
+  .focus-visible\:ring-primary-300:focus-visible {
+    --tw-ring-color: rgba(91, 140, 226, 1);
+  }
+  .focus-visible\:ring-secondary-200:focus-visible {
+    --tw-ring-color: rgba(253, 183, 163, 1);
+  }
+}
 
 :root {
   /* Primary Colors */

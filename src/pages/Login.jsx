@@ -1,15 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { authAdminGoogle, authAdminLogin } from '../utils/api';
 import { waitForGoogleIdentity } from '../utils/googleIdentity.js';
+
+// Keys for localStorage form persistence (NOT for auth data)
+const FORM_STORAGE_KEY = 'admin_login_form_draft';
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const googleDivRef = useRef(null);
 
   useEffect(() => {
@@ -52,106 +58,181 @@ export default function Login() {
     };
   }, [navigate]);
 
+  // Restore form draft on mount (untuk UX agar tidak hilang jika error)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(FORM_STORAGE_KEY);
+      if (saved) {
+        const { email: savedEmail, rememberMe: savedRemember } = JSON.parse(saved);
+        if (savedEmail) setEmail(savedEmail);
+        if (savedRemember) setRememberMe(savedRemember);
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, []);
+
+  // Save form draft when email changes (NOT password for security)
+  useEffect(() => {
+    if (rememberMe && email) {
+      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify({ email, rememberMe }));
+    }
+  }, [email, rememberMe]);
+
+  const clearFormDraft = () => {
+    localStorage.removeItem(FORM_STORAGE_KEY);
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
 
     if (!email || !pw) {
-      toast.error('Email dan password wajib diisi.');
+      const msg = 'Email dan password wajib diisi.';
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
     try {
       setSubmitting(true);
+      setError('');
       await authAdminLogin(email, pw);
+
+      if (!rememberMe) {
+        clearFormDraft();
+      }
+
       navigate('/dashboard', { replace: true });
     } catch (e2) {
-      toast.error(e2?.message || 'Terjadi kesalahan. Coba lagi.');
+      const msg = e2?.message || 'Login gagal. Periksa email dan password Anda.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen grid place-items-center bg-neutral-50 px-4">
-      <div className="w-full max-w-md rounded-xl border border-neutral-200 bg-white p-6 shadow-md">
-        {/* Brand */}
-        <div className="mb-5 flex items-center gap-3">
-          <img src="/favicon-genbi.webp" alt="GenBI Unsika" className="h-10 w-10 p-1 rounded-md border border-neutral-200 object-cover bg-white" />
-          <div>
-            <p className="text-base font-semibold text-neutral-900">GenBI Unsika</p>
-            <p className="text-sm text-neutral-600">Silakan login untuk melanjutkan.</p>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-neutral-100 p-4">
+      <div className="w-full max-w-md bg-white border border-neutral-200 rounded-3xl p-8 sm:p-10">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img
+            src="/favicon-genbi.webp"
+            alt="GenBI Unsika"
+            className="w-16 h-16 object-contain"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
         </div>
 
-        <h1 className="text-xl font-semibold text-neutral-900 mb-3">Masuk</h1>
+        {/* Title */}
+        <h1 className="text-2xl font-bold text-center text-neutral-900 mb-2">Masuk</h1>
+        <p className="text-sm text-center text-neutral-500 mb-6">Silakan login untuk mengakses panel admin.</p>
 
-        <p className="text-sm text-neutral-600 mb-4">Khusus admin dengan email @unsika.ac.id / @student.unsika.ac.id.</p>
+        {/* Error Alert */}
+        {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
 
-        <form className="space-y-4" onSubmit={onSubmit} noValidate>
+        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+          {/* Email Field */}
           <div>
-            <label className="label-text text-neutral-800 mb-1 block" htmlFor="email">
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5" htmlFor="email">
               Email
             </label>
             <input
               id="email"
               name="email"
               type="email"
-              className="input w-full border border-neutral-200 bg-white text-neutral-900 placeholder-neutral-400 focus:border-primary-500 focus:outline-none"
-              placeholder="admin@unsika.ac.id"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@unsika.ac.id"
+              className="w-full h-11 px-4 rounded-lg border border-neutral-300 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              disabled={submitting}
               autoComplete="email"
-              required
-              aria-invalid={false}
             />
+            <p className="mt-2 text-xs text-neutral-500">Khusus admin dengan email @unsika.ac.id / @student.unsika.ac.id.</p>
           </div>
 
+          {/* Password Field */}
           <div>
-            <label className="label-text text-neutral-800 mb-1 block" htmlFor="password">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-medium text-neutral-700" htmlFor="password">
+                Password
+              </label>
+              <button
+                type="button"
+                className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                onClick={() => {
+                  toast('Hubungi admin untuk mendapatkan bantuan reset password.', { icon: 'ℹ️' });
+                }}
+              >
+                Lupa password?
+              </button>
+            </div>
             <div className="relative">
               <input
                 id="password"
                 name="password"
                 type={showPw ? 'text' : 'password'}
-                className="input w-full border border-neutral-200 bg-white text-neutral-900 placeholder-neutral-400 focus:border-primary-500 focus:outline-none pr-24"
-                placeholder="••••••••"
                 value={pw}
                 onChange={(e) => setPw(e.target.value)}
+                placeholder="••••••••••••"
+                className="w-full h-11 px-4 pr-12 rounded-lg border border-neutral-300 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                disabled={submitting}
                 autoComplete="current-password"
-                required
-                aria-invalid={false}
               />
               <button
                 type="button"
                 onClick={() => setShowPw((s) => !s)}
-                className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-primary-500 hover:text-primary-600 focus:outline-none"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                tabIndex={-1}
                 aria-label={showPw ? 'Sembunyikan password' : 'Tampilkan password'}
               >
-                {showPw ? 'Sembunyikan' : 'Tampilkan'}
+                {showPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
 
-          <button className="btn w-full bg-primary-500 text-neutral-50 hover:bg-primary-600 disabled:opacity-60 focus:outline-none" type="submit" disabled={submitting}>
-            {submitting ? 'Memproses...' : 'Login'}
-          </button>
-        </form>
-
-        <div className="my-5 flex items-center gap-3">
-          <div className="h-px flex-1 bg-neutral-200" />
-          <div className="text-xs text-neutral-500">Atau</div>
-          <div className="h-px flex-1 bg-neutral-200" />
-        </div>
-
-        {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
-          <div className="w-full flex justify-center">
-            <div ref={googleDivRef} />
+          {/* Remember Me */}
+          <div className="flex items-center gap-2">
+            <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="w-4 h-4 rounded border-neutral-300 text-blue-600 focus:ring-blue-500" disabled={submitting} />
+            <label htmlFor="rememberMe" className="text-sm text-neutral-600 select-none cursor-pointer">
+              Ingat saya
+            </label>
           </div>
-        ) : (
-          <div className="text-xs text-neutral-500 text-center">Google login belum dikonfigurasi (VITE_GOOGLE_CLIENT_ID).</div>
-        )}
+
+          {/* Submit Button */}
+          <button type="submit" disabled={submitting} className="w-full h-11 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Memproses...
+              </>
+            ) : (
+              'Masuk'
+            )}
+          </button>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-neutral-200" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="px-3 bg-white text-neutral-400">atau masuk dengan</span>
+            </div>
+          </div>
+
+          {/* Google Login */}
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
+            <div className="flex justify-center">
+              <div ref={googleDivRef} />
+            </div>
+          ) : (
+            <div className="text-xs text-neutral-500 text-center">Google login belum dikonfigurasi (VITE_GOOGLE_CLIENT_ID).</div>
+          )}
+        </form>
       </div>
     </div>
   );

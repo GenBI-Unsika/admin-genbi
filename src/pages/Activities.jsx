@@ -1,61 +1,90 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import EventCard from '../components/cards/EventCard';
 import ProkerCard from '../components/cards/ProkerCard';
-import { ChevronRight } from 'lucide-react';
-
-const MOCK = [
-  {
-    id: 'evt-1',
-    type: 'event',
-    title: 'Tech Talk: AI untuk Mahasiswa',
-    theme: 'AI & Produktivitas',
-    date: '2024-03-07',
-    cover: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1200&auto=format&fit=crop',
-    description: 'Sesi pengenalan penerapan AI dalam belajar & riset kampus.',
-  },
-  {
-    id: 'prk-1',
-    type: 'proker',
-    title: 'Program Kerja: Literasi Keuangan',
-    theme: 'Edukasi BI',
-    date: '2024-03-09',
-    cover: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1200&auto=format&fit=crop',
-    description: 'Kampanye pengelolaan keuangan untuk mahasiswa baru.',
-  },
-  {
-    id: 'evt-2',
-    type: 'event',
-    title: 'Workshop Penulisan Artikel',
-    theme: 'Kepenulisan',
-    date: '2024-03-12',
-    cover: 'https://images.unsplash.com/photo-1504151932400-72d4384f04b3?q=80&w=1200&auto=format&fit=crop',
-    description: 'Latihan membuat artikel yang rapi & SEO-friendly.',
-  },
-  {
-    id: 'prk-2',
-    type: 'proker',
-    title: 'Proker: Aksi Sosial Kampus',
-    theme: 'Community',
-    date: '2024-03-18',
-    cover: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=1200&auto=format&fit=crop',
-    description: 'Kegiatan sosial kolaboratif bersama komunitas kampus.',
-  },
-];
+import EmptyState from '../components/EmptyState';
+import { ChevronRight, Loader2, Plus, RefreshCw, Search } from 'lucide-react';
+import { apiGet, apiDelete } from '../utils/api';
 
 export default function Activities() {
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchActivities = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ limit: '50' });
+      if (q.trim()) params.set('search', q.trim());
+      const result = await apiGet(`/activities?${params.toString()}`);
+      // Map API data to component format
+      const mapped = (result.data || result || []).map((item) => ({
+        id: item.id,
+        type: item.status === 'PLANNED' || item.status === 'DRAFT' ? 'proker' : 'event',
+        title: item.title,
+        theme: item.division || 'GenBI',
+        date: item.startDate ? item.startDate.split('T')[0] : '',
+        cover: item.coverImage || 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1200&auto=format&fit=crop',
+        description: item.description || '',
+        status: item.status,
+        raw: item, // Keep original data for edit
+      }));
+      setActivities(mapped);
+    } catch (err) {
+      setError(err.message || 'Gagal memuat data aktivitas');
+    } finally {
+      setLoading(false);
+    }
+  }, [q]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchActivities();
+    }, 300); // Debounce search
+    return () => clearTimeout(timer);
+  }, [fetchActivities]);
+
+  const handleDelete = async (id) => {
+    if (!confirm('Yakin ingin menghapus aktivitas ini?')) return;
+    try {
+      await apiDelete(`/activities/${id}`);
+      setActivities((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      alert(err.message || 'Gagal menghapus aktivitas');
+    }
+  };
 
   const data = useMemo(() => {
-    let rows = [...MOCK];
+    let rows = [...activities];
     if (cat !== 'all') rows = rows.filter((r) => r.type === cat);
-    if (q.trim()) {
-      const t = q.trim().toLowerCase();
-      rows = rows.filter((r) => r.title.toLowerCase().includes(t) || (r.theme || '').toLowerCase().includes(t));
-    }
     return rows;
-  }, [q, cat]);
+  }, [activities, cat]);
+
+  if (loading && activities.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        <p className="text-neutral-600">Memuat aktivitas...</p>
+      </div>
+    );
+  }
+
+  if (error && activities.length === 0) {
+    return (
+      <div className="px-6 md:px-10 py-6">
+        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
+          <p className="text-red-600">{error}</p>
+          <button onClick={fetchActivities} className="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">
+            <RefreshCw className="h-4 w-4" />
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-6 md:px-10 py-6">
@@ -93,7 +122,7 @@ export default function Activities() {
               placeholder="Cari judul/tema…"
               className="h-11 w-full rounded-lg border border-neutral-200 bg-white px-4 outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
             />
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-60">🔎</span>
+            <Search size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400" />
           </div>
         </div>
 
@@ -117,34 +146,44 @@ export default function Activities() {
         </div>
       </div>
 
-      {/* Grid cards: 4 kolom di xl */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {data.map((item) =>
-          item.type === 'event' ? (
-            <EventCard
-              key={item.id}
-              title={item.title}
-              theme={item.theme}
-              date={item.date}
-              cover={item.cover}
-              description={item.description} // <- tampilkan deskripsi di card
-              to={`/aktivitas/${item.id}/edit`}
-              state={{ event: item }}
-            />
-          ) : (
-            <ProkerCard
-              key={item.id}
-              title={item.title}
-              theme={item.theme}
-              date={item.date}
-              cover={item.cover}
-              description={item.description} // <- tampilkan deskripsi di card
-              to={`/aktivitas/${item.id}/edit`}
-              state={{ proker: item }}
-            />
-          )
-        )}
-      </div>
+      {data.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {data.map((item) =>
+            item.type === 'event' ? (
+              <EventCard
+                key={item.id}
+                title={item.title}
+                theme={item.theme}
+                date={item.date}
+                cover={item.cover}
+                description={item.description}
+                to={`/aktivitas/${item.id}/edit`}
+                state={{ event: item.raw }}
+                onDelete={() => handleDelete(item.id)}
+              />
+            ) : (
+              <ProkerCard
+                key={item.id}
+                title={item.title}
+                theme={item.theme}
+                date={item.date}
+                cover={item.cover}
+                description={item.description}
+                to={`/aktivitas/${item.id}/edit`}
+                state={{ proker: item.raw }}
+                onDelete={() => handleDelete(item.id)}
+              />
+            ),
+          )}
+        </div>
+      ) : (
+        <EmptyState
+          icon={q.trim() ? 'search' : 'inbox'}
+          title={q.trim() ? 'Tidak ada hasil' : 'Belum ada aktivitas'}
+          description={q.trim() ? 'Coba kata kunci lain untuk pencarian.' : 'Event dan proker yang Anda buat akan muncul di sini.'}
+          variant={q.trim() ? 'default' : 'primary'}
+        />
+      )}
     </div>
   );
 }

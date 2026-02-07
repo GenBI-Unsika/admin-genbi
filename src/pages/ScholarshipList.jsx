@@ -498,51 +498,60 @@ export default function ScholarshipList() {
         </div>
 
         {/* Header + Tools */}
-        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <h3 className="text-lg font-semibold text-neutral-900">Peserta Pendaftar Beasiswa</h3>
+        <div className="mb-4 space-y-4">
+          {/* Title row */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h3 className="text-lg font-semibold text-neutral-900">Peserta Pendaftar Beasiswa</h3>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Filter status */}
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-neutral-700">Administrasi</label>
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-9 rounded-lg border border-neutral-200 bg-white px-2.5 text-sm text-neutral-800 outline-none focus:border-primary-500">
-                <option value="">Semua</option>
-                <option value="Menunggu Verifikasi">Menunggu Verifikasi</option>
-                <option value="Lolos Administrasi">Lolos Administrasi</option>
-                <option value="Administrasi Ditolak">Administrasi Ditolak</option>
-              </select>
+            {/* Search + Filter group */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              {/* Filter status */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-neutral-700 whitespace-nowrap">Administrasi</label>
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-9 rounded-lg border border-neutral-200 bg-white px-2.5 text-sm text-neutral-800 outline-none focus:border-primary-500">
+                  <option value="">Semua</option>
+                  <option value="Menunggu Verifikasi">Menunggu Verifikasi</option>
+                  <option value="Lolos Administrasi">Lolos Administrasi</option>
+                  <option value="Administrasi Ditolak">Administrasi Ditolak</option>
+                </select>
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Cari nama/NPM/prodi"
+                  className="h-9 w-full sm:w-56 rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm outline-none placeholder:text-neutral-400 focus:border-primary-500"
+                />
+              </div>
             </div>
+          </div>
 
-            {/* Search */}
-            <div className="relative">
-              <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari nama/NPM/prodi" className="h-9 w-56 rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm outline-none placeholder:text-neutral-400" />
-            </div>
+          {/* Action buttons row */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setUpModalOpen(true);
+                resetUpload();
+              }}
+              className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+            >
+              <Upload className="h-4 w-4" />
+              Upload Excel
+            </button>
 
-            {/* Upload Modal Trigger + Template + Download Data */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setUpModalOpen(true);
-                  resetUpload();
-                }}
-                className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
-              >
-                <Upload className="h-4 w-4" />
-                Upload Excel
-              </button>
+            <button type="button" onClick={onDownloadTemplate} className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+              <FileDown className="h-4 w-4" />
+              Template (.xlsx)
+            </button>
 
-              <button type="button" onClick={onDownloadTemplate} className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
-                <FileDown className="h-4 w-4" />
-                Template (.xlsx)
-              </button>
-
-              <button type="button" onClick={onDownloadData} className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
-                <Download className="h-4 w-4" />
-                Download data user (.xlsx)
-              </button>
-            </div>
+            <button type="button" onClick={onDownloadData} className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+              <Download className="h-4 w-4" />
+              Download Data (.xlsx)
+            </button>
           </div>
         </div>
 
