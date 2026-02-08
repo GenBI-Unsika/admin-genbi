@@ -12,7 +12,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 
-export default function EmptyStateImage({ image, imageAlt = 'Empty state illustration', title, description, action, variant = 'default', imageSize = 'md' }) {
+export default function EmptyStateImage({ image, imageAlt = 'Ilustrasi data kosong', title, description, action, variant = 'default', imageSize = 'md' }) {
   const variantStyles = {
     default: {
       container: 'bg-neutral-50 border border-neutral-200',

@@ -1,10 +1,10 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Bold, Italic, List, ListOrdered, Quote, Undo, Redo, Link as LinkIcon, Image as ImageIcon, Heading1, Heading2, Code, Upload, Loader2 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiUpload } from '../../utils/api';
 
 const MenuBar = ({ editor }) => {
@@ -43,7 +43,11 @@ const MenuBar = ({ editor }) => {
 
     setUploading(true);
     try {
-      const result = await apiUpload('/upload', file, { folder: 'articles/content' });
+      const staged = await apiUploadStaging(file);
+      const tempId = staged?.tempId || staged?.id;
+      if (!tempId) throw new Error('Gagal menyimpan file sementara');
+
+      const result = await apiFinalizeUpload(tempId, 'articles/content');
       const imageUrl = result?.url || result?.fileUrl || result;
       if (imageUrl) {
         editor.chain().focus().setImage({ src: imageUrl }).run();
@@ -178,9 +182,14 @@ const MenuBar = ({ editor }) => {
 export default function RichTextEditor({ value, onChange, placeholder = 'Mulai menulis...', label, className }) {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        // Avoid duplicate extension name 'link' with explicit Link extension below.
+        link: false,
+      }),
       Link.configure({
         openOnClick: false,
+        autolink: true,
+        linkOnPaste: true,
         HTMLAttributes: {
           class: 'text-primary-600 underline hover:text-primary-700',
         },
@@ -205,6 +214,15 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Mulai m
       },
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+    const current = editor.getHTML();
+    const next = value || '';
+    if (current !== next) {
+      editor.commands.setContent(next, false);
+    }
+  }, [editor, value]);
 
   return (
     <div className={className}>

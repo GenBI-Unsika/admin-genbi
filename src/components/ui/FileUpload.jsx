@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Upload, X, File, Image as ImageIcon, FileText, Link as LinkIcon, Loader2 } from 'lucide-react';
-import { apiUpload } from '../../utils/api';
+import { apiUpload, apiUploadStaging, getTempPreviewUrl } from '../../utils/api';
 
 export default function FileUpload({
   label,
@@ -15,6 +15,7 @@ export default function FileUpload({
   showPreview = true,
   uploadEndpoint = '/upload',
   deferUpload = false,
+  useStaging = false, // BARU: Upload ke staging untuk preview, finalize saat submit
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -25,7 +26,7 @@ export default function FileUpload({
   const files = useMemo(() => (Array.isArray(value) ? value : value ? [value] : []), [value]);
 
   useEffect(() => {
-    // Revoke any object URLs that are no longer referenced by `files`
+    // Cabut object URL yang tidak lagi direferensikan oleh `files`
     const activeUrls = new Set(files.map((f) => f?.url).filter((u) => typeof u === 'string' && u.startsWith('blob:')));
 
     for (const url of Array.from(objectUrlsRef.current)) {
@@ -87,6 +88,24 @@ export default function FileUpload({
     }
   };
 
+  // BARU: Upload ke staging untuk preview
+  const uploadToStaging = async (file) => {
+    try {
+      const result = await apiUploadStaging(file);
+      return {
+        name: result.name || file.name,
+        url: result.previewUrl || getTempPreviewUrl(result.tempId),
+        type: result.mimeType || file.type,
+        size: result.size || file.size,
+        tempId: result.tempId,
+        isStaged: true,
+        expiresAt: result.expiresAt,
+      };
+    } catch (err) {
+      throw new Error(`Gagal mengupload "${file.name}": ${err.message}`);
+    }
+  };
+
   const toLocalFileObject = (file) => {
     const isImage = Boolean(file.type?.startsWith('image/'));
     const url = showPreview && isImage ? URL.createObjectURL(file) : undefined;
@@ -115,6 +134,7 @@ export default function FileUpload({
       }
     }
 
+    // Tunda upload - simpan file secara lokal, upload nanti
     if (deferUpload) {
       const localFiles = newFiles.map(toLocalFileObject);
       const result = multiple ? [...files, ...localFiles] : localFiles;
@@ -122,6 +142,22 @@ export default function FileUpload({
       return;
     }
 
+    // Upload ke staging untuk preview (finalize saat submit form)
+    if (useStaging) {
+      setUploading(true);
+      try {
+        const stagedFiles = await Promise.all(newFiles.map(uploadToStaging));
+        const result = multiple ? [...files, ...stagedFiles] : stagedFiles;
+        onChange?.(result);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setUploading(false);
+      }
+      return;
+    }
+
+    // Upload langsung ke penyimpanan akhir
     setUploading(true);
     try {
       const uploadedFiles = await Promise.all(newFiles.map(uploadFile));
@@ -185,15 +221,14 @@ export default function FileUpload({
     <div className={className}>
       {label && <label className="mb-2 block text-sm font-medium text-neutral-700">{label}</label>}
 
-      {/* Drop Zone */}
+      {/* Zona Drop */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
-          isDragging ? 'border-primary-400 bg-primary-50' : 'border-neutral-300 hover:border-primary-300 hover:bg-neutral-50'
-        } ${uploading ? 'pointer-events-none opacity-70' : ''}`}
+        className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${isDragging ? 'border-primary-400 bg-primary-50' : 'border-neutral-300 hover:border-primary-300 hover:bg-neutral-50'
+          } ${uploading ? 'pointer-events-none opacity-70' : ''}`}
       >
         <input ref={inputRef} type="file" accept={accept} multiple={multiple} onChange={handleFileSelect} className="hidden" />
 
@@ -211,7 +246,7 @@ export default function FileUpload({
         )}
       </div>
 
-      {/* Error Message */}
+      {/* Pesan Error */}
       {error && (
         <div className="mt-2 text-sm text-red-600 flex items-center gap-1">
           <X className="w-4 h-4" />
@@ -219,7 +254,7 @@ export default function FileUpload({
         </div>
       )}
 
-      {/* File List / Preview */}
+      {/* List File / Preview */}
       {showPreview && files.length > 0 && (
         <div className="mt-3 space-y-2">
           {files.map((file, index) => (
@@ -251,8 +286,8 @@ export default function FileUpload({
   );
 }
 
-// Simplified version for single cover image
-export function CoverUpload({ label = 'Cover', value, onChange, className = '', deferUpload = false }) {
+// Versi sederhana untuk gambar cover tunggal
+export function CoverUpload({ label = 'Cover', value, onChange, className = '', deferUpload = false, useStaging = false }) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -260,7 +295,7 @@ export function CoverUpload({ label = 'Cover', value, onChange, className = '', 
   const objectUrlsRef = useRef(new Set());
 
   useEffect(() => {
-    // Revoke any unused object URLs (e.g. value replaced by remote url)
+    // Cabut object URL yang tidak digunakan (misal value diganti dengan url remote)
     const activeUrl = typeof value?.url === 'string' && value.url.startsWith('blob:') ? value.url : null;
     for (const url of Array.from(objectUrlsRef.current)) {
       if (!activeUrl || url !== activeUrl) {
@@ -313,9 +348,10 @@ export function CoverUpload({ label = 'Cover', value, onChange, className = '', 
       return;
     }
 
+    // Tunda upload - simpan file secara lokal
     if (deferUpload) {
       setError('');
-      // Revoke previous local preview if any
+      // Cabut preview lokal sebelumnya jika ada
       if (value?.isLocal && typeof value?.url === 'string' && value.url.startsWith('blob:')) {
         try {
           URL.revokeObjectURL(value.url);
@@ -331,6 +367,30 @@ export function CoverUpload({ label = 'Cover', value, onChange, className = '', 
       return;
     }
 
+    // Upload ke staging untuk preview
+    if (useStaging) {
+      setUploading(true);
+      setError('');
+      try {
+        const result = await apiUploadStaging(file);
+        onChange?.({
+          url: result.previewUrl || getTempPreviewUrl(result.tempId),
+          name: result.name || file.name,
+          type: result.mimeType || file.type,
+          size: result.size || file.size,
+          tempId: result.tempId,
+          isStaged: true,
+          expiresAt: result.expiresAt,
+        });
+      } catch (err) {
+        setError(err.message || 'Gagal mengupload gambar');
+      } finally {
+        setUploading(false);
+      }
+      return;
+    }
+
+    // Upload langsung
     setUploading(true);
     setError('');
     try {
@@ -358,9 +418,8 @@ export function CoverUpload({ label = 'Cover', value, onChange, className = '', 
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => !value && inputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-xl overflow-hidden transition-all ${
-          value ? 'border-transparent' : isDragging ? 'border-primary-400 bg-primary-50' : 'border-neutral-300 hover:border-primary-300 cursor-pointer'
-        } ${uploading ? 'pointer-events-none opacity-70' : ''}`}
+        className={`relative border-2 border-dashed rounded-xl overflow-hidden transition-all ${value ? 'border-transparent' : isDragging ? 'border-primary-400 bg-primary-50' : 'border-neutral-300 hover:border-primary-300 cursor-pointer'
+          } ${uploading ? 'pointer-events-none opacity-70' : ''}`}
       >
         <input ref={inputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
 
@@ -412,7 +471,7 @@ export function CoverUpload({ label = 'Cover', value, onChange, className = '', 
   );
 }
 
-// Link input component for URL attachments
+// Komponen input link untuk lampiran URL
 export function LinkInput({ value = [], onChange, label, className = '' }) {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState('');
@@ -420,7 +479,7 @@ export function LinkInput({ value = [], onChange, label, className = '' }) {
   const addLink = () => {
     if (!inputValue.trim()) return;
 
-    // Basic URL validation
+    // Validasi URL dasar
     try {
       new URL(inputValue);
     } catch {

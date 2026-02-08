@@ -2,17 +2,25 @@ import PropTypes from 'prop-types';
 import { Calendar } from 'lucide-react';
 import { formatDateID, limitWords } from '../../utils/formatters';
 import { Link } from 'react-router-dom';
+import MediaPlaceholder from '../shared/MediaPlaceholder';
 
 const ImageWithFallback = ({ src, alt, className, fallback }) => {
   const onError = (e) => {
-    e.currentTarget.src = fallback || 'https://placehold.co/800x450';
+    if (fallback) e.currentTarget.src = fallback;
+    else e.currentTarget.remove();
   };
-  return <img src={src || fallback || 'https://placehold.co/800x450'} alt={alt} className={className} loading="lazy" decoding="async" onError={onError} />;
+
+  const resolvedSrc = src || fallback;
+  if (!resolvedSrc) return null;
+
+  return <img src={resolvedSrc} alt={alt} className={className} loading="lazy" decoding="async" onError={onError} />;
 };
 
 export default function MediaCard({ title, subtitle, image, description, category, date, href, to, state, gradientClass = 'from-[var(--primary-500)] to-[var(--primary-400)]', subtitleWordsLimit = 10, badge, className = '' }) {
-  const Wrapper = to ? Link : href ? 'a' : 'div';
-  const wrapperProps = to ? { to } : href ? { href } : {};
+  // NOTE: when `to` exists we wrap the whole card with <Link> below,
+  // so the inner section must NOT be another <Link> (nested <a> is invalid).
+  const Wrapper = to ? 'div' : href ? 'a' : 'div';
+  const wrapperProps = href && !to ? { href } : {};
 
   const Card = (
     <article
@@ -20,6 +28,9 @@ export default function MediaCard({ title, subtitle, image, description, categor
       aria-label={`Edit aktivitas: ${title}`}
     >
       <div className="relative w-full aspect-[16/9] bg-gray-100 overflow-hidden">
+        <div className="absolute inset-0">
+          <MediaPlaceholder ratio="16/9" label="Tidak ada gambar" className="h-full w-full rounded-none border-0 hover:scale-100 hover:shadow-none transition-none" />
+        </div>
         <ImageWithFallback src={image} alt={title} className="absolute inset-0 w-full h-full object-cover transform-gpu transition-transform duration-300 ease-out group-hover:scale-[1.03] motion-reduce:transform-none" />
         {badge && <span className="absolute top-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded">{badge}</span>}
       </div>
@@ -27,7 +38,7 @@ export default function MediaCard({ title, subtitle, image, description, categor
       <Wrapper
         {...wrapperProps}
         aria-label={title}
-        className={`p-4 bg-gradient-to-r ${gradientClass} text-white rounded-b-xl flex-1 flex flex-col space-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2`}
+        className={`p-4 bg-gradient-to-r ${gradientClass} text-white rounded-b-xl flex-1 flex flex-col space-y-2 ${to ? '' : 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2'}`}
       >
         <div>
           {category && <span className="inline-flex w-fit items-center bg-white/15 text-white text-[11px] leading-none px-2 py-0.5 rounded-full mb-2 border border-white/25">{category}</span>}

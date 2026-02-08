@@ -67,7 +67,7 @@ export default function GlobalSearch({ className = '' }) {
     setLoading(true);
     try {
       // Mock search results - in production, call actual API
-      // const response = await apiGet(`/search?q=${encodeURIComponent(searchQuery)}&category=${searchCategory}`);
+
 
       // Mock data for demonstration
       await new Promise((resolve) => setTimeout(resolve, 300));
