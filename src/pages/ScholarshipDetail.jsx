@@ -103,7 +103,7 @@ export default function ScholarshipDetail() {
       if (isLink) return { href: String(val), onClick: undefined };
       const s = String(val);
       if (s.startsWith('http://') || s.startsWith('https://')) return { href: s, onClick: undefined };
-      // assume FileObject ID
+      // asumsikan ID FileObject
       return {
         href: '#',
         onClick: (e) => {

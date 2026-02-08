@@ -7,7 +7,7 @@ import { apiGet } from '../utils/api';
 
 const formatID = (n) => new Intl.NumberFormat('id-ID').format(n);
 
-// Time range options
+
 const TIME_RANGES = [
   { value: 7, label: '7 hari terakhir' },
   { value: 14, label: '14 hari terakhir' },
@@ -17,7 +17,7 @@ const TIME_RANGES = [
   { value: 365, label: 'Tahun lalu' },
 ];
 
-/* ===================== HELPERS UI ===================== */
+
 function Section({ title, right, children }) {
   return (
     <div className="mt-6 rounded-2xl border border-neutral-200 bg-white">
@@ -100,7 +100,7 @@ function LoadingState() {
   );
 }
 
-/* Kartu metrik dengan mini grafik (sparkline) untuk Insight */
+
 function ChartCard({ title, value, unit, series, colorVar = 'var(--primary-500)', loading }) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-4 md:p-5">
@@ -143,7 +143,7 @@ function ChartCard({ title, value, unit, series, colorVar = 'var(--primary-500)'
   );
 }
 
-/* ===================== TAB: TRAFFIC ===================== */
+
 function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
   const traffic = summary?.traffic?.series ?? [];
   const applicants = summary?.counts?.scholarshipApplications ?? 0;
@@ -151,13 +151,13 @@ function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
   const eventVisitors = summary?.byPrefix?.events?.visitors ?? 0;
   const articleVisitors = summary?.byPrefix?.articles?.visitors ?? 0;
 
-  // Calculate date range
+
   const endDate = new Date();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
   const dateRange = `${startDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`;
 
-  // Export CSV
+
   const handleExport = () => {
     if (!traffic.length) return;
 
@@ -210,7 +210,7 @@ function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
         </div>
       )}
 
-      {/* 4 kartu statistik */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <StatCard title="Jumlah Pendaftar Beasiswa" value={loading ? '...' : formatID(applicants)} unit="peserta" icon={<GraduationCap size={22} className="text-primary-500" />} to="/beasiswa" />
         <StatCard title="Jumlah Pengunjung Proker" value={loading ? '...' : formatID(prokerVisitors)} unit="pengunjung" icon={<Users size={22} className="text-primary-500" />} to="/aktivitas" />
@@ -218,7 +218,7 @@ function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
         <StatCard title="Jumlah Pengunjung Artikel" value={loading ? '...' : formatID(articleVisitors)} unit="pengunjung" icon={<FileText size={22} className="text-primary-500" />} to="/artikel" />
       </div>
 
-      {/* Grafik Pengunjung Website */}
+
       <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 md:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-base md:text-lg font-semibold text-neutral-900">Grafik Pengunjung Website</h3>
@@ -271,7 +271,7 @@ function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
   );
 }
 
-/* ===================== TAB: INSIGHT ===================== */
+
 function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
   const allTimeViews = summary?.allTime?.views ?? 0;
   const allTimeVisitors = summary?.allTime?.visitors ?? 0;
@@ -284,13 +284,13 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
   const currentYear = new Date().getFullYear();
   const articlesThisYear = latestArticles.filter((a) => new Date(a.publishedAt || a.createdAt).getFullYear() === currentYear).length;
 
-  // Calculate date range
+
   const endDate = new Date();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
   const dateRange = `${startDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`;
 
-  // Export to Excel/CSV
+
   const handleExportInsight = () => {
     const data = [
       ['Metrik', 'Nilai'],
@@ -353,7 +353,7 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
         </div>
       </div>
 
-      {/* Tinjauan Periode */}
+
       <div className="rounded-2xl border border-neutral-200 bg-white p-5 md:p-6">
         <div className="mb-5 flex items-center justify-between">
           <div>
@@ -398,7 +398,7 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
         </div>
       </div>
 
-      {/* Analisis Konten */}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6">
         <Section
           title="Artikel Terbaru"
@@ -462,13 +462,13 @@ export default function Dashboard() {
   const initial = allowed.includes(tabParam) ? tabParam : 'traffic';
   const [tab, setTab] = useState(initial);
 
-  // Traffic tab state
+
   const [days, setDays] = useState(30);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch dashboard summary
+
   const fetchSummary = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -487,7 +487,7 @@ export default function Dashboard() {
     fetchSummary();
   }, [fetchSummary]);
 
-  // sinkron saat slug berubah (back/forward)
+
   useEffect(() => {
     if (allowed.includes(tabParam) && tabParam !== tab) setTab(tabParam);
     if (!allowed.includes(tabParam)) navigate('/dashboard/traffic', { replace: true });
@@ -502,7 +502,7 @@ export default function Dashboard() {
 
   return (
     <div className="px-6 md:px-10 py-6">
-      {/* Tabs full-width + underline biru */}
+
       <div className="mb-5">
         <div role="tablist" aria-label="Dashboard tabs" className="w-full grid grid-cols-2 border-b border-neutral-200">
           {['traffic', 'insight'].map((key) => {

@@ -27,7 +27,7 @@ export default function Activities() {
         title: item.title,
         theme: item.division || 'GenBI',
         date: item.startDate ? item.startDate.split('T')[0] : '',
-        cover: item.coverImage || 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1200&auto=format&fit=crop',
+        cover: item.coverImage || null,
         description: item.description || '',
         status: item.status,
         raw: item, // Keep original data for edit

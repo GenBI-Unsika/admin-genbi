@@ -7,7 +7,7 @@ import { Search, CheckCircle2, XCircle, Upload, FileDown, Download, Eye, AlertTr
 import { apiRequest } from '../utils/api';
 import { trpc } from '../utils/trpc';
 
-/* ===================== Constants & Helpers ===================== */
+
 const fmtIDDate = (d) => new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 
 const statusLabel = (status) => {
@@ -43,7 +43,7 @@ async function loadXLSXFromCDN() {
   return mod;
 }
 
-/* ===================== Toasts ===================== */
+
 function useToasts() {
   const [toasts, setToasts] = useState([]);
   const remove = (id) => setToasts((t) => t.filter((x) => x.id !== id));
@@ -76,15 +76,15 @@ const Toasts = ({ items, onClose }) => (
   </div>
 );
 
-/* ===================== Page ===================== */
+
 export default function ScholarshipList() {
-  /* ========= Toasts ========= */
+
   const { toasts, push: toast, remove: closeToast } = useToasts();
 
-  /* ========= Beasiswa Dibuka/Ditutup (server-side) ========= */
+
   const [regOpen, setRegOpen] = useState(false);
   const [regLoading, setRegLoading] = useState(true);
-  const [toggleModal, setToggleModal] = useState(null); // {action:'open'|'close', confirm:false, phrase:''}
+  const [toggleModal, setToggleModal] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -108,7 +108,7 @@ export default function ScholarshipList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ========= Data (server) ========= */
+
   const [rows, setRows] = useState([]);
   const [rowsLoading, setRowsLoading] = useState(true);
 
@@ -157,7 +157,7 @@ export default function ScholarshipList() {
     });
   }, [rows, q, statusFilter]);
 
-  /* ========= Toggle Beasiswa Dibuka/Ditutup ========= */
+
   const requestToggle = (nextOpen) => {
     if (regLoading) return;
     setToggleModal({
@@ -181,8 +181,8 @@ export default function ScholarshipList() {
     })();
   };
 
-  /* ========= Single actions: Approve/Reject ========= */
-  const [modal, setModal] = useState(null); // {type:'approve'|'reject', row, note:'', confirm:false}
+
+  const [modal, setModal] = useState(null);
   const openDecisionModal = (type, row) => setModal({ type, row, note: '', confirm: false });
 
   const updateRowStatus = (id, newStatus) => {
@@ -201,11 +201,11 @@ export default function ScholarshipList() {
     }
   };
 
-  /* ========= Download TEMPLATE (Excel) ========= */
+
   const onDownloadTemplate = async () => {
     try {
       const XLSX = await loadXLSXFromCDN();
-      // Template upload massal hanya header 4 kolom (tanpa data contoh)
+
       const data = [];
       const ws = XLSX.utils.json_to_sheet(data, { header: ['Nama', 'NPM', 'Prodi', 'Status'] });
       const wb = XLSX.utils.book_new();
@@ -226,7 +226,7 @@ export default function ScholarshipList() {
     }
   };
 
-  /* ========= Download DATA (Excel - seluruh field termasuk link dokumen) ========= */
+
   const onDownloadData = async () => {
     try {
       const XLSX = await loadXLSXFromCDN();
@@ -247,7 +247,7 @@ export default function ScholarshipList() {
         'Deskripsi GenBI': r.knowDesc,
         'Status Administrasi': r.administrasi,
         'Tanggal Submit': r.submittedAt ? new Date(r.submittedAt).toISOString() : '',
-        // Link dokumen (Google Drive / URL)
+
         File_FormA1: r.files?.formA1 || '',
         File_KTMKTP: r.files?.ktmKtp || '',
         File_Transkrip: r.files?.transkrip || '',
@@ -259,7 +259,7 @@ export default function ScholarshipList() {
         File_Lainnya2: r.files?.lainnya2 || '',
       }));
       const ws = XLSX.utils.json_to_sheet(data);
-      // Lebar kolom auto-ish
+
       const colWidths = Object.keys(data[0] || {}).map((k) => ({ wch: Math.min(Math.max(String(k).length + 2, 18), 40) }));
       ws['!cols'] = colWidths;
       const wb = XLSX.utils.book_new();
@@ -280,9 +280,9 @@ export default function ScholarshipList() {
     }
   };
 
-  /* ========= APPLY BULK (setelah submit di modal upload) ========= */
+
   const applyBulkUpdates = (updates) => {
-    // updates: Map<NPM, {status, nama, prodi}>
+
     let updated = 0;
     const next = rows.map((r) => {
       const u = updates.get(r.npm);
@@ -294,13 +294,13 @@ export default function ScholarshipList() {
     return updated;
   };
 
-  /* ========= Upload Modal (XLSX saja) ========= */
+
   const [upModalOpen, setUpModalOpen] = useState(false);
   const [upLoading, setUpLoading] = useState(false);
   const [upFileName, setUpFileName] = useState('');
-  const [upPreview, setUpPreview] = useState([]); // [{nama,npm,prodi,statusRaw,statusNorm,valid,reason,line}]
-  const [upIssues, setUpIssues] = useState(null); // ringkasan validasi
-  const [upUpdates, setUpUpdates] = useState(new Map()); // Map<NPM,{status,nama,prodi}>
+  const [upPreview, setUpPreview] = useState([]);
+  const [upIssues, setUpIssues] = useState(null);
+  const [upUpdates, setUpUpdates] = useState(new Map());
   const dropRef = useRef(null);
 
   const handleDrop = async (ev) => {
@@ -344,7 +344,7 @@ export default function ScholarshipList() {
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: 'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(ws, { header: 1 }); // AoA
+      const json = XLSX.utils.sheet_to_json(ws, { header: 1 });
       if (!json.length) throw new Error('File kosong.');
       issues.totalRows = Math.max(0, json.length - 1);
 
@@ -424,7 +424,7 @@ export default function ScholarshipList() {
     if (!upUpdates || upUpdates.size === 0) return;
     const updated = applyBulkUpdates(upUpdates);
 
-    // Persist changes to server
+
     try {
       const tasks = rows.filter((r) => upUpdates.has(r.npm)).map((r) => apiRequest(`/scholarships/applications/${r.id}/administrasi`, { method: 'PATCH', body: { status: upUpdates.get(r.npm).status } }));
 
@@ -454,11 +454,11 @@ export default function ScholarshipList() {
     toast('Form upload direset.', 'info');
   };
 
-  /* ===================== UI ===================== */
+
   return (
     <div className="px-6 md:px-10 py-6">
       <div className="rounded-2xl border border-neutral-200 bg-white p-4 md:p-6">
-        {/* ====== Banner status beasiswa + toggle aman ====== */}
+
         <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
             {regOpen ? (
@@ -478,7 +478,7 @@ export default function ScholarshipList() {
             )}
           </div>
 
-          {/* Switch full-guarded */}
+
           <div className="flex items-center gap-3">
             <span className="text-sm text-neutral-700">Ubah status</span>
             <button
@@ -497,15 +497,15 @@ export default function ScholarshipList() {
           </div>
         </div>
 
-        {/* Header + Tools */}
+
         <div className="mb-4 space-y-4">
-          {/* Title row */}
+
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-lg font-semibold text-neutral-900">Peserta Pendaftar Beasiswa</h3>
 
-            {/* Search + Filter group */}
+
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              {/* Filter status */}
+
               <div className="flex items-center gap-2">
                 <label className="text-sm text-neutral-700 whitespace-nowrap">Administrasi</label>
                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-9 rounded-lg border border-neutral-200 bg-white px-2.5 text-sm text-neutral-800 outline-none focus:border-primary-500">
@@ -516,7 +516,7 @@ export default function ScholarshipList() {
                 </select>
               </div>
 
-              {/* Search */}
+
               <div className="relative">
                 <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
                 <input
@@ -529,7 +529,7 @@ export default function ScholarshipList() {
             </div>
           </div>
 
-          {/* Action buttons row */}
+
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
@@ -555,7 +555,7 @@ export default function ScholarshipList() {
           </div>
         </div>
 
-        {/* Table */}
+
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
@@ -650,7 +650,7 @@ export default function ScholarshipList() {
         </div>
       </div>
 
-      {/* ========== MODAL TOGGLE REGISTRATION (required phrase) ========== */}
+
       {toggleModal && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-xl rounded-2xl bg-white shadow-xl">
@@ -684,13 +684,13 @@ export default function ScholarshipList() {
                 )}
               </div>
 
-              {/* Checklist WAJIB */}
+
               <label className="inline-flex items-center gap-2">
                 <input type="checkbox" checked={toggleModal.confirm} onChange={(e) => setToggleModal((m) => ({ ...m, confirm: e.target.checked }))} />
                 <span className="text-neutral-800">Saya memahami konsekuensi perubahan status ini.</span>
               </label>
 
-              {/* Frasa WAJIB */}
+
               {(() => {
                 const requiredWord = toggleModal.action === 'open' ? 'BUKA' : 'TUTUP';
                 const ok = toggleModal.phrase === requiredWord;
@@ -723,9 +723,8 @@ export default function ScholarshipList() {
                 const canSubmit = toggleModal.confirm && toggleModal.phrase === requiredWord;
                 return (
                   <button
-                    className={`rounded-lg px-3 py-2 text-sm font-medium text-white ${toggleModal.action === 'open' ? 'bg-primary-500 hover:bg-primary-600' : 'bg-red-600 hover:bg-red-700'} ${
-                      !canSubmit ? 'opacity-60 cursor-not-allowed' : ''
-                    }`}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium text-white ${toggleModal.action === 'open' ? 'bg-primary-500 hover:bg-primary-600' : 'bg-red-600 hover:bg-red-700'} ${!canSubmit ? 'opacity-60 cursor-not-allowed' : ''
+                      }`}
                     onClick={confirmToggle}
                     disabled={!canSubmit}
                   >
@@ -738,11 +737,11 @@ export default function ScholarshipList() {
         </div>
       )}
 
-      {/* ========== MODAL KEPUTUSAN (Terima/Tolak) ========== */}
+
       {modal && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
-            {/* Header */}
+
             <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
               <h4 className="text-base font-semibold text-neutral-900">{modal.type === 'approve' ? 'Konfirmasi Penerimaan (Lolos Administrasi)' : 'Konfirmasi Penolakan (Administrasi Ditolak)'}</h4>
               <button className="rounded-md border border-neutral-200 px-2 py-1 text-sm text-neutral-600 hover:bg-neutral-50" onClick={() => setModal(null)} aria-label="Tutup">
@@ -750,7 +749,7 @@ export default function ScholarshipList() {
               </button>
             </div>
 
-            {/* Body */}
+
             <div className="px-5 py-5 space-y-4">
               <div className="rounded-lg border border-neutral-200 p-3 text-sm">
                 <div className="flex items-center gap-3">
@@ -788,7 +787,7 @@ export default function ScholarshipList() {
               <div className="text-xs text-neutral-500">Keputusan tidak dapat diubah dari halaman ini. (Jika perlu koreksi, lakukan melalui menu administrasi lanjutan.)</div>
             </div>
 
-            {/* Footer */}
+
             <div className="flex items-center justify-between border-t border-neutral-200 px-5 py-4">
               <button className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50" onClick={() => setModal(null)}>
                 Batal
@@ -805,11 +804,11 @@ export default function ScholarshipList() {
         </div>
       )}
 
-      {/* ========== MODAL UPLOAD (drag & drop + preview + submit) ========== */}
+
       {upModalOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-4xl rounded-2xl bg-white shadow-xl">
-            {/* Header */}
+
             <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
               <h4 className="text-base font-semibold text-neutral-900">Upload Excel Keputusan</h4>
               <button className="rounded-md border border-neutral-200 px-2 py-1 text-sm text-neutral-600 hover:bg-neutral-50" onClick={() => setUpModalOpen(false)} aria-label="Tutup">
@@ -817,9 +816,9 @@ export default function ScholarshipList() {
               </button>
             </div>
 
-            {/* Body */}
+
             <div className="px-5 py-5 space-y-4">
-              {/* Dropzone */}
+
               <div
                 ref={dropRef}
                 onDrop={handleDrop}
@@ -837,14 +836,14 @@ export default function ScholarshipList() {
                 {upFileName && <p className="mt-2 text-xs text-neutral-500">File: {upFileName}</p>}
               </div>
 
-              {/* Info bantuan */}
+
               <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-700">
                 Format kolom wajib: <b>Nama</b> | <b>NPM</b> | <b>Prodi</b> | <b>Status</b>. Status hanya:
                 <span className="ml-1 rounded px-1.5 py-0.5 bg-green-50 text-green-700">Lolos Administrasi</span> atau
                 <span className="ml-1 rounded px-1.5 py-0.5 bg-red-50 text-red-700">Administrasi Ditolak</span>.
               </div>
 
-              {/* Hasil Validasi & Preview */}
+
               {upIssues && !upIssues.error && (
                 <>
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2 text-sm">
@@ -886,7 +885,7 @@ export default function ScholarshipList() {
                     )}
                   </div>
 
-                  {/* Preview table (max 10) */}
+
                   <div className="overflow-x-auto rounded-xl border border-neutral-200">
                     <table className="min-w-full text-sm">
                       <thead className="bg-neutral-50">
@@ -936,11 +935,11 @@ export default function ScholarshipList() {
                 </>
               )}
 
-              {/* Error upload */}
+
               {upIssues?.error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{upIssues.error}</div>}
             </div>
 
-            {/* Footer */}
+
             <div className="flex items-center justify-between border-t border-neutral-200 px-5 py-4">
               <button className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50" onClick={resetUpload} disabled={upLoading}>
                 Reset
@@ -963,7 +962,7 @@ export default function ScholarshipList() {
         </div>
       )}
 
-      {/* Toasts */}
+
       <Toasts items={toasts} onClose={closeToast} />
     </div>
   );

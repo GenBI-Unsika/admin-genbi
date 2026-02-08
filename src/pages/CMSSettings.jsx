@@ -46,10 +46,6 @@ export default function CMSSettings() {
   const [ctaContent, setCtaContent] = useState(defaultCtaContent);
   const [branding, setBranding] = useState(defaultBranding);
 
-  // Load settings from API
-  useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
 
   const clearAllPendingUploads = useCallback(() => {
     // Revoke every object URL we created, then clear pending map
@@ -106,6 +102,11 @@ export default function CMSSettings() {
       setLoading(false);
     }
   }, [clearAllPendingUploads]);
+
+  // Load settings from API
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   const saveSettings = async () => {
     setSaving(true);

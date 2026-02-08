@@ -40,7 +40,7 @@ export default function TeamForm() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch divisions for dropdown
+
   useEffect(() => {
     const fetchDivisions = async () => {
       try {
@@ -53,7 +53,7 @@ export default function TeamForm() {
     fetchDivisions();
   }, []);
 
-  // Fetch member data if editing
+
   const fetchMember = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -87,9 +87,9 @@ export default function TeamForm() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Generate email from NPM
+
   const handleNpmChange = (value) => {
-    const npm = value.replace(/\D/g, ''); // Only numbers
+    const npm = value.replace(/\D/g, '');
     setForm((prev) => ({
       ...prev,
       npm,
@@ -97,18 +97,18 @@ export default function TeamForm() {
     }));
   };
 
-  // Avatar upload handler
+
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
+
     if (!file.type.startsWith('image/')) {
       alert('File harus berupa gambar');
       return;
     }
 
-    // Validate file size (max 2MB)
+
     if (file.size > 2 * 1024 * 1024) {
       alert('Ukuran file maksimal 2MB');
       return;
@@ -234,14 +234,14 @@ export default function TeamForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Avatar & Basic Info */}
+        {/* Avatar & Informasi Dasar */}
         <div className="bg-white rounded-xl border border-neutral-200 p-6">
           <h3 className="text-sm font-semibold text-neutral-700 mb-4 flex items-center gap-2">
             <User className="w-4 h-4" />
             Informasi Dasar
           </h3>
 
-          {/* Avatar Upload */}
+          {/* Upload Avatar */}
           <div className="mb-6 flex items-start gap-5">
             <div className="relative group">
               {form.photo ? (
@@ -338,7 +338,7 @@ export default function TeamForm() {
           </div>
         </div>
 
-        {/* Academic Info */}
+        {/* Informasi Akademik */}
         <div className="bg-white rounded-xl border border-neutral-200 p-6">
           <h3 className="text-sm font-semibold text-neutral-700 mb-4 flex items-center gap-2">
             <GraduationCap className="w-4 h-4" />
@@ -378,7 +378,7 @@ export default function TeamForm() {
           </div>
         </div>
 
-        {/* Contact Info */}
+        {/* Informasi Kontak */}
         <div className="bg-white rounded-xl border border-neutral-200 p-6">
           <h3 className="text-sm font-semibold text-neutral-700 mb-4 flex items-center gap-2">
             <Phone className="w-4 h-4" />
@@ -417,7 +417,7 @@ export default function TeamForm() {
           </div>
         </div>
 
-        {/* Status */}
+        {/* Status Keanggotaan */}
         <div className="bg-white rounded-xl border border-neutral-200 p-6">
           <div className="flex items-center gap-3">
             <input type="checkbox" id="isActive" checked={form.isActive} onChange={(e) => handleChange('isActive', e.target.checked)} className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500" />
@@ -454,7 +454,7 @@ export default function TeamForm() {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Aksi */}
         <div className="flex items-center justify-end gap-3 pt-4">
           <button type="button" onClick={() => navigate('/anggota')} className="px-5 py-2.5 border border-neutral-200 text-neutral-700 rounded-lg font-medium hover:bg-neutral-50 transition-colors" disabled={saving}>
             Batal

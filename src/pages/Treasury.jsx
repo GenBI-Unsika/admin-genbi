@@ -32,14 +32,14 @@ function formatCurrencyShort(value) {
 }
 
 export default function Treasury() {
-  const [tab, setTab] = useState('members'); // members | transactions
+  const [tab, setTab] = useState('members'); // members | transactions (keduanya dalam bahasa inggris di kode, tapi UI pakai Indonesia)
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [q, setQ] = useState('');
 
-  // Kas Umum (transactions)
+
   const [tx, setTx] = useState([]);
   const [txLoading, setTxLoading] = useState(false);
   const [txError, setTxError] = useState(null);
@@ -58,7 +58,7 @@ export default function Treasury() {
     reference: '',
   });
 
-  // Edit modal
+
   const [editingRow, setEditingRow] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [saving, setSaving] = useState(false);
@@ -144,7 +144,7 @@ export default function Treasury() {
         body: editForm,
       });
 
-      // Update local data
+      // Update data lokal
       const updated = response?.data;
       if (updated) {
         setData((prev) => prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)));
@@ -264,7 +264,7 @@ export default function Treasury() {
         </div>
       </div>
 
-      {/* Tabs */}
+
       <div className="mb-6 flex items-center gap-2">
         <button
           onClick={() => setTab('members')}
@@ -282,7 +282,7 @@ export default function Treasury() {
 
       {tab === 'members' ? (
         <>
-          {/* Stats */}
+
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
               <div className="flex items-center gap-3">
@@ -321,7 +321,7 @@ export default function Treasury() {
         </>
       ) : (
         <>
-          {/* Filters + Stats */}
+
           <div className="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-neutral-500" />
@@ -442,7 +442,7 @@ export default function Treasury() {
 
       {tab === 'members' && (
         <>
-          {/* Search */}
+
           <div className="mb-6">
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
@@ -456,7 +456,7 @@ export default function Treasury() {
             </div>
           </div>
 
-          {/* Loading State */}
+
           {loading && (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
@@ -464,7 +464,7 @@ export default function Treasury() {
             </div>
           )}
 
-          {/* Error State */}
+
           {error && !loading && (
             <EmptyState
               icon="error"
@@ -479,12 +479,12 @@ export default function Treasury() {
             />
           )}
 
-          {/* Empty State */}
+
           {!loading && !error && filteredData.length === 0 && (
             <EmptyState icon={q.trim() ? 'search' : 'inbox'} title={q ? 'Tidak ditemukan' : 'Belum ada data kas'} description={q ? 'Coba ubah kata kunci pencarian.' : 'Data kas akan muncul setelah ada anggota yang terdaftar.'} />
           )}
 
-          {/* Table */}
+
           {!loading && !error && filteredData.length > 0 && (
             <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
               <div className="overflow-x-auto">
@@ -542,7 +542,7 @@ export default function Treasury() {
             </div>
           )}
 
-          {/* Edit Modal */}
+
           {editingRow && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -603,7 +603,7 @@ export default function Treasury() {
         </>
       )}
 
-      {/* Transaction Modal */}
+
       {txModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl overflow-hidden">

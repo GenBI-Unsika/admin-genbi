@@ -227,7 +227,10 @@ export default function Login() {
           {/* Google Login */}
           {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
             <div className="flex justify-center">
-              <div ref={googleDivRef} />
+              <div>
+                <div ref={googleDivRef} />
+                {import.meta.env.DEV ? null : null}
+              </div>
             </div>
           ) : (
             <div className="text-xs text-neutral-500 text-center">Google login belum dikonfigurasi (VITE_GOOGLE_CLIENT_ID).</div>

@@ -1,19 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import Input from '../components/ui/Input';
-import Textarea from '../components/ui/Textarea';
 import Select from '../components/ui/Select';
-import FileUpload, { LinkInput } from '../components/ui/FileUpload';
+import FileUpload, { CoverUpload, LinkInput } from '../components/ui/FileUpload';
 import { ChevronRight, Image, FileText, Link as LinkIcon, X, Plus, Loader2 } from 'lucide-react';
+import { apiFinalizeUpload, apiPost, apiPatch, apiGet } from '../utils/api';
+import RichTextEditor from '../components/ui/RichTextEditor';
 
 export default function ActivityForm({ mode: modeProp }) {
-  const params = useParams(); // /aktivitas/:id/edit
-  const { state } = useLocation(); // ← data dari Link state (event/proker)
+  const params = useParams();
+  const { state } = useLocation();
   const navigate = useNavigate();
 
-  // Tentukan mode
   const mode = modeProp ?? (params.id ? 'edit' : 'create');
   const isEdit = mode === 'edit';
+
+  const payloadFromState = useMemo(() => state?.activity || state?.event || state?.proker, [state]);
 
   const [form, setForm] = useState({
     category: '',
@@ -21,36 +23,57 @@ export default function ActivityForm({ mode: modeProp }) {
     theme: '',
     date: '',
     description: '',
-    attachmentType: '', // 'foto', 'dokumen', 'tautan'
+
+    coverImage: null,
+
     photos: [],
     documents: [],
     links: [],
   });
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const update = (k) => (eOrV) => setForm((s) => ({ ...s, [k]: eOrV?.target ? eOrV.target.value : eOrV }));
 
-  // PREFILL: ambil dari state.event / state.proker (atau state.activity jika ada)
   useEffect(() => {
     if (!isEdit) return;
-    const payload = state?.activity || state?.event || state?.proker;
-    if (payload) {
+    if (payloadFromState) {
       setForm({
-        category: payload.type || '', // 'event' | 'proker'
-        title: payload.title || '',
-        theme: payload.theme || '',
-        date: payload.date || '', // format YYYY-MM-DD cocok utk <input type="date">
-        description: payload.description || '',
+        category: payloadFromState.type || '',
+        title: payloadFromState.title || '',
+        theme: payloadFromState.theme || '',
+        date: payloadFromState.startDate ? payloadFromState.startDate.slice(0, 10) : payloadFromState.date || '',
+        description: payloadFromState.description || '',
+        coverImage: payloadFromState.coverImage ? { url: payloadFromState.coverImage, name: 'Cover' } : null,
         attachmentType: '',
-        photos: payload.photos || [],
-        documents: payload.documents || [],
-        links: payload.links || [],
+        photos: payloadFromState.photos || [],
+        documents: payloadFromState.documents || [],
+        links: payloadFromState.links || [],
       });
-    } else {
-      // Jika user reload langsung halaman edit, state akan kosong (biarkan kosong).
-      console.warn('Tidak ada data di location.state; form edit tidak diprefill.');
+    } else if (params.id) {
+      setLoading(true);
+      apiGet(`/activities/${params.id}`)
+        .then((data) => {
+          setForm({
+            category: data.status === 'DRAFT' ? 'proker' : 'event',
+            title: data.title || '',
+            theme: data.theme || '',
+            date: data.startDate ? data.startDate.slice(0, 10) : '',
+            description: data.description || '',
+            coverImage: data.coverImage ? { url: data.coverImage, name: 'Cover' } : null,
+            attachmentType: '',
+            photos: data.attachments?.photos || [],
+            documents: data.attachments?.documents || [],
+            links: data.attachments?.links || [],
+          });
+        })
+        .catch((err) => {
+          console.error('Failed to fetch activity:', err);
+          alert('Gagal memuat data aktivitas');
+        })
+        .finally(() => setLoading(false));
     }
-  }, [isEdit, state]);
+  }, [isEdit, payloadFromState, params.id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,11 +81,56 @@ export default function ActivityForm({ mode: modeProp }) {
       alert('Judul dan Kategori wajib diisi');
       return;
     }
+
+    if (!isEdit && !form.coverImage?.url) {
+      alert('Cover image wajib diupload');
+      return;
+    }
+
     setSaving(true);
     try {
-      // TODO: Call API to save
-      console.log('Submitting:', form);
-      await new Promise((r) => setTimeout(r, 1000)); // Simulated delay
+      const finalizeStaged = async (fileObj, folder) => {
+        if (!fileObj) return null;
+        if (!fileObj?.tempId || !fileObj?.isStaged) return fileObj;
+
+        const result = await apiFinalizeUpload(fileObj.tempId, folder);
+        const url = result?.url || result?.fileUrl || result;
+        if (!url) throw new Error('Upload berhasil tapi URL tidak tersedia');
+
+        return {
+          name: result?.name || fileObj.name,
+          url,
+          type: result?.mimeType || fileObj.type,
+          size: result?.size || fileObj.size,
+        };
+      };
+
+      const finalizeMany = async (items, folder) => {
+        const list = Array.isArray(items) ? items : [];
+        return Promise.all(list.map((it) => finalizeStaged(it, folder)));
+      };
+
+      const cover = await finalizeStaged(form.coverImage, 'activities/covers');
+      const photos = await finalizeMany(form.photos, 'activities/photos');
+      const documents = await finalizeMany(form.documents, 'activities/documents');
+
+      const payload = {
+        title: form.title,
+        description: form.description,
+        coverImage: cover?.url || null,
+        startDate: form.date || null,
+        status: form.category === 'proker' ? 'DRAFT' : 'PLANNED',
+        attachments: { photos, documents, links: form.links || [] },
+      };
+
+      if (isEdit && params.id) {
+        await apiPatch(`/activities/${params.id}`, payload);
+      } else {
+        await apiPost('/activities', payload);
+      }
+
+      // Update local state with finalized URLs so user doesn't see temp URLs after save
+      setForm((s) => ({ ...s, coverImage: cover, photos, documents }));
       navigate('/aktivitas');
     } catch (err) {
       alert(err.message || 'Gagal menyimpan');
@@ -78,6 +146,14 @@ export default function ActivityForm({ mode: modeProp }) {
   const removeDocument = (index) => {
     setForm((s) => ({ ...s, documents: s.documents.filter((_, i) => i !== index) }));
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="px-6 md:px-10 py-6">
@@ -114,14 +190,19 @@ export default function ActivityForm({ mode: modeProp }) {
           <Input label="Tema" value={form.theme} onChange={update('theme')} placeholder="Tuliskan Tema kegiatan" />
           <Input label="Tanggal Publikasi" type="date" value={form.date} onChange={update('date')} placeholder="dd/mm/yyyy" />
 
-          <Textarea label="Deskripsi" value={form.description} onChange={update('description')} placeholder="Tuliskan Deskripsi kegiatan" className="md:col-span-2" />
+          <div className="md:col-span-2">
+            <RichTextEditor label="Deskripsi" value={form.description} onChange={(html) => setForm((s) => ({ ...s, description: html }))} placeholder="Tuliskan deskripsi kegiatan..." />
+          </div>
         </div>
 
-        {/* Lampiran Section */}
+        <div className="mt-6">
+          <CoverUpload label="Cover Image" value={form.coverImage} onChange={(v) => setForm((s) => ({ ...s, coverImage: v }))} className="" useStaging />
+          {!isEdit && !form.coverImage?.url && <p className="mt-2 text-xs text-neutral-500">Cover wajib diisi untuk aktivitas baru.</p>}
+        </div>
+
         <div className="mt-6 border-t border-neutral-200 pt-6">
           <h3 className="text-base font-semibold text-neutral-900 mb-4">Lampiran</h3>
 
-          {/* Attachment Type Tabs */}
           <div className="flex gap-2 mb-4">
             <button
               type="button"
@@ -158,13 +239,13 @@ export default function ActivityForm({ mode: modeProp }) {
             </button>
           </div>
 
-          {/* Attachment Content */}
           {form.attachmentType === 'foto' && (
             <div className="space-y-4">
               <FileUpload
                 accept="image/*"
                 multiple
                 folder="activities/photos"
+                useStaging
                 value={form.photos}
                 onChange={(files) => setForm((s) => ({ ...s, photos: files }))}
                 placeholder="Seret foto kegiatan ke sini atau klik untuk memilih"
@@ -179,6 +260,7 @@ export default function ActivityForm({ mode: modeProp }) {
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
                 multiple
                 folder="activities/documents"
+                useStaging
                 value={form.documents}
                 onChange={(files) => setForm((s) => ({ ...s, documents: files }))}
                 placeholder="Seret dokumen ke sini atau klik untuk memilih"
@@ -189,7 +271,6 @@ export default function ActivityForm({ mode: modeProp }) {
 
           {form.attachmentType === 'tautan' && <LinkInput value={form.links} onChange={(links) => setForm((s) => ({ ...s, links }))} />}
 
-          {/* Preview of all attachments when none selected */}
           {!form.attachmentType && (form.photos.length > 0 || form.documents.length > 0 || form.links.length > 0) && (
             <div className="space-y-4">
               {form.photos.length > 0 && (
@@ -248,7 +329,6 @@ export default function ActivityForm({ mode: modeProp }) {
             </div>
           )}
 
-          {/* Empty state */}
           {!form.attachmentType && form.photos.length === 0 && form.documents.length === 0 && form.links.length === 0 && (
             <div className="text-center py-8 text-neutral-400">
               <Plus className="w-8 h-8 mx-auto mb-2" />

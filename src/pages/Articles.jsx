@@ -24,7 +24,7 @@ export default function Articles() {
         title: item.title,
         author: item.author?.name || 'GenBI Unsika',
         date: item.publishedAt ? item.publishedAt.split('T')[0] : item.createdAt?.split('T')[0] || '',
-        cover: item.coverImage || 'https://images.unsplash.com/photo-1515378960530-7c0da6231fb1?q=80&w=1200&auto=format&fit=crop',
+        cover: item.coverImage || null,
         description: item.excerpt || item.content?.substring(0, 150) || '',
         slug: item.slug,
         status: item.status,

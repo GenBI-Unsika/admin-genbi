@@ -1,4 +1,4 @@
-// AdminUsers.jsx
+
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Avatar from '../components/Avatar';
@@ -8,7 +8,7 @@ import { useConfirm } from '../contexts/ConfirmContext.jsx';
 import { apiGet, apiDelete, apiPatch } from '../utils/api';
 import EmptyState from '../components/EmptyState';
 
-/* ---------- Konstanta ---------- */
+
 const ROLE_DEFS = [
   { role_name: 'super_admin', label: 'Super Admin' },
   { role_name: 'admin', label: 'Admin' },
@@ -29,7 +29,7 @@ export default function AdminUsers() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { confirm } = useConfirm();
 
-  /* ---------- Tabs via slug (hanya 10.1 & 10.3) ---------- */
+
   const ALLOWED_TABS = ['accounts', 'subscribers'];
   const initialTab = ALLOWED_TABS.includes(tabParam) ? tabParam : 'accounts';
   const [tab, setTab] = useState(initialTab);
@@ -46,7 +46,7 @@ export default function AdminUsers() {
     }
   };
 
-  /* ---------- Query helpers ---------- */
+
   const getParam = (k, def = '') => searchParams.get(k) ?? def;
   const getIntParam = (k, def = 1) => {
     const n = parseInt(searchParams.get(k) || '', 10);
@@ -61,7 +61,7 @@ export default function AdminUsers() {
     setSearchParams(sp, { replace: true });
   };
 
-  /* ========== 10.1 Akun Website - Fetch from API ========== */
+
   const [accounts, setAccounts] = useState([]);
   const [loadingAcc, setLoadingAcc] = useState(true);
   const [errorAcc, setErrorAcc] = useState(null);
@@ -148,12 +148,12 @@ export default function AdminUsers() {
     }
   };
 
-  /* ========== 10.3 Subscriber ========== */
 
-  /* ---------- UI ---------- */
+
+
   return (
     <div className="px-6 md:px-10 py-6">
-      {/* Breadcrumb */}
+
       <nav className="mb-4 flex items-center text-sm text-neutral-600">
         <Link to="/dashboard" className="hover:text-neutral-800 hover:underline">
           Dashboard
@@ -190,7 +190,7 @@ export default function AdminUsers() {
 
         {/* Panels */}
         <div className="p-4 md:p-6">
-          {/* ========== TAB: AKUN WEBSITE ========== */}
+
           {tab === 'accounts' && (
             <>
               {/* Header tools */}
@@ -248,7 +248,7 @@ export default function AdminUsers() {
                 </div>
               </div>
 
-              {/* Table Akun */}
+
               {loadingAcc && accounts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-3">
                   <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
@@ -339,7 +339,7 @@ export default function AdminUsers() {
                 </div>
               )}
 
-              {/* Pagination Akun */}
+
               <div className="mt-4 flex flex-col items-center justify-between gap-3 text-sm sm:flex-row">
                 <div className="text-neutral-600">
                   Menampilkan <span className="text-neutral-800">{totalAcc === 0 ? 0 : startAcc + 1}</span>–<span className="text-neutral-800">{Math.min(startAcc + PER_PAGE, totalAcc)}</span> dari{' '}
@@ -376,7 +376,7 @@ export default function AdminUsers() {
             </>
           )}
 
-          {/* ========== TAB: SUBSCRIBER ========== */}
+
           {tab === 'subscribers' && <EmptyState icon="inbox" title="Segera Hadir" description="Fitur manajemen subscriber akan tersedia dalam waktu dekat." />}
         </div>
       </div>

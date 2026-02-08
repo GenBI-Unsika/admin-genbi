@@ -23,7 +23,7 @@ export default function AdminUserForm({ mode: modeProp }) {
     email: '',
     role: 'student', // default
     active: true,
-    password: '', // only for create / optional update
+    password: '', // hanya untuk create / update opsional
   });
 
   const [loading, setLoading] = useState(isEdit);
@@ -82,7 +82,7 @@ export default function AdminUserForm({ mode: modeProp }) {
       if (isEdit) {
         await apiPatch(`/users/${userId}`, payload);
       } else {
-        // Create mode
+        // Mode Buat
         if (!form.password) {
           throw new Error('Password wajib diisi untuk user baru.');
         }
@@ -217,9 +217,8 @@ export default function AdminUserForm({ mode: modeProp }) {
                 type="button"
                 aria-pressed={!form.active}
                 onClick={() => setForm({ ...form, active: false })}
-                className={`inline-flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold transition ${
-                  !form.active ? 'bg-neutral-400 text-neutral-50' : 'bg-white text-neutral-600 hover:bg-neutral-50'
-                }`}
+                className={`inline-flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold transition ${!form.active ? 'bg-neutral-400 text-neutral-50' : 'bg-white text-neutral-600 hover:bg-neutral-50'
+                  }`}
                 title="Nonaktifkan akun"
               >
                 <XCircle className={`h-4 w-4 ${!form.active ? 'text-neutral-50' : 'text-neutral-500'}`} />

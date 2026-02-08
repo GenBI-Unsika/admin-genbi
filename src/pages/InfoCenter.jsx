@@ -17,18 +17,18 @@ export default function InfoCenter() {
   const { hash } = useLocation();
 
   const [loading, setLoading] = useState(true);
-  const [sections, setSections] = useState([]); // data from API
+  const [sections, setSections] = useState([]);
   const [loadError, setLoadError] = useState(null);
-  const [openSec, setOpenSec] = useState({}); // { [sectionId]: boolean }
+  const [openSec, setOpenSec] = useState({});
   const [activeSectionId, setActiveSectionId] = useState(null);
   const [activeItemId, setActiveItemId] = useState(null);
 
-  // Sticky measurements: we support a global CSS var --shell-offset for any app-level sticky header height.
-  // If not provided, we fall back to measuring this container's offset to viewport top at load.
+
+
   const containerRef = useRef(null);
   const topbarRef = useRef(null);
-  const contentRef = useRef(null); // NEW: main content scroll container
-  const [safeTop, setSafeTop] = useState(0); // distance from viewport top where we should start sticking
+  const contentRef = useRef(null);
+  const [safeTop, setSafeTop] = useState(0);
   const [topbarHeight, setTopbarHeight] = useState(0);
 
   const recalcSticky = () => {
@@ -40,20 +40,19 @@ export default function InfoCenter() {
   };
 
   useEffect(() => {
-    // initial + on resize; avoid listening to scroll to prevent jank
-    recalcSticky();
+    // Inisialisasi + saat resize; hindari event scroll
     const onResize = () => recalcSticky();
     window.addEventListener('resize', onResize);
-    // Rerun after first paint (fonts/layout settle)
+    // Jalankan ulang setelah render pertama
     requestAnimationFrame(recalcSticky);
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Search modal
+
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch from API (no JSON-based public file)
+
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -64,10 +63,10 @@ export default function InfoCenter() {
         const secs = Array.isArray(json?.sections) ? json.sections : [];
         setSections(secs);
 
-        // Langkah 1: Atur default semua section menjadi tertutup
+
         const defaults = Object.fromEntries(secs.map((s) => [s.id, false]));
 
-        // Tentukan section dan item yang aktif
+
         const firstSec = secs[0];
         const firstItem = firstSec?.items?.[0];
         let activeSecId = firstSec?.id || null;
@@ -79,7 +78,7 @@ export default function InfoCenter() {
           if (foundSec) {
             activeSecId = foundSec.id;
             activeItmId = fromHashId;
-            // Langkah 2: Jika section ditemukan dari hash, buka section tersebut
+
             defaults[foundSec.id] = true;
           }
         }
@@ -102,7 +101,7 @@ export default function InfoCenter() {
     };
   }, [hash]);
 
-  // Flatten items untuk search
+  // Ratakan item untuk pencarian
   const flatItems = useMemo(() => sections.flatMap((sec) => (sec.items || []).map((it) => ({ ...it, __sectionId: sec.id, __sectionTitle: sec.title }))), [sections]);
 
   const activeItem = useMemo(() => {
@@ -135,7 +134,7 @@ export default function InfoCenter() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // helper: scroll contentRef to top where we use to previously call window.scrollTo
+  // Helper: scroll ke paling atas
   const scrollContentToTop = () => {
     // Ganti target scroll ke window (seluruh halaman)
     window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Camera, Loader2, Save } from 'lucide-react';
 import Avatar from '../components/Avatar';
-import { apiPatch, apiUpload, authRefresh, fetchMe } from '../utils/api';
+import { apiPatch, apiUploadStaging, getTempPreviewUrl, authRefresh, fetchMe } from '../utils/api';
 import { fetchMeViaTrpc } from '../utils/me';
 import { useConfirm } from '../contexts/ConfirmContext.jsx';
 
@@ -34,6 +34,7 @@ export default function Profile() {
     phone: '',
     motivasi: '',
     avatar: '',
+    avatarTempId: '', // NEW: Track staged avatar tempId
   });
 
   const roleLabel = useMemo(() => {
@@ -67,6 +68,7 @@ export default function Profile() {
         phone: next?.profile?.phone || '',
         motivasi: next?.profile?.motivasi || '',
         avatar: next?.profile?.avatar || next?.avatar || '',
+        avatarTempId: '', // Clear tempId on load
       });
     } catch (e) {
       setError(e?.message || 'Gagal memuat profil');
@@ -96,11 +98,19 @@ export default function Profile() {
     setError(null);
     setUploading(true);
     try {
-      // Back-compat: admin-genbi uses /upload (server now aliases to /files)
-      const uploaded = await apiUpload('/upload', file, { folder: 'avatars' });
-      const url = uploaded?.url || uploaded?.data?.url || '';
-      if (!url) throw new Error('Upload berhasil, tapi foto belum bisa dipakai. Coba ulangi sebentar lagi.');
-      setForm((s) => ({ ...s, avatar: url }));
+      // Use staging flow - upload to temp storage for preview
+      const result = await apiUploadStaging(file);
+      const previewUrl = result?.previewUrl || getTempPreviewUrl(result?.tempId);
+      const tempId = result?.tempId;
+
+      if (!tempId) throw new Error('Upload berhasil, tapi foto belum bisa dipakai. Coba ulangi sebentar lagi.');
+
+      // Store both preview URL and tempId for later finalization
+      setForm((s) => ({
+        ...s,
+        avatar: previewUrl,
+        avatarTempId: tempId,
+      }));
     } catch (e) {
       setError(e?.message || 'Gagal upload avatar');
     } finally {
@@ -122,15 +132,25 @@ export default function Profile() {
     setSaving(true);
     setError(null);
     try {
-      await apiPatch('/me/profile', {
+      // Build payload - use avatarTempId if available (staged file)
+      const payload = {
         name: form.name?.trim() || null,
         npm: form.npm?.trim() || null,
         phone: form.phone?.trim() || null,
         motivasi: form.motivasi?.trim() || null,
-        avatar: form.avatar?.trim() || null,
-      });
+      };
 
-      // refresh layout header/avatar in AdminLayout
+      // If we have a staged avatar, send tempId for server-side finalization
+      if (form.avatarTempId) {
+        payload.avatarTempId = form.avatarTempId;
+      } else {
+        // Otherwise send the avatar URL directly (for existing/unchanged avatars)
+        payload.avatar = form.avatar?.trim() || null;
+      }
+
+      await apiPatch('/me/profile', payload);
+
+      // Refresh header/avatar layout di AdminLayout
       window.dispatchEvent(new CustomEvent('me:updated'));
 
       await loadMe();
