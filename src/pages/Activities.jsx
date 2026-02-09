@@ -4,6 +4,7 @@ import EventCard from '../components/cards/EventCard';
 import ProkerCard from '../components/cards/ProkerCard';
 import EmptyState from '../components/EmptyState';
 import { ChevronRight, Loader2, Plus, RefreshCw, Search } from 'lucide-react';
+import { useConfirm } from '../contexts/ConfirmContext';
 import { apiGet, apiDelete } from '../utils/api';
 
 export default function Activities() {
@@ -21,17 +22,23 @@ export default function Activities() {
       if (q.trim()) params.set('search', q.trim());
       const result = await apiGet(`/activities?${params.toString()}`);
       // Map API data to component format
-      const mapped = (result.data || result || []).map((item) => ({
-        id: item.id,
-        type: item.status === 'PLANNED' || item.status === 'DRAFT' ? 'proker' : 'event',
-        title: item.title,
-        theme: item.division || 'GenBI',
-        date: item.startDate ? item.startDate.split('T')[0] : '',
-        cover: item.coverImage || null,
-        description: item.description || '',
-        status: item.status,
-        raw: item, // Keep original data for edit
-      }));
+      const mapped = (result.data || result || []).map((item) => {
+        const division = item.division || 'GenBI';
+        const location = item.location ? `• ${item.location}` : '';
+        const theme = `${division} ${location}`;
+
+        return {
+          id: item.id,
+          type: item.status === 'PLANNED' || item.status === 'DRAFT' ? 'proker' : 'event',
+          title: item.title,
+          theme,
+          date: item.startDate ? item.startDate.split('T')[0] : '',
+          cover: item.coverImage || null,
+          description: item.description || '',
+          status: item.status,
+          raw: item, // Keep original data for edit
+        };
+      });
       setActivities(mapped);
     } catch (err) {
       setError(err.message || 'Gagal memuat data aktivitas');
@@ -47,8 +54,19 @@ export default function Activities() {
     return () => clearTimeout(timer);
   }, [fetchActivities]);
 
+  const { confirm } = useConfirm();
+
   const handleDelete = async (id) => {
-    if (!confirm('Yakin ingin menghapus aktivitas ini?')) return;
+    const isConfirmed = await confirm({
+      title: 'Hapus Aktivitas?',
+      description: 'Aktivitas yang dihapus tidak dapat dikembalikan.',
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      tone: 'danger',
+    });
+
+    if (!isConfirmed) return;
+
     try {
       await apiDelete(`/activities/${id}`);
       setActivities((prev) => prev.filter((a) => a.id !== id));

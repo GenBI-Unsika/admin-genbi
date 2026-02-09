@@ -3,7 +3,7 @@ import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import FileUpload, { CoverUpload, LinkInput } from '../components/ui/FileUpload';
-import { ChevronRight, Image, FileText, Link as LinkIcon, X, Plus, Loader2 } from 'lucide-react';
+import { ChevronRight, Image, FileText, Link as LinkIcon, X, Plus, Loader2, AlertTriangle } from 'lucide-react';
 import { apiFinalizeUpload, apiPost, apiPatch, apiGet } from '../utils/api';
 import RichTextEditor from '../components/ui/RichTextEditor';
 
@@ -17,12 +17,18 @@ export default function ActivityForm({ mode: modeProp }) {
 
   const payloadFromState = useMemo(() => state?.activity || state?.event || state?.proker, [state]);
 
+  const [divisions, setDivisions] = useState([]);
   const [form, setForm] = useState({
     category: '',
     title: '',
-    theme: '',
-    date: '',
+    divisionId: '', // Event only
+    theme: '', // Proker only
+    startDate: '', // Event only  
+    endDate: '', // Event only
+    publicationDate: '', // Proker only
+    location: '', // Event only
     description: '',
+    benefits: [], // Event only
 
     coverImage: null,
 
@@ -32,6 +38,17 @@ export default function ActivityForm({ mode: modeProp }) {
   });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [newBenefit, setNewBenefit] = useState('');
+
+  // Fetch divisions
+  useEffect(() => {
+    apiGet('/divisions')
+      .then((res) => {
+        const items = res.data || res || [];
+        setDivisions(items.map((d) => ({ value: d.id, label: d.name })));
+      })
+      .catch((err) => console.error('Failed to load divisions:', err));
+  }, []);
 
   const update = (k) => (eOrV) => setForm((s) => ({ ...s, [k]: eOrV?.target ? eOrV.target.value : eOrV }));
 
@@ -39,16 +56,21 @@ export default function ActivityForm({ mode: modeProp }) {
     if (!isEdit) return;
     if (payloadFromState) {
       setForm({
-        category: payloadFromState.type || '',
+        category: payloadFromState.type === 'proker' || payloadFromState.status === 'DRAFT' ? 'proker' : 'event',
         title: payloadFromState.title || '',
+        divisionId: payloadFromState.divisionId || '',
         theme: payloadFromState.theme || '',
-        date: payloadFromState.startDate ? payloadFromState.startDate.slice(0, 10) : payloadFromState.date || '',
+        startDate: payloadFromState.startDate ? payloadFromState.startDate.slice(0, 16) : '',
+        endDate: payloadFromState.endDate ? payloadFromState.endDate.slice(0, 16) : '',
+        publicationDate: payloadFromState.publicationDate ? payloadFromState.publicationDate.slice(0, 10) : '',
+        location: payloadFromState.location || '',
         description: payloadFromState.description || '',
+        benefits: payloadFromState.benefits ? (typeof payloadFromState.benefits === 'string' ? JSON.parse(payloadFromState.benefits) : payloadFromState.benefits) : [],
         coverImage: payloadFromState.coverImage ? { url: payloadFromState.coverImage, name: 'Cover' } : null,
         attachmentType: '',
-        photos: payloadFromState.photos || [],
-        documents: payloadFromState.documents || [],
-        links: payloadFromState.links || [],
+        photos: payloadFromState.attachments?.photos || [],
+        documents: payloadFromState.attachments?.documents || [],
+        links: payloadFromState.attachments?.links || [],
       });
     } else if (params.id) {
       setLoading(true);
@@ -57,9 +79,14 @@ export default function ActivityForm({ mode: modeProp }) {
           setForm({
             category: data.status === 'DRAFT' ? 'proker' : 'event',
             title: data.title || '',
+            divisionId: data.divisionId || '',
             theme: data.theme || '',
-            date: data.startDate ? data.startDate.slice(0, 10) : '',
+            startDate: data.startDate ? data.startDate.slice(0, 16) : '',
+            endDate: data.endDate ? data.endDate.slice(0, 16) : '',
+            publicationDate: data.publicationDate ? data.publicationDate.slice(0, 10) : '',
+            location: data.location || '',
             description: data.description || '',
+            benefits: data.benefits ? (typeof data.benefits === 'string' ? JSON.parse(data.benefits) : data.benefits) : [],
             coverImage: data.coverImage ? { url: data.coverImage, name: 'Cover' } : null,
             attachmentType: '',
             photos: data.attachments?.photos || [],
@@ -118,10 +145,24 @@ export default function ActivityForm({ mode: modeProp }) {
         title: form.title,
         description: form.description,
         coverImage: cover?.url || null,
-        startDate: form.date || null,
         status: form.category === 'proker' ? 'DRAFT' : 'PLANNED',
         attachments: { photos, documents, links: form.links || [] },
       };
+
+      // Event-specific fields
+      if (form.category === 'event') {
+        payload.divisionId = form.divisionId ? parseInt(form.divisionId) : null;
+        payload.startDate = form.startDate ? new Date(form.startDate).toISOString() : null;
+        payload.endDate = form.endDate ? new Date(form.endDate).toISOString() : null;
+        payload.location = form.location;
+        payload.benefits = form.benefits;
+      }
+
+      // Proker-specific fields
+      if (form.category === 'proker') {
+        payload.theme = form.theme;
+        payload.publicationDate = form.publicationDate ? new Date(form.publicationDate).toISOString() : null;
+      }
 
       if (isEdit && params.id) {
         await apiPatch(`/activities/${params.id}`, payload);
@@ -129,7 +170,6 @@ export default function ActivityForm({ mode: modeProp }) {
         await apiPost('/activities', payload);
       }
 
-      // Update local state with finalized URLs so user doesn't see temp URLs after save
       setForm((s) => ({ ...s, coverImage: cover, photos, documents }));
       navigate('/aktivitas');
     } catch (err) {
@@ -137,6 +177,16 @@ export default function ActivityForm({ mode: modeProp }) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const addBenefit = () => {
+    if (!newBenefit.trim()) return;
+    setForm((s) => ({ ...s, benefits: [...s.benefits, newBenefit.trim()] }));
+    setNewBenefit('');
+  };
+
+  const removeBenefit = (index) => {
+    setForm((s) => ({ ...s, benefits: s.benefits.filter((_, i) => i !== index) }));
   };
 
   const removePhoto = (index) => {
@@ -172,6 +222,14 @@ export default function ActivityForm({ mode: modeProp }) {
       <h2 className="mt-2 text-xl md:text-2xl font-semibold">Event dan Proker</h2>
 
       <form onSubmit={handleSubmit} className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
+        {/* Warning - Pilih Kategori */}
+        {!form.category && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-yellow-800">Pilih kategori terlebih dahulu untuk melanjutkan</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select
             label="Kategori"
@@ -184,20 +242,86 @@ export default function ActivityForm({ mode: modeProp }) {
             ]}
           />
 
-          <div />
-          <Input label="Judul" value={form.title} onChange={update('title')} placeholder="Tuliskan Nama kegiatan" className="md:col-span-2" />
+          {form.category === 'event' && (
+            <Select
+              label="Divisi Penanggung Jawab"
+              value={form.divisionId}
+              onChange={update('divisionId')}
+              placeholder="Pilih divisi..."
+              options={divisions}
+            />
+          )}
 
-          <Input label="Tema" value={form.theme} onChange={update('theme')} placeholder="Tuliskan Tema kegiatan" />
-          <Input label="Tanggal Publikasi" type="date" value={form.date} onChange={update('date')} placeholder="dd/mm/yyyy" />
+          {form.category === 'proker' && (
+            <Input
+              label="Tema"
+              value={form.theme}
+              onChange={update('theme')}
+              placeholder="Tema program kerja..."
+            />
+          )}
+
+          {/* Cover Image */}
+          <div className="md:col-span-2">
+            <CoverUpload label="Cover Image" value={form.coverImage} onChange={(v) => setForm((s) => ({ ...s, coverImage: v }))} useStaging />
+            {!isEdit && !form.coverImage?.url && <p className="mt-2 text-xs text-neutral-500">Cover wajib diisi untuk aktivitas baru.</p>}
+          </div>
+
+          <Input label="Judul Kegiatan" value={form.title} onChange={update('title')} placeholder="Nama kegiatan..." className="md:col-span-2" disabled={!form.category} />
+
+          {form.category === 'event' && (
+            <>
+              <Input label="Lokasi" value={form.location} onChange={update('location')} placeholder="Tempat pelaksanaan (misal: Aula Unsika / Zoom)" className="md:col-span-2" />
+
+              <Input label="Waktu Mulai" type="datetime-local" value={form.startDate} onChange={update('startDate')} />
+              <Input label="Waktu Selesai" type="datetime-local" value={form.endDate} onChange={update('endDate')} />
+            </>
+          )}
+
+          {form.category === 'proker' && (
+            <Input
+              label="Tanggal Publikasi"
+              type="date"
+              value={form.publicationDate}
+              onChange={update('publicationDate')}
+              className="md:col-span-2"
+            />
+          )}
+
+          {form.category === 'event' && (
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-1">Benefit Peserta</label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={newBenefit}
+                  onChange={(e) => setNewBenefit(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addBenefit())}
+                  placeholder="Tambah benefit (misal: E-Sertifikat, Snack)"
+                  className="flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-200"
+                />
+                <button type="button" onClick={addBenefit} className="px-3 py-2 bg-neutral-100 text-neutral-600 rounded-lg hover:bg-neutral-200">
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+              {form.benefits.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {form.benefits.map((b, i) => (
+                    <div key={i} className="flex items-center gap-1.5 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm">
+                      <span>{b}</span>
+                      <button type="button" onClick={() => removeBenefit(i)} className="hover:text-red-500">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="md:col-span-2">
-            <RichTextEditor label="Deskripsi" value={form.description} onChange={(html) => setForm((s) => ({ ...s, description: html }))} placeholder="Tuliskan deskripsi kegiatan..." />
+            <RichTextEditor label="Deskripsi" value={form.description} onChange={(html) => setForm((s) => ({ ...s, description: html }))} placeholder="Tuliskan deskripsi kegiatan secara lengkap..." />
           </div>
-        </div>
-
-        <div className="mt-6">
-          <CoverUpload label="Cover Image" value={form.coverImage} onChange={(v) => setForm((s) => ({ ...s, coverImage: v }))} className="" useStaging />
-          {!isEdit && !form.coverImage?.url && <p className="mt-2 text-xs text-neutral-500">Cover wajib diisi untuk aktivitas baru.</p>}
         </div>
 
         <div className="mt-6 border-t border-neutral-200 pt-6">
@@ -207,9 +331,8 @@ export default function ActivityForm({ mode: modeProp }) {
             <button
               type="button"
               onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'foto' ? '' : 'foto' }))}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                }`}
             >
               <Image className="w-4 h-4" />
               Foto
@@ -218,9 +341,8 @@ export default function ActivityForm({ mode: modeProp }) {
             <button
               type="button"
               onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'dokumen' ? '' : 'dokumen' }))}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                }`}
             >
               <FileText className="w-4 h-4" />
               Dokumen
@@ -229,9 +351,8 @@ export default function ActivityForm({ mode: modeProp }) {
             <button
               type="button"
               onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'tautan' ? '' : 'tautan' }))}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                }`}
             >
               <LinkIcon className="w-4 h-4" />
               Tautan
@@ -275,17 +396,17 @@ export default function ActivityForm({ mode: modeProp }) {
             <div className="space-y-4">
               {form.photos.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-neutral-700 mb-2">Foto ({form.photos.length})</p>
-                  <div className="flex flex-wrap gap-2">
+                  <p className="text-sm font-medium text-neutral-700 mb-2">Dokumentasi Kegiatan ({form.photos.length})</p>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                     {form.photos.map((photo, i) => (
-                      <div key={i} className="relative group">
-                        <img src={photo.url} alt={photo.name} className="w-20 h-20 object-cover rounded-lg border border-neutral-200" />
+                      <div key={i} className="relative group aspect-square">
+                        <img src={photo.url} alt={photo.name} className="w-full h-full object-cover rounded-lg border border-neutral-200" />
                         <button
                           type="button"
                           onClick={() => removePhoto(i)}
-                          className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                         >
-                          <X className="w-3 h-3" />
+                          <X className="w-4 h-4" />
                         </button>
                       </div>
                     ))}
@@ -326,13 +447,6 @@ export default function ActivityForm({ mode: modeProp }) {
                   </div>
                 </div>
               )}
-            </div>
-          )}
-
-          {!form.attachmentType && form.photos.length === 0 && form.documents.length === 0 && form.links.length === 0 && (
-            <div className="text-center py-8 text-neutral-400">
-              <Plus className="w-8 h-8 mx-auto mb-2" />
-              <p className="text-sm">Klik tombol di atas untuk menambahkan lampiran</p>
             </div>
           )}
         </div>
