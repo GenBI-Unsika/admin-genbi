@@ -16,7 +16,6 @@ export default function Teams() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [q, setQ] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
@@ -24,7 +23,6 @@ export default function Teams() {
     try {
       const params = new URLSearchParams();
       if (q.trim()) params.set('search', q.trim());
-      if (roleFilter) params.set('role', roleFilter);
 
       const response = await apiRequest(`/members/admin/all${params.toString() ? `?${params.toString()}` : ''}`);
       setMembers(response?.data || []);
@@ -34,7 +32,7 @@ export default function Teams() {
     } finally {
       setLoading(false);
     }
-  }, [q, roleFilter]);
+  }, [q]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -44,18 +42,15 @@ export default function Teams() {
   }, [fetchMembers]);
 
   const filteredMembers = useMemo(() => {
-    // Server already filters by q/roleFilter, this is a safe fallback.
-    if (!q.trim() && !roleFilter) return members;
+    if (!q.trim()) return members;
     const ql = q.trim().toLowerCase();
     return members.filter((m) => {
       const name = String(m.name || '').toLowerCase();
       const email = String(m.email || '').toLowerCase();
       const npm = String(m.npm || '');
-      const roleOk = !roleFilter || String(m.role) === roleFilter;
-      const searchOk = !ql || name.includes(ql) || email.includes(ql) || npm.includes(q.trim());
-      return roleOk && searchOk;
+      return name.includes(ql) || email.includes(ql) || npm.includes(q.trim());
     });
-  }, [members, q, roleFilter]);
+  }, [members, q]);
 
   const totalMembers = members.length;
   const activeMembers = members.filter((m) => m.isActive).length;
@@ -106,8 +101,8 @@ export default function Teams() {
         </div>
       </div>
 
-      <div className="mb-6 flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-md">
+      <div className="mb-6">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
           <input
             value={q}
@@ -117,12 +112,6 @@ export default function Teams() {
             className="w-full rounded-lg border border-neutral-200 bg-white pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-primary-200"
           />
         </div>
-        <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="rounded-lg border border-neutral-200 bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary-200">
-          <option value="">Semua Role</option>
-          <option value="awardee">Awardee</option>
-          <option value="member">Member</option>
-          <option value="alumni">Alumni</option>
-        </select>
       </div>
 
       {loading && (
@@ -142,11 +131,7 @@ export default function Teams() {
       )}
 
       {!loading && !error && filteredMembers.length === 0 && (
-        <EmptyState
-          icon={q.trim() || roleFilter ? 'search' : 'inbox'}
-          title={q || roleFilter ? 'Tidak ditemukan' : 'Belum ada anggota'}
-          description={q || roleFilter ? 'Coba ubah kata kunci atau filter pencarian.' : 'Belum ada data anggota untuk ditampilkan.'}
-        />
+        <EmptyState icon={q.trim() ? 'search' : 'inbox'} title={q ? 'Tidak ditemukan' : 'Belum ada anggota'} description={q ? 'Coba ubah kata kunci pencarian.' : 'Belum ada data anggota untuk ditampilkan.'} />
       )}
 
       {!loading && !error && filteredMembers.length > 0 && (
@@ -155,10 +140,11 @@ export default function Teams() {
             <table className="w-full text-sm">
               <thead className="bg-neutral-50 border-b border-neutral-200">
                 <tr>
-                  <th className="text-left p-4 font-semibold text-neutral-700">Anggota</th>
+                  <th className="text-left p-4 font-semibold text-neutral-700">Nama</th>
+                  <th className="text-left p-4 font-semibold text-neutral-700">Email</th>
                   <th className="text-left p-4 font-semibold text-neutral-700">NPM</th>
-                  <th className="text-left p-4 font-semibold text-neutral-700">Kontak</th>
-                  <th className="text-left p-4 font-semibold text-neutral-700">Role</th>
+                  <th className="text-left p-4 font-semibold text-neutral-700">Prodi</th>
+                  {/* <th className="text-left p-4 font-semibold text-neutral-700">Role</th> */}
                   <th className="text-left p-4 font-semibold text-neutral-700">Status</th>
                 </tr>
               </thead>
@@ -168,28 +154,13 @@ export default function Teams() {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <Avatar name={member.name || member.email} src={member.avatar || ''} size={40} />
-                        <div className="min-w-0">
-                          <p className="font-medium text-neutral-900 truncate">{member.name || member.email?.split?.('@')?.[0] || '-'}</p>
-                          <p className="text-xs text-neutral-500 truncate">{member.studyProgram || member.faculty || member.email || '-'}</p>
-                        </div>
+                        <p className="font-medium text-neutral-900 truncate">{member.name || member.email?.split?.('@')?.[0] || '-'}</p>
                       </div>
                     </td>
-                    <td className="p-4">
-                      <span className="font-mono text-sm text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded">{member.npm || '-'}</span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-1 text-xs text-neutral-600">
-                          <Mail className="w-3 h-3" />
-                          <span className="truncate">{member.email || '-'}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-neutral-600">
-                          <Phone className="w-3 h-3" />
-                          <span className="truncate">{member.phone || '-'}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-neutral-700">{ROLE_LABEL[String(member.role)] || member.role || '-'}</td>
+                    <td className="p-4 text-neutral-600 truncate">{member.email || '-'}</td>
+                    <td className="p-4 text-neutral-600">{member.npm || '-'}</td>
+                    <td className="p-4 text-neutral-600">{member.studyProgram || '-'}</td>
+                    {/* <td className="p-4 text-neutral-700">{ROLE_LABEL[String(member.role)] || member.role || '-'}</td> */}
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${member.isActive ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-600'}`}>{member.isActive ? 'Aktif' : 'Nonaktif'}</span>
                     </td>

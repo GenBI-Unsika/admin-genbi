@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, Save, Loader2, ArrowLeft, User, GraduationCap, Phone, Mail, Upload, X, Hash, AtSign } from 'lucide-react';
+import { ChevronRight, Save, Loader2, ArrowLeft, User, GraduationCap, Phone, AtSign, Hash } from 'lucide-react';
 import { apiRequest, apiUpload } from '../utils/api';
 
 const initialFormState = {
@@ -15,8 +15,6 @@ const initialFormState = {
   email: '',
   birthDate: '',
   photo: '',
-  motivasi: '',
-  cerita: '',
   isActive: true,
   sortOrder: 0,
 };
@@ -35,6 +33,7 @@ export default function TeamForm() {
 
   const [form, setForm] = useState(initialFormState);
   const [divisions, setDivisions] = useState([]);
+  const [availableUsers, setAvailableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -42,15 +41,28 @@ export default function TeamForm() {
 
 
   useEffect(() => {
-    const fetchDivisions = async () => {
+    const fetchInitialData = async () => {
       try {
-        const response = await apiRequest('/divisions');
-        setDivisions(response?.data || []);
+        const [divRes, usersRes] = await Promise.all([
+          apiRequest('/divisions'),
+          apiRequest('/users') // Assuming this endpoint exists and returns all users for admin
+        ]);
+        setDivisions(divRes?.data || []);
+
+        // Transform users for select options
+        const users = usersRes?.data || [];
+        setAvailableUsers(users.map(u => ({
+          id: u.id,
+          label: `${u.name || u.email} (${u.email})`,
+          email: u.email,
+          name: u.name
+        })));
+
       } catch (err) {
-        console.error('Failed to fetch divisions:', err);
+        console.error('Failed to fetch initial data:', err);
       }
     };
-    fetchDivisions();
+    fetchInitialData();
   }, []);
 
 
@@ -88,12 +100,14 @@ export default function TeamForm() {
   };
 
 
+  /* Removed auto-email from NPM logic, let user input/admin input email manually as it's the primary key for User */
+  /* Or keep it as helper but allow edit */
   const handleNpmChange = (value) => {
     const npm = value.replace(/\D/g, '');
     setForm((prev) => ({
       ...prev,
       npm,
-      email: npm ? `${npm}@student.unsika.ac.id` : prev.email,
+      // email: npm ? `${npm}@student.unsika.ac.id` : prev.email, // Disable auto-email for now or make it optional helper
     }));
   };
 
@@ -168,8 +182,6 @@ export default function TeamForm() {
         email: form.email || null,
         birthDate: form.birthDate ? new Date(form.birthDate).toISOString() : null,
         photo: form.photo || null,
-        motivasi: form.motivasi || null,
-        cerita: form.cerita || null,
         isActive: form.isActive,
         sortOrder: form.sortOrder || 0,
       };
@@ -234,6 +246,40 @@ export default function TeamForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Link User Account */}
+        <div className="bg-white rounded-xl border border-neutral-200 p-6">
+          <h3 className="text-sm font-semibold text-neutral-700 mb-4 flex items-center gap-2">
+            <LinkIcon className="w-4 h-4" />
+            Hubungkan Akun User
+          </h3>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div className="flex gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-600 shrink-0" />
+              <div className="text-sm text-blue-700">
+                <p className="font-medium mb-1">Penting untuk Rekapitulasi Kas!</p>
+                <p>Hubungkan data anggota ini dengan akun User (Awardee) agar data kas tersambung dengan benar. Pastikan User sudah terdaftar di sistem.</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Pilih Akun User</label>
+            <select
+              value={form.userId || ''}
+              onChange={(e) => handleChange('userId', e.target.value ? parseInt(e.target.value, 10) : null)}
+              className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary-200"
+            >
+              <option value="">-- Belum Terhubung --</option>
+              {availableUsers.map(u => (
+                <option key={u.id} value={u.id}>
+                  {u.label || `${u.name || u.email} (${u.email})`}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-neutral-500 mt-1">Hanya menampilkan user yang belum terhubung dengan anggota lain.</p>
+          </div>
+        </div>
+
         {/* Avatar & Informasi Dasar */}
         <div className="bg-white rounded-xl border border-neutral-200 p-6">
           <h3 className="text-sm font-semibold text-neutral-700 mb-4 flex items-center gap-2">
@@ -394,11 +440,11 @@ export default function TeamForm() {
                 type="email"
                 value={form.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                placeholder="NPM@student.unsika.ac.id"
-                className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary-200 bg-neutral-50"
-                readOnly
+                placeholder="email@example.com"
+                className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary-200"
+                required={!isEdit}
               />
-              <p className="text-xs text-neutral-500 mt-1">Otomatis dari NPM</p>
+              {!isEdit && <p className="text-xs text-neutral-500 mt-1">Email wajib diisi untuk anggota baru</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-1">No. Telepon</label>
@@ -427,32 +473,7 @@ export default function TeamForm() {
           </div>
         </div>
 
-        {/* Motivasi & Cerita */}
-        <div className="bg-white rounded-xl border border-neutral-200 p-6">
-          <h3 className="text-sm font-semibold text-neutral-700 mb-4">Motivasi & Cerita (Opsional)</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Motivasi</label>
-              <textarea
-                value={form.motivasi}
-                onChange={(e) => handleChange('motivasi', e.target.value)}
-                placeholder="Motivasi mengikuti GenBI..."
-                rows={3}
-                className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary-200 resize-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Cerita</label>
-              <textarea
-                value={form.cerita}
-                onChange={(e) => handleChange('cerita', e.target.value)}
-                placeholder="Cerita pengalaman di GenBI..."
-                rows={4}
-                className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary-200 resize-none"
-              />
-            </div>
-          </div>
-        </div>
+
 
         {/* Aksi */}
         <div className="flex items-center justify-end gap-3 pt-4">
