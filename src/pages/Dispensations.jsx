@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, ChevronDown, FileText, Clock, CheckCircle, XCircle, Eye, Download, Upload, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
 import { apiGet, apiPatch, apiRequest } from '../utils/api';
+import EmptyState from '../components/EmptyState';
 
 const STATUS_MAP = {
   DIAJUKAN: { label: 'Diajukan', color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Clock },
@@ -114,14 +115,14 @@ export default function Dispensations() {
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari nama, NPM, atau kegiatan..."
-            className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full pl-10 pr-4 py-2.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
           />
         </div>
         <div className="relative">
@@ -146,10 +147,12 @@ export default function Dispensations() {
           <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
         </div>
       ) : filteredData.length === 0 ? (
-        <div className="text-center py-20">
-          <FileText className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-          <p className="text-neutral-600">Tidak ada pengajuan dispensasi</p>
-        </div>
+        <EmptyState
+          icon={search || statusFilter ? 'search' : 'box'}
+          title={search || statusFilter ? 'Tidak ada hasil' : 'Belum ada pengajuan dispensasi'}
+          description={search || statusFilter ? 'Coba ubah filter atau kata kunci pencarian.' : 'Pengajuan dispensasi dari anggota akan muncul di sini.'}
+          variant={search || statusFilter ? 'default' : 'primary'}
+        />
       ) : (
         <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
           <div className="overflow-x-auto">
