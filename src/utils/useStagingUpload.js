@@ -107,7 +107,7 @@ export function useStagingUpload() {
     try {
       await apiDeleteStaging(tempId);
     } catch {
-
+      // ignore
     }
     if (mountedRef.current) {
       setStagedFiles((prev) => prev.filter((f) => f.tempId !== tempId));

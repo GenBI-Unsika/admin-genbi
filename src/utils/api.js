@@ -78,6 +78,10 @@ function normalizeErrorMessage(message, status) {
     return 'Data yang dikirim tidak valid. Periksa kembali form Anda.';
   }
 
+  if (status === 409) {
+    return msg || 'Data sudah ada (duplikat).';
+  }
+
   // === SAFE USER-FACING MESSAGES ===
   // Only return raw message if it looks safe/user-friendly
   const looksUserFriendly = !lower.includes('error') && !lower.includes('exception') && !lower.includes('failed') && msg.length < 200;
