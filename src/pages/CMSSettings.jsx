@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Save, Loader2, Image, Type, Layout, Palette, RefreshCw, ExternalLink, AlertCircle, CheckCircle } from 'lucide-react';
+import { Save, Loader2, Type, Layout, Palette, RefreshCw, ExternalLink, AlertCircle, CheckCircle, Eye, Target, HelpCircle, MessageSquare, Link2, GraduationCap, Users, Plus, Trash2, GripVertical, FileText } from 'lucide-react';
 import { apiGet, apiPatch, apiUpload } from '../utils/api';
+import ImageDropzone from '../components/ui/ImageDropzone';
 
 const defaultHeroContent = {
   headline: 'Tumbuh dan Berdampak Bagi Sesama Bersama GenBI Unsika',
@@ -29,14 +30,122 @@ const defaultBranding = {
   favicon: '',
 };
 
+const defaultVisionMission = {
+  vision: 'Bersinergi mewujudkan komunitas GenBI UNSIKA yang dapat membawa perubahan positif, berkarakter, berintegritas, dan menjadi inspirasi bagi sekitar.',
+  image: '',
+  missions: [
+    {
+      subtitle: 'Initiate',
+      description: 'Menginisiasi beragam kegiatan yang memberdayakan masyarakat.',
+      iconName: 'Brain',
+      accentBg: 'bg-indigo-100',
+      accentText: 'text-indigo-700',
+    },
+    {
+      subtitle: 'Act',
+      description: 'Membuat program kerja yang menunjukkan kepedulian melalui aksi konkret.',
+      iconName: 'Zap',
+      accentBg: 'bg-amber-100',
+      accentText: 'text-amber-700',
+    },
+    {
+      subtitle: 'Share',
+      description: 'Mendorong eksplorasi dan pengembangan potensi kreatif dan inovatif.',
+      iconName: 'Share2',
+      accentBg: 'bg-emerald-100',
+      accentText: 'text-emerald-700',
+    },
+    {
+      subtitle: 'Inspire',
+      description: 'Membagikan pengalaman inspirasi dan motivasi bagi lingkungan sekitar.',
+      iconName: 'Sparkles',
+      accentBg: 'bg-fuchsia-100',
+      accentText: 'text-fuchsia-700',
+    },
+  ],
+};
+
+const defaultFaqs = {
+  items: [
+    { question: 'Apa itu GenBI?', answer: 'GenBI (Generasi Baru Indonesia) adalah komunitas penerima beasiswa Bank Indonesia.' },
+    { question: 'Bagaimana cara mendaftar?', answer: 'Pendaftaran dilakukan melalui seleksi yang diadakan oleh universitas dan Bank Indonesia.' },
+  ],
+};
+
+const defaultTestimonials = {
+  items: [
+    {
+      name: 'Alumni GenBI',
+      role: 'Ketua Umum 2023',
+      quote: 'GenBI memberikan pengalaman organisasi yang luar biasa.',
+      photo_profile: '',
+    },
+  ],
+};
+
+const defaultFooter = {
+  description: 'Komunitas penerima beasiswa Bank Indonesia Komisariat Universitas Singaperbangsa Karawang',
+  address: 'Universitas Singaperbangsa Karawang Jl. HS. Ronggo Waluyo, Telukjambe Timur, Karawang, Jawa Barat, Indonesia - 41361',
+  socialLinks: [{ type: 'instagram', label: 'genbi.unsika', url: 'https://instagram.com/genbi.unsika', icon: 'tabler:brand-instagram' }],
+};
+
+const defaultScholarship = {
+  title: 'Beasiswa Bank Indonesia',
+  description:
+    'Beasiswa Bank Indonesia merupakan beasiswa yang diberikan oleh Bank Indonesia bagi para mahasiswa S1 di berbagai Perguruan Tinggi Negeri (PTN). Para penerima beasiswa juga akan tergabung dalam organisasi bernama Generasi Baru Indonesia (GenBI).',
+  buttonText: 'Daftar Sekarang',
+  buttonUrl: '/scholarship/register',
+  image: '',
+};
+
+const defaultScholarshipPage = {
+  title: 'Tertarik Untuk Daftar Beasiswa Bank Indonesia?',
+  subtitle: 'Ketahui persyaratan dan dokumen yang dibutuhkan untuk mendaftar beasiswa Bank Indonesia',
+  isOpen: true,
+  buttonText: 'Daftar Beasiswa',
+  closedMessage: 'Pendaftaran sedang ditutup. Pantau informasi selanjutnya ya!',
+  requirements: [
+    'Mahasiswa aktif S1 Universitas Singaperbangsa Karawang (dibuktikan dengan KTM atau surat keterangan aktif).',
+    'Sekurang-kurangnya telah menyelesaikan 40 sks atau berada di semester 4 atau 6.',
+    'Memiliki Indeks Prestasi Kumulatif (IPK) minimal 3.00 (skala 4).',
+  ],
+  documents: ['Scan KTM & KTP yang berlaku.', 'Transkrip nilai.', 'Motivation letter (Bahasa Indonesia).'],
+};
+
+const defaultHeroAvatars = {
+  avatars: [],
+};
+
+const missionIconOptions = [
+  { value: 'Brain', label: 'Brain' },
+  { value: 'Zap', label: 'Zap' },
+  { value: 'Share2', label: 'Share' },
+  { value: 'Sparkles', label: 'Sparkles' },
+  { value: 'Heart', label: 'Heart' },
+  { value: 'Star', label: 'Star' },
+  { value: 'Target', label: 'Target' },
+  { value: 'Users', label: 'Users' },
+];
+
+const colorOptions = [
+  { bg: 'bg-indigo-100', text: 'text-indigo-700', label: 'Indigo' },
+  { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Amber' },
+  { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Emerald' },
+  { bg: 'bg-fuchsia-100', text: 'text-fuchsia-700', label: 'Fuchsia' },
+  { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Blue' },
+  { bg: 'bg-red-100', text: 'text-red-700', label: 'Red' },
+  { bg: 'bg-green-100', text: 'text-green-700', label: 'Green' },
+  { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Purple' },
+];
+
+const socialTypeOptions = [{ value: 'instagram', label: 'Instagram', icon: 'tabler:brand-instagram' }];
+
 export default function CMSSettings() {
   const [activeTab, setActiveTab] = useState('homepage');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
 
-  // Pending uploads: pick file -> preview locally -> upload only when "Simpan Semua"
-  // Keys use the format: `${section}.${field}`
   const [pendingUploads, setPendingUploads] = useState({});
   const objectUrlsRef = useRef(new Set());
 
@@ -45,10 +154,15 @@ export default function CMSSettings() {
   const [aboutContent, setAboutContent] = useState(defaultAboutContent);
   const [ctaContent, setCtaContent] = useState(defaultCtaContent);
   const [branding, setBranding] = useState(defaultBranding);
-
+  const [visionMission, setVisionMission] = useState(defaultVisionMission);
+  const [faqs, setFaqs] = useState(defaultFaqs);
+  const [testimonials, setTestimonials] = useState(defaultTestimonials);
+  const [footer, setFooter] = useState(defaultFooter);
+  const [scholarship, setScholarship] = useState(defaultScholarship);
+  const [scholarshipPage, setScholarshipPage] = useState(defaultScholarshipPage);
+  const [heroAvatars, setHeroAvatars] = useState(defaultHeroAvatars);
 
   const clearAllPendingUploads = useCallback(() => {
-    // Revoke every object URL we created, then clear pending map
     for (const url of objectUrlsRef.current) {
       try {
         URL.revokeObjectURL(url);
@@ -63,7 +177,6 @@ export default function CMSSettings() {
   useEffect(() => {
     const urls = objectUrlsRef.current;
     return () => {
-      // Cleanup object URLs on unmount
       for (const url of urls) {
         try {
           URL.revokeObjectURL(url);
@@ -78,11 +191,21 @@ export default function CMSSettings() {
   const loadSettings = useCallback(async () => {
     setLoading(true);
     try {
-      // Reset any local previews when reloading from API
       clearAllPendingUploads();
 
-      // Try to fetch each setting, use defaults if not found
-      const [heroRes, aboutRes, ctaRes, brandingRes] = await Promise.allSettled([apiGet('/site-settings/cms_hero'), apiGet('/site-settings/cms_about'), apiGet('/site-settings/cms_cta'), apiGet('/site-settings/cms_branding')]);
+      const [heroRes, aboutRes, ctaRes, brandingRes, visionRes, faqsRes, testimonialsRes, footerRes, scholarshipRes, avatarsRes, scholarshipPageRes] = await Promise.allSettled([
+        apiGet('/site-settings/cms_hero'),
+        apiGet('/site-settings/cms_about'),
+        apiGet('/site-settings/cms_cta'),
+        apiGet('/site-settings/cms_branding'),
+        apiGet('/site-settings/cms_vision_mission'),
+        apiGet('/site-settings/cms_faqs'),
+        apiGet('/site-settings/cms_testimonials'),
+        apiGet('/site-settings/cms_footer'),
+        apiGet('/site-settings/cms_scholarship'),
+        apiGet('/site-settings/cms_hero_avatars'),
+        apiGet('/site-settings/cms_scholarship_page'),
+      ]);
 
       if (heroRes.status === 'fulfilled' && heroRes.value?.value) {
         setHeroContent({ ...defaultHeroContent, ...heroRes.value.value });
@@ -96,6 +219,27 @@ export default function CMSSettings() {
       if (brandingRes.status === 'fulfilled' && brandingRes.value?.value) {
         setBranding({ ...defaultBranding, ...brandingRes.value.value });
       }
+      if (visionRes.status === 'fulfilled' && visionRes.value?.value) {
+        setVisionMission({ ...defaultVisionMission, ...visionRes.value.value });
+      }
+      if (faqsRes.status === 'fulfilled' && faqsRes.value?.value) {
+        setFaqs({ ...defaultFaqs, ...faqsRes.value.value });
+      }
+      if (testimonialsRes.status === 'fulfilled' && testimonialsRes.value?.value) {
+        setTestimonials({ ...defaultTestimonials, ...testimonialsRes.value.value });
+      }
+      if (footerRes.status === 'fulfilled' && footerRes.value?.value) {
+        setFooter({ ...defaultFooter, ...footerRes.value.value });
+      }
+      if (scholarshipRes.status === 'fulfilled' && scholarshipRes.value?.value) {
+        setScholarship({ ...defaultScholarship, ...scholarshipRes.value.value });
+      }
+      if (avatarsRes.status === 'fulfilled' && avatarsRes.value?.value) {
+        setHeroAvatars({ ...defaultHeroAvatars, ...avatarsRes.value.value });
+      }
+      if (scholarshipPageRes.status === 'fulfilled' && scholarshipPageRes.value?.value) {
+        setScholarshipPage({ ...defaultScholarshipPage, ...scholarshipPageRes.value.value });
+      }
     } catch (err) {
       console.warn('Failed to load CMS settings, using defaults:', err);
     } finally {
@@ -103,7 +247,6 @@ export default function CMSSettings() {
     }
   }, [clearAllPendingUploads]);
 
-  // Load settings from API
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
@@ -112,10 +255,11 @@ export default function CMSSettings() {
     setSaving(true);
     setSaveStatus(null);
     try {
-      // Upload any pending local files first, then persist resulting URLs.
       let nextHeroContent = heroContent;
       let nextAboutContent = aboutContent;
       let nextBranding = branding;
+      let nextScholarship = scholarship;
+      let nextVisionMission = visionMission;
 
       const uploadIfPending = async (section, field) => {
         const key = `${section}.${field}`;
@@ -140,17 +284,57 @@ export default function CMSSettings() {
       const faviconUrl = await uploadIfPending('branding', 'favicon');
       if (faviconUrl) nextBranding = { ...nextBranding, favicon: faviconUrl };
 
+      const scholarshipImageUrl = await uploadIfPending('scholarship', 'image');
+      if (scholarshipImageUrl) nextScholarship = { ...nextScholarship, image: scholarshipImageUrl };
+
+      const visionMissionImageUrl = await uploadIfPending('visionMission', 'image');
+      if (visionMissionImageUrl) nextVisionMission = { ...nextVisionMission, image: visionMissionImageUrl };
+
+      // Upload testimonial images
+      let nextTestimonials = { ...testimonials };
+      const testimonialUploads = Object.keys(pendingUploads).filter((key) => key.startsWith('testimonial.'));
+      for (const key of testimonialUploads) {
+        const pending = pendingUploads[key];
+        if (!pending?.file) continue;
+        try {
+          const result = await apiUpload('/site-settings/upload', pending.file);
+          const imageUrl = result?.url;
+          if (imageUrl) {
+            // key format: testimonial.{index}.photo_profile
+            const parts = key.split('.');
+            const idx = parseInt(parts[1], 10);
+            if (!isNaN(idx) && nextTestimonials.items[idx]) {
+              nextTestimonials = {
+                ...nextTestimonials,
+                items: nextTestimonials.items.map((t, i) => (i === idx ? { ...t, photo_profile: imageUrl } : t)),
+              };
+            }
+          }
+        } catch (err) {
+          console.error(`Failed to upload testimonial image for ${key}:`, err);
+        }
+      }
+
       await Promise.all([
         apiPatch('/site-settings/cms_hero', { value: nextHeroContent }),
         apiPatch('/site-settings/cms_about', { value: nextAboutContent }),
         apiPatch('/site-settings/cms_cta', { value: ctaContent }),
         apiPatch('/site-settings/cms_branding', { value: nextBranding }),
+        apiPatch('/site-settings/cms_vision_mission', { value: nextVisionMission }),
+        apiPatch('/site-settings/cms_faqs', { value: faqs }),
+        apiPatch('/site-settings/cms_testimonials', { value: nextTestimonials }),
+        apiPatch('/site-settings/cms_footer', { value: footer }),
+        apiPatch('/site-settings/cms_scholarship', { value: nextScholarship }),
+        apiPatch('/site-settings/cms_hero_avatars', { value: heroAvatars }),
+        apiPatch('/site-settings/cms_scholarship_page', { value: scholarshipPage }),
       ]);
 
-      // Reflect uploaded URLs in UI state and clear pending previews
       setHeroContent(nextHeroContent);
       setAboutContent(nextAboutContent);
       setBranding(nextBranding);
+      setScholarship(nextScholarship);
+      setVisionMission(nextVisionMission);
+      setTestimonials(nextTestimonials);
       clearAllPendingUploads();
 
       setSaveStatus('success');
@@ -163,11 +347,9 @@ export default function CMSSettings() {
     }
   };
 
-  const handleImageUpload = async (e, section, field) => {
-    const file = e.target.files?.[0];
+  const handleImageUpload = (file, section, field) => {
     if (!file) return;
 
-    // Defer upload until user clicks "Simpan Semua".
     const key = `${section}.${field}`;
     const objectUrl = URL.createObjectURL(file);
     objectUrlsRef.current.add(objectUrl);
@@ -178,28 +360,229 @@ export default function CMSSettings() {
         try {
           URL.revokeObjectURL(existing.objectUrl);
         } catch {
-          // ignore
+          // Ignore revoke errors
         }
         objectUrlsRef.current.delete(existing.objectUrl);
       }
-
-      return {
-        ...prev,
-        [key]: { file, objectUrl },
-      };
+      return { ...prev, [key]: { file, objectUrl } };
     });
 
-    if (section === 'hero') {
-      setHeroContent((prev) => ({ ...prev, [field]: objectUrl }));
-    } else if (section === 'about') {
-      setAboutContent((prev) => ({ ...prev, [field]: objectUrl }));
-    } else if (section === 'branding') {
-      setBranding((prev) => ({ ...prev, [field]: objectUrl }));
+    if (section === 'hero') setHeroContent((prev) => ({ ...prev, [field]: objectUrl }));
+    else if (section === 'about') setAboutContent((prev) => ({ ...prev, [field]: objectUrl }));
+    else if (section === 'branding') setBranding((prev) => ({ ...prev, [field]: objectUrl }));
+    else if (section === 'scholarship') setScholarship((prev) => ({ ...prev, [field]: objectUrl }));
+    else if (section === 'visionMission') setVisionMission((prev) => ({ ...prev, [field]: objectUrl }));
+  };
+
+  const handleImageRemove = (section, field) => {
+    const key = `${section}.${field}`;
+    setPendingUploads((prev) => {
+      if (prev[key]?.objectUrl) {
+        try {
+          URL.revokeObjectURL(prev[key].objectUrl);
+        } catch {
+          // Ignore revoke errors
+        }
+        objectUrlsRef.current.delete(prev[key].objectUrl);
+      }
+      const { [key]: _, ...rest } = prev;
+      return rest;
+    });
+
+    if (section === 'hero') setHeroContent((prev) => ({ ...prev, [field]: '' }));
+    else if (section === 'about') setAboutContent((prev) => ({ ...prev, [field]: '' }));
+    else if (section === 'branding') setBranding((prev) => ({ ...prev, [field]: '' }));
+    else if (section === 'scholarship') setScholarship((prev) => ({ ...prev, [field]: '' }));
+    else if (section === 'visionMission') setVisionMission((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  const addMission = () => {
+    setVisionMission((prev) => ({
+      ...prev,
+      missions: [
+        ...prev.missions,
+        {
+          subtitle: 'Misi Baru',
+          description: 'Deskripsi misi baru',
+          iconName: 'Star',
+          accentBg: 'bg-blue-100',
+          accentText: 'text-blue-700',
+        },
+      ],
+    }));
+  };
+
+  const removeMission = (index) => {
+    setVisionMission((prev) => ({
+      ...prev,
+      missions: prev.missions.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateMission = (index, field, value) => {
+    setVisionMission((prev) => ({
+      ...prev,
+      missions: prev.missions.map((m, i) => (i === index ? { ...m, [field]: value } : m)),
+    }));
+  };
+
+  const addFaq = () => {
+    setFaqs((prev) => ({
+      ...prev,
+      items: [...prev.items, { question: '', answer: '' }],
+    }));
+  };
+
+  const removeFaq = (index) => {
+    setFaqs((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateFaq = (index, field, value) => {
+    setFaqs((prev) => ({
+      ...prev,
+      items: prev.items.map((f, i) => (i === index ? { ...f, [field]: value } : f)),
+    }));
+  };
+
+  const addTestimonial = () => {
+    setTestimonials((prev) => ({
+      ...prev,
+      items: [...prev.items, { name: '', role: '', quote: '', photo_profile: '' }],
+    }));
+  };
+
+  const removeTestimonial = (index) => {
+    // Clean up any pending upload for this testimonial
+    const key = `testimonial.${index}.photo_profile`;
+    if (pendingUploads[key]?.objectUrl) {
+      try {
+        URL.revokeObjectURL(pendingUploads[key].objectUrl);
+      } catch {
+        // Ignore revoke errors
+      }
+      objectUrlsRef.current.delete(pendingUploads[key].objectUrl);
     }
+    setPendingUploads((prev) => {
+      const { [key]: _, ...rest } = prev;
+      return rest;
+    });
+
+    setTestimonials((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateTestimonial = (index, field, value) => {
+    setTestimonials((prev) => ({
+      ...prev,
+      items: prev.items.map((t, i) => (i === index ? { ...t, [field]: value } : t)),
+    }));
+  };
+
+  const handleTestimonialImageUpload = (file, index) => {
+    if (!file) return;
+
+    const key = `testimonial.${index}.photo_profile`;
+    const objectUrl = URL.createObjectURL(file);
+    objectUrlsRef.current.add(objectUrl);
+
+    setPendingUploads((prev) => {
+      const existing = prev[key];
+      if (existing?.objectUrl) {
+        try {
+          URL.revokeObjectURL(existing.objectUrl);
+        } catch {
+          // Ignore revoke errors
+        }
+        objectUrlsRef.current.delete(existing.objectUrl);
+      }
+      return { ...prev, [key]: { file, objectUrl } };
+    });
+
+    updateTestimonial(index, 'photo_profile', objectUrl);
+  };
+
+  const handleTestimonialImageRemove = (index) => {
+    const key = `testimonial.${index}.photo_profile`;
+    setPendingUploads((prev) => {
+      if (prev[key]?.objectUrl) {
+        try {
+          URL.revokeObjectURL(prev[key].objectUrl);
+        } catch {
+          // Ignore revoke errors
+        }
+        objectUrlsRef.current.delete(prev[key].objectUrl);
+      }
+      const { [key]: _, ...rest } = prev;
+      return rest;
+    });
+
+    updateTestimonial(index, 'photo_profile', '');
+  };
+
+  const addSocialLink = () => {
+    setFooter((prev) => ({
+      ...prev,
+      socialLinks: [...prev.socialLinks, { type: 'instagram', label: '', url: '', icon: 'tabler:brand-instagram' }],
+    }));
+  };
+
+  const removeSocialLink = (index) => {
+    setFooter((prev) => ({
+      ...prev,
+      socialLinks: prev.socialLinks.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateSocialLink = (index, field, value) => {
+    setFooter((prev) => ({
+      ...prev,
+      socialLinks: prev.socialLinks.map((s, i) => {
+        if (i === index) {
+          if (field === 'type') {
+            const option = socialTypeOptions.find((o) => o.value === value);
+            return { ...s, type: value, icon: option?.icon || 'tabler:world' };
+          }
+          return { ...s, [field]: value };
+        }
+        return s;
+      }),
+    }));
+  };
+
+  const addHeroAvatar = () => {
+    setHeroAvatars((prev) => ({
+      ...prev,
+      avatars: [...prev.avatars, ''],
+    }));
+  };
+
+  const removeHeroAvatar = (index) => {
+    setHeroAvatars((prev) => ({
+      ...prev,
+      avatars: prev.avatars.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateHeroAvatar = (index, value) => {
+    setHeroAvatars((prev) => ({
+      ...prev,
+      avatars: prev.avatars.map((a, i) => (i === index ? value : a)),
+    }));
   };
 
   const tabs = [
     { id: 'homepage', label: 'Homepage', icon: Layout },
+    { id: 'visi-misi', label: 'Visi Misi', icon: Target },
+    { id: 'scholarship', label: 'Beasiswa', icon: GraduationCap },
+    { id: 'scholarship-page', label: 'Halaman Beasiswa', icon: FileText },
+    { id: 'faq', label: 'FAQ', icon: HelpCircle },
+    { id: 'testimonials', label: 'Testimoni', icon: MessageSquare },
+    { id: 'footer', label: 'Footer', icon: Link2 },
     { id: 'branding', label: 'Branding', icon: Palette },
   ];
 
@@ -215,8 +598,7 @@ export default function CMSSettings() {
   }
 
   return (
-    <div className="px-4 md:px-6 lg:px-10 py-6 max-w-6xl">
-      {/* Header */}
+    <div className="px-4 md:px-6 lg:px-10 py-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-xl md:text-2xl font-semibold text-neutral-900">Kelola Konten Website</h1>
@@ -234,7 +616,6 @@ export default function CMSSettings() {
         </div>
       </div>
 
-      {/* Save Status */}
       {saveStatus && (
         <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 ${saveStatus === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
           {saveStatus === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
@@ -242,14 +623,13 @@ export default function CMSSettings() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="border-b border-neutral-200 mb-6">
-        <div className="flex gap-1">
+      <div className="border-b border-neutral-200 mb-6 overflow-x-auto">
+        <div className="flex gap-1 min-w-max">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-neutral-600 hover:text-neutral-900'}`}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-neutral-600 hover:text-neutral-900'}`}
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
@@ -258,10 +638,8 @@ export default function CMSSettings() {
         </div>
       </div>
 
-      {/* Homepage Tab */}
       {activeTab === 'homepage' && (
         <div className="space-y-6">
-          {/* Hero Section */}
           <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -320,30 +698,55 @@ export default function CMSSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Gambar Hero</label>
-                <div className="flex items-start gap-4">
-                  {heroContent.heroImage ? (
-                    <img src={heroContent.heroImage} alt="Hero" className="w-32 h-20 object-cover rounded-lg border border-neutral-200" />
-                  ) : (
-                    <div className="w-32 h-20 bg-neutral-100 rounded-lg border border-dashed border-neutral-300 flex items-center justify-center">
-                      <Image className="w-6 h-6 text-neutral-400" />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, 'hero', 'heroImage')}
-                      className="text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-700 file:font-medium file:cursor-pointer"
-                    />
-                    <p className="text-xs text-neutral-500 mt-1">Format: JPG, PNG, WebP. Maks 2MB.</p>
-                  </div>
-                </div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Gambar Hero</label>
+                <ImageDropzone value={heroContent.heroImage} onChange={(file) => handleImageUpload(file, 'hero', 'heroImage')} onRemove={() => handleImageRemove('hero', 'heroImage')} previewClassName="h-48" />
               </div>
             </div>
           </div>
 
-          {/* About Section */}
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-pink-100 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-pink-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-900">Hero Avatars</h3>
+                  <p className="text-xs text-neutral-500">Avatar yang tampil di samping statistik hero</p>
+                </div>
+              </div>
+              <button onClick={addHeroAvatar} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                <Plus className="w-4 h-4" />
+                Tambah
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {heroAvatars.avatars.map((avatar, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
+                  {avatar ? (
+                    <img src={avatar} alt={`Avatar ${index + 1}`} className="w-10 h-10 rounded-full object-cover border border-neutral-200" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-neutral-400" />
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    value={avatar}
+                    onChange={(e) => updateHeroAvatar(index, e.target.value)}
+                    className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="URL gambar avatar"
+                  />
+                  <button onClick={() => removeHeroAvatar(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              {heroAvatars.avatars.length === 0 && <p className="text-sm text-neutral-500 text-center py-4">Belum ada avatar. Klik "Tambah" untuk menambahkan.</p>}
+            </div>
+          </div>
+
           <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
@@ -380,22 +783,8 @@ export default function CMSSettings() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1.5">Gambar Cover</label>
-                  <div className="flex items-start gap-3">
-                    {aboutContent.coverImage ? (
-                      <img src={aboutContent.coverImage} alt="About" className="w-24 h-16 object-cover rounded-lg border border-neutral-200" />
-                    ) : (
-                      <div className="w-24 h-16 bg-neutral-100 rounded-lg border border-dashed border-neutral-300 flex items-center justify-center">
-                        <Image className="w-5 h-5 text-neutral-400" />
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, 'about', 'coverImage')}
-                      className="text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary-50 file:text-primary-700 file:font-medium file:cursor-pointer"
-                    />
-                  </div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">Gambar Cover</label>
+                  <ImageDropzone value={aboutContent.coverImage} onChange={(file) => handleImageUpload(file, 'about', 'coverImage')} onRemove={() => handleImageRemove('about', 'coverImage')} previewClassName="h-32" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1.5">URL Video (Optional)</label>
@@ -411,7 +800,6 @@ export default function CMSSettings() {
             </div>
           </div>
 
-          {/* CTA Section */}
           <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
@@ -450,7 +838,619 @@ export default function CMSSettings() {
         </div>
       )}
 
-      {/* Branding Tab */}
+      {activeTab === 'visi-misi' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+                <Layout className="w-4 h-4 text-teal-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-neutral-900">Gambar Visi Misi</h3>
+                <p className="text-xs text-neutral-500">Gambar ilustrasi untuk bagian Visi Misi</p>
+              </div>
+            </div>
+
+            <ImageDropzone value={visionMission.image} onChange={(file) => handleImageUpload(file, 'visionMission', 'image')} onRemove={() => handleImageRemove('visionMission', 'image')} previewClassName="h-48" />
+          </div>
+
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                <Eye className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-neutral-900">Visi</h3>
+                <p className="text-xs text-neutral-500">Visi GenBI Unsika</p>
+              </div>
+            </div>
+
+            <textarea
+              value={visionMission.vision}
+              onChange={(e) => setVisionMission({ ...visionMission, vision: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              placeholder="Visi GenBI Unsika..."
+            />
+          </div>
+
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                  <Target className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-900">Misi</h3>
+                  <p className="text-xs text-neutral-500">Daftar misi GenBI Unsika</p>
+                </div>
+              </div>
+              <button onClick={addMission} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                <Plus className="w-4 h-4" />
+                Tambah Misi
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {visionMission.missions.map((mission, index) => (
+                <div key={index} className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-2">
+                      <GripVertical className="w-4 h-4 text-neutral-400" />
+                      <span className="text-sm font-medium text-neutral-700">Misi {index + 1}</span>
+                    </div>
+                    <button onClick={() => removeMission(index)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" disabled={visionMission.missions.length <= 1}>
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-neutral-600 mb-1">Subtitle</label>
+                      <input
+                        type="text"
+                        value={mission.subtitle}
+                        onChange={(e) => updateMission(index, 'subtitle', e.target.value)}
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="Initiate, Act, Share, dll"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium text-neutral-600 mb-1">Icon</label>
+                        <select
+                          value={mission.iconName}
+                          onChange={(e) => updateMission(index, 'iconName', e.target.value)}
+                          className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        >
+                          {missionIconOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-neutral-600 mb-1">Warna</label>
+                        <select
+                          value={mission.accentBg}
+                          onChange={(e) => {
+                            const color = colorOptions.find((c) => c.bg === e.target.value);
+                            if (color) {
+                              updateMission(index, 'accentBg', color.bg);
+                              updateMission(index, 'accentText', color.text);
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        >
+                          {colorOptions.map((opt) => (
+                            <option key={opt.bg} value={opt.bg}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">Deskripsi</label>
+                    <textarea
+                      value={mission.description}
+                      onChange={(e) => updateMission(index, 'description', e.target.value)}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                      placeholder="Deskripsi misi..."
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'scholarship' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                <GraduationCap className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-neutral-900">Beasiswa Section</h3>
+                <p className="text-xs text-neutral-500">Bagian informasi beasiswa di homepage</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Judul</label>
+                <input
+                  type="text"
+                  value={scholarship.title}
+                  onChange={(e) => setScholarship({ ...scholarship, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Beasiswa Bank Indonesia"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Deskripsi</label>
+                <textarea
+                  value={scholarship.description}
+                  onChange={(e) => setScholarship({ ...scholarship, description: e.target.value })}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                  placeholder="Deskripsi tentang beasiswa..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1.5">Teks Tombol</label>
+                  <input
+                    type="text"
+                    value={scholarship.buttonText}
+                    onChange={(e) => setScholarship({ ...scholarship, buttonText: e.target.value })}
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Daftar Sekarang"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1.5">URL Tombol</label>
+                  <input
+                    type="text"
+                    value={scholarship.buttonUrl}
+                    onChange={(e) => setScholarship({ ...scholarship, buttonUrl: e.target.value })}
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="/scholarship/register"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Gambar</label>
+                <ImageDropzone value={scholarship.image} onChange={(file) => handleImageUpload(file, 'scholarship', 'image')} onRemove={() => handleImageRemove('scholarship', 'image')} previewClassName="h-48" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'faq' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                  <HelpCircle className="w-4 h-4 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-900">FAQ (Pertanyaan Umum)</h3>
+                  <p className="text-xs text-neutral-500">Daftar pertanyaan yang sering diajukan</p>
+                </div>
+              </div>
+              <button onClick={addFaq} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                <Plus className="w-4 h-4" />
+                Tambah FAQ
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {faqs.items.map((faq, index) => (
+                <div key={index} className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <span className="text-sm font-medium text-neutral-700">FAQ {index + 1}</span>
+                    <button onClick={() => removeFaq(index)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-neutral-600 mb-1">Pertanyaan</label>
+                      <input
+                        type="text"
+                        value={faq.question}
+                        onChange={(e) => updateFaq(index, 'question', e.target.value)}
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="Apa itu GenBI?"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-neutral-600 mb-1">Jawaban</label>
+                      <textarea
+                        value={faq.answer}
+                        onChange={(e) => updateFaq(index, 'answer', e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                        placeholder="Jawaban dari pertanyaan..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {faqs.items.length === 0 && <p className="text-sm text-neutral-500 text-center py-8">Belum ada FAQ. Klik "Tambah FAQ" untuk menambahkan.</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'testimonials' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4 text-teal-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-900">Testimoni Alumni</h3>
+                  <p className="text-xs text-neutral-500">Testimoni dari alumni GenBI</p>
+                </div>
+              </div>
+              <button onClick={addTestimonial} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                <Plus className="w-4 h-4" />
+                Tambah Testimoni
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {testimonials.items.map((testimonial, index) => (
+                <div key={index} className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <span className="text-sm font-medium text-neutral-700">Testimoni {index + 1}</span>
+                    <button onClick={() => removeTestimonial(index)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-neutral-600 mb-1">Nama</label>
+                      <input
+                        type="text"
+                        value={testimonial.name}
+                        onChange={(e) => updateTestimonial(index, 'name', e.target.value)}
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="Nama alumni"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-neutral-600 mb-1">Jabatan/Posisi</label>
+                      <input
+                        type="text"
+                        value={testimonial.role}
+                        onChange={(e) => updateTestimonial(index, 'role', e.target.value)}
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="Ketua Umum 2023"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">Testimoni</label>
+                    <textarea
+                      value={testimonial.quote}
+                      onChange={(e) => updateTestimonial(index, 'quote', e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                      placeholder="Testimoni dari alumni..."
+                    />
+                  </div>
+
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">Foto Profil</label>
+                    <ImageDropzone
+                      value={testimonial.photo_profile}
+                      onChange={(file) => handleTestimonialImageUpload(file, index)}
+                      onRemove={() => handleTestimonialImageRemove(index)}
+                      previewClassName="h-24 w-24 rounded-full"
+                      hint="Ukuran disarankan: 200x200px"
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {testimonials.items.length === 0 && <p className="text-sm text-neutral-500 text-center py-8">Belum ada testimoni. Klik "Tambah Testimoni" untuk menambahkan.</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'footer' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                <Link2 className="w-4 h-4 text-slate-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-neutral-900">Informasi Footer</h3>
+                <p className="text-xs text-neutral-500">Deskripsi dan alamat di footer</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Deskripsi</label>
+                <textarea
+                  value={footer.description}
+                  onChange={(e) => setFooter({ ...footer, description: e.target.value })}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                  placeholder="Deskripsi singkat organisasi..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Alamat</label>
+                <textarea
+                  value={footer.address}
+                  onChange={(e) => setFooter({ ...footer, address: e.target.value })}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                  placeholder="Alamat lengkap..."
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <ExternalLink className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-900">Link Sosial Media</h3>
+                  <p className="text-xs text-neutral-500">Kontak dan sosial media di footer</p>
+                </div>
+              </div>
+              <button onClick={addSocialLink} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                <Plus className="w-4 h-4" />
+                Tambah Link
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {footer.socialLinks.map((link, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
+                  <select value={link.type} onChange={(e) => updateSocialLink(index, 'type', e.target.value)} className="px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-32">
+                    {socialTypeOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={link.label}
+                    onChange={(e) => updateSocialLink(index, 'label', e.target.value)}
+                    className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Label (contoh: genbi.unsika)"
+                  />
+                  <input
+                    type="text"
+                    value={link.url}
+                    onChange={(e) => updateSocialLink(index, 'url', e.target.value)}
+                    className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="URL"
+                  />
+                  <button onClick={() => removeSocialLink(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+
+              {footer.socialLinks.length === 0 && <p className="text-sm text-neutral-500 text-center py-4">Belum ada link sosial media. Klik "Tambah Link" untuk menambahkan.</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'scholarship-page' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                <FileText className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-neutral-900">Halaman Beasiswa</h3>
+                <p className="text-xs text-neutral-500">Konten halaman persyaratan beasiswa</p>
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700">Status Pendaftaran</label>
+                    <p className="text-xs text-neutral-500 mt-0.5">Buka/tutup pendaftaran beasiswa</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" checked={scholarshipPage.isOpen} onChange={(e) => setScholarshipPage({ ...scholarshipPage, isOpen: e.target.checked })} />
+                    <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                    <span className="ml-3 text-sm font-medium text-neutral-700">{scholarshipPage.isOpen ? 'Dibuka' : 'Ditutup'}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Judul Halaman</label>
+                <input
+                  type="text"
+                  value={scholarshipPage.title}
+                  onChange={(e) => setScholarshipPage({ ...scholarshipPage, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Tertarik Untuk Daftar Beasiswa Bank Indonesia?"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Subtitle</label>
+                <input
+                  type="text"
+                  value={scholarshipPage.subtitle}
+                  onChange={(e) => setScholarshipPage({ ...scholarshipPage, subtitle: e.target.value })}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Ketahui persyaratan dan dokumen yang dibutuhkan..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Teks Tombol</label>
+                <input
+                  type="text"
+                  value={scholarshipPage.buttonText}
+                  onChange={(e) => setScholarshipPage({ ...scholarshipPage, buttonText: e.target.value })}
+                  className="w-full max-w-xs px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Daftar Beasiswa"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Pesan Saat Ditutup</label>
+                <input
+                  type="text"
+                  value={scholarshipPage.closedMessage}
+                  onChange={(e) => setScholarshipPage({ ...scholarshipPage, closedMessage: e.target.value })}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Pendaftaran sedang ditutup. Pantau informasi selanjutnya ya!"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-900">Persyaratan</h3>
+                  <p className="text-xs text-neutral-500">Daftar persyaratan pendaftaran</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setScholarshipPage({ ...scholarshipPage, requirements: [...scholarshipPage.requirements, ''] })}
+                className="flex items-center gap-1 px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg text-xs font-medium hover:bg-primary-100 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" /> Tambah
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {scholarshipPage.requirements?.map((item, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <span className="text-sm text-neutral-500 pt-2 w-6">{index + 1}.</span>
+                  <textarea
+                    value={item}
+                    onChange={(e) => {
+                      const newReqs = [...scholarshipPage.requirements];
+                      newReqs[index] = e.target.value;
+                      setScholarshipPage({ ...scholarshipPage, requirements: newReqs });
+                    }}
+                    rows={2}
+                    className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    placeholder="Masukkan persyaratan..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newReqs = scholarshipPage.requirements.filter((_, i) => i !== index);
+                      setScholarshipPage({ ...scholarshipPage, requirements: newReqs });
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Hapus"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              {(!scholarshipPage.requirements || scholarshipPage.requirements.length === 0) && <p className="text-sm text-neutral-500 italic text-center py-4">Belum ada persyaratan. Klik "Tambah" untuk menambahkan.</p>}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-900">Dokumen Yang Dibutuhkan</h3>
+                  <p className="text-xs text-neutral-500">Daftar dokumen yang harus disiapkan</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setScholarshipPage({ ...scholarshipPage, documents: [...scholarshipPage.documents, ''] })}
+                className="flex items-center gap-1 px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg text-xs font-medium hover:bg-primary-100 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" /> Tambah
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {scholarshipPage.documents?.map((item, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <span className="text-sm text-neutral-500 pt-2 w-6">{index + 1}.</span>
+                  <textarea
+                    value={item}
+                    onChange={(e) => {
+                      const newDocs = [...scholarshipPage.documents];
+                      newDocs[index] = e.target.value;
+                      setScholarshipPage({ ...scholarshipPage, documents: newDocs });
+                    }}
+                    rows={2}
+                    className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    placeholder="Masukkan dokumen yang dibutuhkan..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newDocs = scholarshipPage.documents.filter((_, i) => i !== index);
+                      setScholarshipPage({ ...scholarshipPage, documents: newDocs });
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Hapus"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              {(!scholarshipPage.documents || scholarshipPage.documents.length === 0) && <p className="text-sm text-neutral-500 italic text-center py-4">Belum ada dokumen. Klik "Tambah" untuk menambahkan.</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeTab === 'branding' && (
         <div className="space-y-6">
           <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
@@ -479,52 +1479,17 @@ export default function CMSSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">Logo</label>
-                  <div className="flex items-center gap-4">
-                    {branding.logo ? (
-                      <img src={branding.logo} alt="Logo" className="w-16 h-16 object-contain rounded-lg border border-neutral-200 bg-white p-1" />
-                    ) : (
-                      <div className="w-16 h-16 bg-neutral-100 rounded-lg border border-dashed border-neutral-300 flex items-center justify-center">
-                        <Image className="w-6 h-6 text-neutral-400" />
-                      </div>
-                    )}
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, 'branding', 'logo')}
-                        className="text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-700 file:font-medium file:cursor-pointer"
-                      />
-                      <p className="text-xs text-neutral-500 mt-1">Rekomendasi: PNG transparan, 200x200px</p>
-                    </div>
-                  </div>
+                  <ImageDropzone value={branding.logo} onChange={(file) => handleImageUpload(file, 'branding', 'logo')} onRemove={() => handleImageRemove('branding', 'logo')} previewClassName="h-32" hint="PNG transparan, 200x200px" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">Favicon</label>
-                  <div className="flex items-center gap-4">
-                    {branding.favicon ? (
-                      <img src={branding.favicon} alt="Favicon" className="w-12 h-12 object-contain rounded-lg border border-neutral-200 bg-white p-1" />
-                    ) : (
-                      <div className="w-12 h-12 bg-neutral-100 rounded-lg border border-dashed border-neutral-300 flex items-center justify-center">
-                        <Image className="w-5 h-5 text-neutral-400" />
-                      </div>
-                    )}
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, 'branding', 'favicon')}
-                        className="text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-700 file:font-medium file:cursor-pointer"
-                      />
-                      <p className="text-xs text-neutral-500 mt-1">Rekomendasi: 32x32px atau 64x64px</p>
-                    </div>
-                  </div>
+                  <ImageDropzone value={branding.favicon} onChange={(file) => handleImageUpload(file, 'branding', 'favicon')} onRemove={() => handleImageRemove('branding', 'favicon')} previewClassName="h-32" hint="32x32px atau 64x64px" />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Info Box */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex gap-3">
               <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
