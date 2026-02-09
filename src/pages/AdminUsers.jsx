@@ -1,34 +1,29 @@
-
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Avatar from '../components/Avatar';
 import StatusBadge from '../components/StatusBadge';
-import { Search, Plus, Pencil, Trash2, UserCheck, UserX, ChevronRight, Loader2, RefreshCw, ChevronDown } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, ChevronRight, Loader2, RefreshCw, ChevronDown } from 'lucide-react';
 import { useConfirm } from '../contexts/ConfirmContext.jsx';
-import { apiGet, apiDelete, apiPatch } from '../utils/api';
+import { apiRequest, apiDelete } from '../utils/api';
 import EmptyState from '../components/EmptyState';
-
 
 const ROLE_DEFS = [
   { role_name: 'super_admin', label: 'Super Admin' },
   { role_name: 'admin', label: 'Admin' },
-  { role_name: 'koordinator', label: 'Koordinator' },
   { role_name: 'awardee', label: 'Awardee' },
-  { role_name: 'member', label: 'Member' },
   { role_name: 'alumni', label: 'Alumni' },
 ];
 const roleLabel = (name) => ROLE_DEFS.find((r) => r.role_name === name)?.label || name;
 
 const PER_PAGE = 10;
 
-const fmtDateID = (d) => new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+const fmtDateID = (d) => new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
 export default function AdminUsers() {
   const navigate = useNavigate();
   const { tab: tabParam } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { confirm } = useConfirm();
-
 
   const ALLOWED_TABS = ['accounts', 'subscribers'];
   const initialTab = ALLOWED_TABS.includes(tabParam) ? tabParam : 'accounts';
@@ -46,7 +41,6 @@ export default function AdminUsers() {
     }
   };
 
-
   const getParam = (k, def = '') => searchParams.get(k) ?? def;
   const getIntParam = (k, def = 1) => {
     const n = parseInt(searchParams.get(k) || '', 10);
@@ -60,7 +54,6 @@ export default function AdminUsers() {
     });
     setSearchParams(sp, { replace: true });
   };
-
 
   const [accounts, setAccounts] = useState([]);
   const [loadingAcc, setLoadingAcc] = useState(true);
@@ -81,19 +74,23 @@ export default function AdminUsers() {
       if (qAcc.trim()) params.set('search', qAcc.trim());
       if (roleFilter) params.set('role', roleFilter);
 
-      const result = await apiGet(`/users?${params.toString()}`);
+      const result = await apiRequest(`/users?${params.toString()}`);
+      console.log('[AdminUsers] API Response:', { meta: result.meta, dataLength: result.data?.length });
       const mapped = (result.data || result || []).map((u) => ({
         id: u.id,
         name: u.name || u.email.split('@')[0],
         email: u.email,
         role: u.role,
+        prodi: u.studyProgram?.name || null,
         createdAt: u.createdAt,
         active: u.isActive,
         verify: u.emailVerified ? 'Terverifikasi' : 'Menunggu Verifikasi',
         photo: u.avatar,
       }));
       setAccounts(mapped);
-      setTotalAcc(result.meta?.total || mapped.length);
+      const total = result.meta?.total ?? mapped.length;
+      console.log('[AdminUsers] Setting total:', total);
+      setTotalAcc(total);
     } catch (err) {
       setErrorAcc({ status: err?.status, message: err?.message || 'Gagal memuat data user' });
     } finally {
@@ -139,21 +136,8 @@ export default function AdminUsers() {
     }
   };
 
-  const setActive = async (id, active) => {
-    try {
-      await apiPatch(`/users/${id}`, { isActive: active });
-      setAccounts((prev) => prev.map((u) => (u.id === id ? { ...u, active } : u)));
-    } catch (err) {
-      alert(err.message || 'Gagal mengubah status user');
-    }
-  };
-
-
-
-
   return (
     <div className="px-6 md:px-10 py-6">
-
       <nav className="mb-4 flex items-center text-sm text-neutral-600">
         <Link to="/dashboard" className="hover:text-neutral-800 hover:underline">
           Dashboard
@@ -190,13 +174,12 @@ export default function AdminUsers() {
 
         {/* Panels */}
         <div className="p-4 md:p-6">
-
           {tab === 'accounts' && (
             <>
               {/* Header tools */}
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="text-lg font-semibold text-neutral-900">Akun Website</h3>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                   {/* Filter role */}
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-medium text-neutral-700">Role</label>
@@ -248,7 +231,6 @@ export default function AdminUsers() {
                 </div>
               </div>
 
-
               {loadingAcc && accounts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-3">
                   <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
@@ -273,54 +255,36 @@ export default function AdminUsers() {
                       <tr className="text-left text-neutral-500">
                         <th className="py-3.5 pr-3 font-medium">Nama</th>
                         <th className="px-3 py-3.5 font-medium">Email</th>
+                        <th className="px-3 py-3.5 font-medium">Prodi</th>
                         <th className="px-3 py-3.5 font-medium">Role</th>
                         <th className="px-3 py-3.5 font-medium">Dibuat</th>
-                        <th className="px-3 py-3.5 font-medium text-center">Akun</th>
                         <th className="px-3 py-3.5 font-medium text-right">Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
                       {accounts.map((u) => (
                         <tr key={u.id} className="border-t border-neutral-200 text-neutral-800">
-                          <td className="py-5 pr-3">
+                          <td className="py-4 pr-3">
                             <div className="flex items-center gap-3">
                               <Avatar name={u.name} src={u.photo || ''} size={32} />
-                              <span className="font-medium">{u.name}</span>
+                              <div>
+                                <span className="font-medium block">{u.name}</span>
+                                <span className={`text-xs ${u.active ? 'text-green-600' : 'text-neutral-400'}`}>{u.active ? 'Aktif' : 'Nonaktif'}</span>
+                              </div>
                             </div>
                           </td>
-                          <td className="px-3 py-5 text-neutral-600">{u.email}</td>
-                          <td className="px-3 py-5">
-                            <span className="inline-flex items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 py-1 text-xs font-medium text-neutral-700">{roleLabel(u.role)}</span>
+                          <td className="px-3 py-4 text-neutral-600">{u.email}</td>
+                          <td className="px-3 py-4 text-neutral-600">{u.prodi || '-'}</td>
+                          <td className="px-3 py-4">
+                            <span className="inline-flex items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-700">{roleLabel(u.role)}</span>
                           </td>
-                          <td className="px-3 py-5 text-neutral-600">{fmtDateID(u.createdAt)}</td>
-                          <td className="px-3 py-5">
-                            <div role="group" aria-label={`Status akun ${u.name}`} className="flex items-center justify-center gap-1">
-                              <button
-                                type="button"
-                                aria-pressed={u.active}
-                                onClick={() => setActive(u.id, true)}
-                                className={`p-1.5 rounded-md transition ${u.active ? 'bg-primary-500 text-white' : 'bg-neutral-100 text-neutral-400 hover:bg-neutral-200'}`}
-                                title="Aktifkan"
-                              >
-                                <UserCheck className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                aria-pressed={!u.active}
-                                onClick={() => setActive(u.id, false)}
-                                className={`p-1.5 rounded-md transition ${!u.active ? 'bg-neutral-400 text-white' : 'bg-neutral-100 text-neutral-400 hover:bg-neutral-200'}`}
-                                title="Nonaktifkan"
-                              >
-                                <UserX className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
-                          <td className="px-3 py-5">
-                            <div className="flex items-center justify-end gap-2">
+                          <td className="px-3 py-4 text-neutral-500 text-xs">{fmtDateID(u.createdAt)}</td>
+                          <td className="px-3 py-4">
+                            <div className="flex items-center justify-end gap-1">
                               <button type="button" onClick={() => navigate(`/admin/users/${u.id}/edit`)} className="p-1.5 text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-md transition" title="Edit">
                                 <Pencil className="h-4 w-4" />
                               </button>
-                              <button type="button" onClick={() => onDeleteAccount(u.id)} className="p-1.5 text-secondary-600 hover:text-secondary-700 hover:bg-secondary-50 rounded-md transition" title="Hapus">
+                              <button type="button" onClick={() => onDeleteAccount(u.id)} className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition" title="Hapus">
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
@@ -338,7 +302,6 @@ export default function AdminUsers() {
                   </table>
                 </div>
               )}
-
 
               <div className="mt-4 flex flex-col items-center justify-between gap-3 text-sm sm:flex-row">
                 <div className="text-neutral-600">
@@ -376,8 +339,7 @@ export default function AdminUsers() {
             </>
           )}
 
-
-          {tab === 'subscribers' && <EmptyState icon="inbox" title="Segera Hadir" description="Fitur manajemen subscriber akan tersedia dalam waktu dekat." />}
+          {tab === 'subscribers' && <EmptyState icon="inbox" title="Belum Ada Subscriber" description="Belum ada data subscriber yang terdaftar di sistem." />}
         </div>
       </div>
     </div>
