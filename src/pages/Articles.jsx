@@ -25,8 +25,10 @@ export default function Articles() {
         author: item.author?.name || 'GenBI Unsika',
         date: item.publishedAt ? item.publishedAt.split('T')[0] : item.createdAt?.split('T')[0] || '',
         cover: item.coverImage || null,
-        description: item.excerpt || item.content?.substring(0, 150) || '',
+        description: item.content?.substring(0, 150) || '',
+        excerpt: item.excerpt || '',
         slug: item.slug,
+        category: item.category || 'Artikel',
         status: item.status,
         raw: item, // Keep original data for edit
       }));
@@ -100,7 +102,17 @@ export default function Articles() {
       {articles.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {articles.map((a) => (
-            <ArticleCard key={a.id} title={a.title} badge={a.author} date={a.date} image={a.cover} description={a.description} to={`/artikel/${a.id}/edit`} state={{ article: a.raw }} />
+            <ArticleCard
+              key={a.id}
+              title={a.title}
+              badge={a.category}
+              excerpt={a.excerpt}
+              date={a.date}
+              image={a.cover}
+              description={a.description}
+              to={`/artikel/${a.id}/edit`}
+              state={{ article: a.raw }}
+            />
           ))}
         </div>
       ) : (

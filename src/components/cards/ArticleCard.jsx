@@ -3,7 +3,7 @@ import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MediaPlaceholder from '../shared/MediaPlaceholder';
 
-export default function ArticleCard({ title, excerpt, image, description, date, readTime, badge, href, to, state, placeholder = null, className = '' }) {
+export default function ArticleCard({ title, excerpt, image, description, date, readTime, badge, href, to, state, className = '' }) {
   const Wrapper = to ? Link : href ? 'a' : 'div';
   const wrapperProps = to ? { to } : href ? { href } : {};
 
@@ -80,6 +80,6 @@ ArticleCard.propTypes = {
   readTime: PropTypes.string,
   badge: PropTypes.string,
   href: PropTypes.string,
-  placeholder: PropTypes.string,
+
   className: PropTypes.string,
 };

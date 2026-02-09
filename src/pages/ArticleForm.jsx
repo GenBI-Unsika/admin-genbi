@@ -13,6 +13,9 @@ export default function ArticleForm({ mode = 'create' }) {
   const [loading, setLoading] = useState(mode === 'edit');
   const [form, setForm] = useState({
     title: '',
+    category: '',
+    tags: '',
+    excerpt: '',
     publishDate: '',
     description: '',
     cover: null,
@@ -30,6 +33,9 @@ export default function ArticleForm({ mode = 'create' }) {
         .then((article) => {
           setForm({
             title: article.title || '',
+            category: article.category || '',
+            tags: Array.isArray(article.tags) ? article.tags.join(', ') : '',
+            excerpt: article.excerpt || '',
             publishDate: article.publishedAt ? article.publishedAt.slice(0, 10) : '',
             description: article.content || '',
             cover: article.coverImage ? { url: article.coverImage, name: 'cover' } : null,
@@ -58,9 +64,12 @@ export default function ArticleForm({ mode = 'create' }) {
     }
     setSaving(true);
     try {
-      // Build payload for API - use staging flow with tempId
+      // Build payload for API
       const payload = {
         title: form.title,
+        category: form.category,
+        tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
+        excerpt: form.excerpt,
         content: form.description,
         status: form.publishDate ? 'PUBLISHED' : 'DRAFT',
       };
@@ -72,7 +81,7 @@ export default function ArticleForm({ mode = 'create' }) {
         payload.coverImage = form.cover.url;
       }
 
-      // Handle attachments - include tempId for staged files
+      // Handle attachments
       const photos = (form.photos || []).map((p) => ({
         name: p.name,
         url: p.url,
@@ -93,7 +102,6 @@ export default function ArticleForm({ mode = 'create' }) {
         links: form.links,
       };
 
-      // Call API to save - server handles finalization of tempIds
       if (mode === 'edit' && id) {
         await apiPatch(`/articles/${id}`, payload);
       } else {
@@ -126,8 +134,24 @@ export default function ArticleForm({ mode = 'create' }) {
             <div className="rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
               <Input label="Judul Artikel" value={form.title} onChange={update('title')} placeholder="Tuliskan judul artikel yang menarik" className="mb-4" />
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <Input label="Kategori" value={form.category} onChange={update('category')} placeholder="e.g. Berita, Opini, Teknologi" />
+                <Input label="Tag (pisahkan dengan koma)" value={form.tags} onChange={update('tags')} placeholder="e.g. GenBI, Beasiswa, Unsika" />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Ringkasan (Excerpt)</label>
+                <textarea
+                  value={form.excerpt}
+                  onChange={update('excerpt')}
+                  rows={3}
+                  className="w-full rounded-lg border border-neutral-200 p-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all"
+                  placeholder="Tulis ringkasan singkat artikel ini untuk ditampilkan di kartu..."
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Cover Upload with Staging Flow */}
+                {/* Cover Upload */}
                 <CoverUpload label="Cover Artikel" value={form.cover} onChange={(cover) => setForm((s) => ({ ...s, cover }))} useStaging />
 
                 <div className="space-y-4">
@@ -152,14 +176,12 @@ export default function ArticleForm({ mode = 'create' }) {
             <div className="rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
               <h3 className="text-base font-semibold text-neutral-900 mb-4">Lampiran Tambahan</h3>
 
-              {/* Attachment Type Tabs */}
               <div className="flex flex-wrap gap-2 mb-4">
                 <button
                   type="button"
                   onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'foto' ? '' : 'foto' }))}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                    form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                    }`}
                 >
                   <Image className="w-4 h-4" />
                   Foto
@@ -168,9 +190,8 @@ export default function ArticleForm({ mode = 'create' }) {
                 <button
                   type="button"
                   onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'dokumen' ? '' : 'dokumen' }))}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                    form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                    }`}
                 >
                   <FileText className="w-4 h-4" />
                   Dokumen
@@ -179,9 +200,8 @@ export default function ArticleForm({ mode = 'create' }) {
                 <button
                   type="button"
                   onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'tautan' ? '' : 'tautan' }))}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                    form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                    }`}
                 >
                   <LinkIcon className="w-4 h-4" />
                   Tautan
@@ -189,7 +209,6 @@ export default function ArticleForm({ mode = 'create' }) {
                 </button>
               </div>
 
-              {/* Attachment Content */}
               {form.attachmentType === 'foto' && (
                 <FileUpload
                   accept="image/*"
@@ -218,7 +237,6 @@ export default function ArticleForm({ mode = 'create' }) {
 
               {form.attachmentType === 'tautan' && <LinkInput value={form.links} onChange={(links) => setForm((s) => ({ ...s, links }))} />}
 
-              {/* Preview of attachments */}
               {!form.attachmentType && (form.photos.length > 0 || form.documents.length > 0 || form.links.length > 0) && (
                 <div className="space-y-4">
                   {form.photos.length > 0 && (
@@ -277,7 +295,6 @@ export default function ArticleForm({ mode = 'create' }) {
                 </div>
               )}
 
-              {/* Empty state */}
               {!form.attachmentType && form.photos.length === 0 && form.documents.length === 0 && form.links.length === 0 && (
                 <div className="text-center py-6 text-neutral-400">
                   <Plus className="w-6 h-6 mx-auto mb-2" />
@@ -286,7 +303,6 @@ export default function ArticleForm({ mode = 'create' }) {
               )}
             </div>
 
-            {/* Actions */}
             <div className="flex justify-end gap-3">
               <Link to="/artikel" className="btn-outline-primary px-4 py-2">
                 Batal
