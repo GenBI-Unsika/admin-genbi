@@ -2,10 +2,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { Search, Plus, Edit2, Trash2, Award, TrendingUp, Users, ChevronDown, Loader2, RefreshCw, X } from 'lucide-react';
 import { apiGet, apiRequest, apiPatch, apiDelete } from '../utils/api';
 import { useConfirm } from '../contexts/ConfirmContext';
+import EmptyState from '../components/EmptyState';
 
 export default function Points() {
   const { confirm } = useConfirm();
   const [leaderboard, setLeaderboard] = useState([]);
+  const [members, setMembers] = useState([]); // All members for dropdown
+  const [activities, setActivities] = useState([]); // Store fetched activities
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
@@ -14,7 +17,27 @@ export default function Points() {
 
   useEffect(() => {
     loadLeaderboard();
+    fetchMembers();
+    fetchActivities();
   }, []);
+
+  const fetchMembers = async () => {
+    try {
+      const res = await apiGet('/members/admin/all');
+      setMembers(res.data || res || []);
+    } catch (err) {
+      console.error('Failed to load members:', err);
+    }
+  };
+
+  const fetchActivities = async () => {
+    try {
+      const res = await apiGet('/activities?limit=100'); // Fetch recent activities
+      setActivities(res.data || res || []);
+    } catch (err) {
+      console.error('Failed to load activities:', err);
+    }
+  };
 
   const loadLeaderboard = async () => {
     setLoading(true);
@@ -139,14 +162,14 @@ export default function Points() {
 
       {/* Search */}
       <div className="mb-6">
-        <div className="relative max-w-md">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari nama atau divisi..."
-            className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full pl-10 pr-4 py-2.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
           />
         </div>
       </div>
@@ -157,10 +180,12 @@ export default function Points() {
           <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
         </div>
       ) : filteredData.length === 0 ? (
-        <div className="text-center py-20">
-          <Award className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-          <p className="text-neutral-600">Belum ada data poin</p>
-        </div>
+        <EmptyState
+          icon={search ? 'search' : 'box'}
+          title={search ? 'Tidak ada hasil' : 'Belum ada data poin'}
+          description={search ? 'Coba kata kunci lain untuk pencarian.' : 'Tambahkan poin kegiatan untuk anggota melalui tombol Tambah Poin.'}
+          variant={search ? 'default' : 'primary'}
+        />
       ) : (
         <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
           <div className="overflow-x-auto">
@@ -230,7 +255,7 @@ export default function Points() {
       )}
 
       {/* Add Point Modal */}
-      {addModal && <AddPointModal members={leaderboard} onClose={() => setAddModal(false)} onSubmit={handleAddPoint} />}
+      {addModal && <AddPointModal members={members} activities={activities} onClose={() => setAddModal(false)} onSubmit={handleAddPoint} />}
 
       {/* Edit Point Modal */}
       {editModal && <EditPointModal memberId={editModal.memberId} activity={editModal.activity} onClose={() => setEditModal(null)} onSubmit={handleEditPoint} />}
@@ -310,7 +335,7 @@ function MemberDetailModal({ member, onClose, onEdit, onDelete }) {
   );
 }
 
-function AddPointModal({ members, onClose, onSubmit }) {
+function AddPointModal({ members, activities, onClose, onSubmit }) {
   const [form, setForm] = useState({
     memberId: '',
     name: '',
@@ -338,48 +363,60 @@ function AddPointModal({ members, onClose, onSubmit }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl w-full max-w-md">
-        <div className="p-5 border-b border-neutral-200">
+        <div className="p-5 border-b border-neutral-200 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-neutral-900">Tambah Poin</h3>
+          <button onClick={onClose} className="p-2 hover:bg-neutral-100 rounded-lg transition">
+            <X className="w-5 h-5 text-neutral-500" />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          {/* Anggota */}
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Pilih Anggota</label>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Anggota</label>
             <select
               value={form.memberId}
               onChange={(e) => setForm({ ...form, memberId: e.target.value })}
-              className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 bg-white"
               required
             >
               <option value="">-- Pilih Anggota --</option>
               {members.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.name} ({m.division || 'No Division'})
+                  {m.name || m.email?.split('@')[0]} {m.npm ? `(${m.npm})` : ''}
                 </option>
               ))}
             </select>
           </div>
 
+          {/* Kegiatan */}
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Nama Kegiatan</label>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Kegiatan</label>
             <input
               type="text"
+              list="activity-list"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="Contoh: Rapat Koordinasi"
+              className="w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+              placeholder="Pilih atau ketik nama kegiatan..."
               required
             />
+            <datalist id="activity-list">
+              {activities.map((act) => (
+                <option key={act.id} value={act.title} />
+              ))}
+            </datalist>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Poin & Tipe */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Jumlah Poin</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Poin</label>
               <input
                 type="number"
                 value={form.points}
                 onChange={(e) => setForm({ ...form, points: e.target.value })}
-                className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
                 placeholder="10"
                 min="1"
                 required
@@ -387,28 +424,34 @@ function AddPointModal({ members, onClose, onSubmit }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-1.5">Tipe</label>
-              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+              <select
+                value={form.type}
+                onChange={(e) => setForm({ ...form, type: e.target.value })}
+                className="w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 bg-white"
+              >
                 <option value="offline">Offline</option>
                 <option value="online">Online</option>
               </select>
             </div>
           </div>
 
+          {/* Tanggal */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Tanggal</label>
             <input
               type="date"
               value={form.date}
               onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} disabled={saving} className="px-4 py-2 border border-neutral-200 rounded-lg text-sm font-medium hover:bg-neutral-50 transition">
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-3">
+            <button type="button" onClick={onClose} disabled={saving} className="px-4 py-2.5 border border-neutral-200 rounded-lg text-sm font-medium hover:bg-neutral-50 transition">
               Batal
             </button>
-            <button type="submit" disabled={saving} className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition">
+            <button type="submit" disabled={saving} className="px-5 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition">
               {saving ? 'Menyimpan...' : 'Simpan'}
             </button>
           </div>
