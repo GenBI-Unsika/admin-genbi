@@ -424,7 +424,7 @@ export function CoverUpload({ label = 'Cover', value, onChange, className = '', 
         <input ref={inputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
 
         {value?.url ? (
-          <div className="relative aspect-video">
+          <div className="relative" style={{ aspectRatio: '5 / 1' }}>
             <img src={value.url} alt="Cover" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all group">
               <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -452,7 +452,7 @@ export function CoverUpload({ label = 'Cover', value, onChange, className = '', 
             </div>
           </div>
         ) : (
-          <div className="aspect-video flex flex-col items-center justify-center p-6">
+          <div className="flex flex-col items-center justify-center p-6" style={{ aspectRatio: '5 / 1' }}>
             {uploading ? (
               <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
             ) : (
