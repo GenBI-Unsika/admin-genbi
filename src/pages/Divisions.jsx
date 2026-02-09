@@ -10,7 +10,7 @@ export default function Divisions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [q, setQ] = useState('');
-  const { showConfirm } = useConfirm();
+  const { confirm } = useConfirm();
 
   const fetchDivisions = useCallback(async () => {
     setLoading(true);
@@ -31,12 +31,12 @@ export default function Divisions() {
   }, [fetchDivisions]);
 
   const handleDelete = async (division) => {
-    const confirmed = await showConfirm({
+    const confirmed = await confirm({
       title: 'Hapus Divisi',
-      message: `Apakah Anda yakin ingin menghapus divisi "${division.name}"?`,
+      description: `Apakah Anda yakin ingin menghapus divisi "${division.name}"?`,
       confirmText: 'Hapus',
       cancelText: 'Batal',
-      variant: 'danger',
+      tone: 'danger',
     });
 
     if (!confirmed) return;
@@ -115,20 +115,16 @@ export default function Divisions() {
           {filteredDivisions.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredDivisions.map((division) => (
-                <div key={division.id} className={`bg-white rounded-xl border ${division.borderColor || 'border-neutral-200'} shadow-sm overflow-hidden hover:shadow-md transition-shadow`}>
+                <div key={division.id} className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className={`w-12 h-12 rounded-xl ${division.bgLight || 'bg-neutral-100'} flex items-center justify-center text-2xl flex-shrink-0`}>{division.icon || '👥'}</div>
-                      <div className="flex items-center gap-1">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${division.isActive ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-500'}`}>{division.isActive ? 'Aktif' : 'Nonaktif'}</span>
-                      </div>
+                      <div className="w-12 h-12 rounded-xl bg-neutral-100 flex items-center justify-center text-2xl flex-shrink-0">{division.icon || '👥'}</div>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${division.isActive ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-500'}`}>{division.isActive ? 'Aktif' : 'Nonaktif'}</span>
                     </div>
 
                     <h3 className="text-base font-semibold text-neutral-900 mb-1">{division.name}</h3>
-                    <p className="text-xs text-neutral-500 mb-2">Key: {division.key}</p>
                     {division.description && <p className="text-sm text-neutral-600 line-clamp-2 mb-3">{division.description}</p>}
 
-                    {/* Actions */}
                     <div className="flex items-center gap-2 pt-3 border-t border-neutral-100">
                       <Link
                         to={`/divisi/${division.id}/edit`}
