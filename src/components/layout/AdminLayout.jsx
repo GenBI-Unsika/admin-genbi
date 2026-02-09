@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, ChevronLeft, ChevronRight, GraduationCap, Users, Newspaper, LayoutGrid, LogOut, ChevronDown, User2, ChartNoAxesGantt, BookOpen, Layers, Wallet, Award, FileText } from 'lucide-react';
+import { Menu, GraduationCap, Users, Newspaper, LayoutGrid, LogOut, ChevronDown, User2, ChartNoAxesGantt, BookOpen, Layers, Wallet, Award, FileText, Database } from 'lucide-react';
 import { authLogout, authRefresh, fetchMe } from '../../utils/api';
+import { Toaster } from 'react-hot-toast';
 import { useConfirm } from '../../contexts/ConfirmContext.jsx';
 import { fetchMeViaTrpc } from '../../utils/me';
 import Avatar from '../Avatar';
 import GlobalSearch from '../GlobalSearch';
 
+// Tambah item Kelola User (gunakan User2 biar beda dengan Aktivitas)
 // Tambah item Kelola User (gunakan User2 biar beda dengan Aktivitas)
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
@@ -15,12 +17,19 @@ const navItems = [
   { to: '/artikel', label: 'Artikel', icon: Newspaper },
   { to: '/divisi', label: 'Divisi', icon: Layers },
   { to: '/anggota', label: 'Anggota', icon: Users },
-  { to: '/kas', label: 'Rekapitulasi Kas', icon: Wallet },
-  { to: '/poin', label: 'Poin Kegiatan', icon: Award },
-  { to: '/dispensasi', label: 'Dispensasi', icon: FileText },
   { to: '/admin/users', label: 'Kelola User', icon: User2 },
+  { to: '/master-data', label: 'Master Data', icon: Database },
   { to: '/cms', label: 'Kelola Konten Web', icon: ChartNoAxesGantt },
   { to: '/pusat-informasi', label: 'Pusat Informasi', icon: BookOpen },
+  {
+    label: 'Menu Portal GenBI',
+    icon: LayoutGrid, // Icon parent
+    children: [
+      { to: '/kas', label: 'Rekapitulasi Kas', icon: Wallet },
+      { to: '/poin', label: 'Poin Kegiatan', icon: Award },
+      { to: '/dispensasi', label: 'Dispensasi', icon: FileText },
+    ],
+  },
 ];
 
 export default function AdminLayout() {
@@ -139,12 +148,13 @@ export default function AdminLayout() {
   const activeMatcher = (path) => location.pathname.startsWith(path);
 
   const Brand = useMemo(
-    () => (
-      <div className="flex items-center gap-3 px-3 py-3">
-        <img src="/favicon-genbi.webp" alt="GenBI Unsika" className="h-8 w-8 p-1 rounded-md border border-neutral-200 object-cover" />
-        {!collapsed && <p className="text-base font-semibold text-neutral-900">GenBI Unsika</p>}
-      </div>
-    ),
+    () =>
+      !collapsed && (
+        <div className="flex items-center gap-3">
+          <img src="/favicon-genbi.webp" alt="GenBI Unsika" className="h-8 w-8 rounded-md border border-neutral-200 object-cover" />
+          <p className="text-base font-semibold text-neutral-900">GenBI Unsika</p>
+        </div>
+      ),
     [collapsed],
   );
 
@@ -170,41 +180,84 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-white text-neutral-800">
       <div className="flex">
         {/* Sidebar */}
-        <aside className={`sticky top-0 flex h-screen flex-col border-r border-neutral-200 bg-white transition-[width] duration-200 ${collapsed ? 'w-[84px]' : 'w-[260px]'}`}>
+        <aside className={`sticky top-0 hidden md:flex shrink-0 h-screen flex-col border-r border-neutral-200 bg-white transition-[width] duration-200 ${collapsed ? 'w-[88px]' : 'w-[264px]'}`}>
           {/* Top row */}
-          <div className="flex items-center justify-between border-b border-neutral-200">
+          <div className={`flex items-center border-b border-neutral-200 ${collapsed ? 'justify-center py-3' : 'justify-between px-3 py-3'}`}>
             {Brand}
             <button
               type="button"
               aria-label={collapsed ? 'Buka sidebar' : 'Ciutkan sidebar'}
               onClick={() => setCollapsed((s) => !s)}
-              className="mr-2 inline-grid h-8 w-8 place-items-center rounded-lg border border-neutral-200 hover:bg-neutral-50 active:scale-[0.98] transition"
+              className="inline-grid h-9 w-9 place-items-center rounded-lg border border-neutral-200 hover:bg-neutral-50 focus-ring"
             >
-              {collapsed ? <ChevronRight className="h-4 w-4 text-neutral-700" /> : <ChevronLeft className="h-4 w-4 text-neutral-700" />}
+              <Menu className="h-5 w-5 text-neutral-700" />
             </button>
           </div>
           {/* Nav */}
           <nav className="flex-1 px-2 py-4">
-            <ul className="space-y-1">
-              {navItems.map(
-                // eslint-disable-next-line no-unused-vars
-                ({ to, label, icon: Icon }) => {
-                  const active = activeMatcher(to);
+            <ul className="space-y-1.5">
+              {navItems.map((item, idx) => {
+                // If it's a dropdown menu
+                if (item.children) {
+                  const isActiveParent = item.children.some((child) => activeMatcher(child.to));
+                  // Use details/summary for simple collapsible behavior
                   return (
-                    <li key={to}>
-                      <NavLink
-                        to={to}
-                        onClick={() => setProfileOpen(false)}
-                        className={`group flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm transition
-                      ${active ? 'bg-primary-50 text-primary-700 border-primary-200' : 'hover:bg-neutral-50'}`}
-                      >
-                        <Icon className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-neutral-600'}`} />
-                        {!collapsed && <span className={`${active ? 'text-primary-700' : 'text-neutral-700'}`}>{label}</span>}
-                      </NavLink>
+                    <li key={idx} className="mb-1">
+                      <details className="group/details" open={isActiveParent || undefined}>
+                        <summary
+                          className={`flex cursor-pointer items-center justify-between rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium transition hover:bg-neutral-50
+                          ${isActiveParent ? 'text-primary-700 bg-primary-50/50' : 'text-neutral-700'}
+                          ${collapsed ? 'justify-center px-0' : ''}`}
+                          title={collapsed ? item.label : ''}
+                        >
+                          <div className={`flex items-center ${collapsed ? '' : 'gap-3'}`}>
+                            <item.icon className={`h-5 w-5 ${isActiveParent ? 'text-primary-600' : 'text-neutral-600'}`} />
+                            {!collapsed && <span>{item.label}</span>}
+                          </div>
+                          {!collapsed && <ChevronDown className={`h-4 w-4 text-neutral-400 transition-transform duration-200 group-open/details:rotate-180`} />}
+                        </summary>
+                        <ul className={`mt-1 space-y-1 ${collapsed ? 'hidden' : 'pl-3'}`}>
+                          {item.children.map((child) => {
+                            const isChildActive = activeMatcher(child.to);
+                            return (
+                              <li key={child.to}>
+                                <NavLink
+                                  to={child.to}
+                                  onClick={() => setProfileOpen(false)}
+                                  className={`flex items-center rounded-lg border px-3 py-2 text-sm transition
+                                  ${isChildActive ? 'bg-primary-50 text-priority-700 border-primary-200 text-primary-700' : 'border-transparent text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'}
+                                  gap-3`}
+                                >
+                                  <child.icon className={`h-4 w-4 ${isChildActive ? 'text-primary-600' : 'text-neutral-400'}`} />
+                                  <span>{child.label}</span>
+                                </NavLink>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </details>
+                      {/* For collapsed mode, show children as a popover on hover (optional enhancement, skipping for now to keep it simple, user requested dropdown) */}
                     </li>
                   );
-                },
-              )}
+                }
+
+                // Normal item
+                const active = activeMatcher(item.to);
+                return (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      onClick={() => setProfileOpen(false)}
+                      className={`group flex items-center rounded-xl border text-sm transition
+                      ${collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-3 py-2.5'}
+                      ${active ? 'bg-primary-50 text-primary-700 border-primary-200' : 'border-transparent hover:bg-neutral-50'}`}
+                    >
+                      <item.icon className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-neutral-600'}`} />
+                      {!collapsed && <span className={`${active ? 'text-primary-700' : 'text-neutral-700'}`}>{item.label}</span>}
+                    </NavLink>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
           {/* Logout di sidebar */}
@@ -221,7 +274,7 @@ export default function AdminLayout() {
         </aside>
 
         {/* Main */}
-        <div className="flex min-h-screen flex-1 flex-col">
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col overflow-hidden">
           {/* NAVBAR */}
           <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/90 backdrop-blur">
             <div className="flex items-center gap-3 px-4 py-3 md:px-6">
@@ -267,11 +320,12 @@ export default function AdminLayout() {
           </header>
 
           {/* Content */}
-          <main className="flex-1 p-4 md:p-6">
+          <main className="flex-1 overflow-x-auto p-4 md:p-6">
             <Outlet />
           </main>
         </div>
       </div>
+
     </div>
   );
 }

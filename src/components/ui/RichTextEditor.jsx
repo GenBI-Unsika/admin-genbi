@@ -5,7 +5,7 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Bold, Italic, List, ListOrdered, Quote, Undo, Redo, Link as LinkIcon, Image as ImageIcon, Heading1, Heading2, Code, Upload, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { apiUpload } from '../../utils/api';
+import { apiUploadStaging, apiFinalizeUpload } from '../../utils/api';
 
 const MenuBar = ({ editor }) => {
   const fileInputRef = useRef(null);

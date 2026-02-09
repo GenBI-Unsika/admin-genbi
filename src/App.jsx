@@ -13,6 +13,7 @@ const ActivityForm = React.lazy(() => import('./pages/ActivityForm'));
 const Articles = React.lazy(() => import('./pages/Articles'));
 const ArticleForm = React.lazy(() => import('./pages/ArticleForm'));
 const CMSSettings = React.lazy(() => import('./pages/CMSSettings'));
+const MasterData = React.lazy(() => import('./pages/MasterData'));
 const InfoCenter = React.lazy(() => import('./pages/InfoCenter'));
 const Login = React.lazy(() => import('./pages/Login'));
 const AdminUsers = React.lazy(() => import('./pages/AdminUsers'));
@@ -61,7 +62,11 @@ const RequireAuth = ({ children }) => {
             // If we still can't resolve the current user, treat it as unauthenticated.
             // Server-side admin panel roles: super_admin, admin, koordinator.
             const allowedRoles = new Set(['super_admin', 'admin', 'koordinator']);
-            if (!me || !allowedRoles.has(me?.role)) {
+
+            // Handle both string and object (relation) formats for role
+            const userRole = typeof me?.role === 'object' ? me.role?.name : me?.role;
+
+            if (!me || !allowedRoles.has(userRole)) {
               await authLogout();
             }
           } catch {
@@ -146,6 +151,7 @@ export default function App() {
 
           {/* CMS */}
           <Route path="/cms" element={<CMSSettings />} />
+          <Route path="/master-data" element={<MasterData />} />
 
           {/* Profil */}
           <Route path="/profile" element={<Profile />} />
