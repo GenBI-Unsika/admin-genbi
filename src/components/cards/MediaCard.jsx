@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { Calendar } from 'lucide-react';
-import { formatDateID, limitWords } from '../../utils/formatters';
+import { formatDateID, limitWords, stripHtml } from '../../utils/formatters';
 import { Link } from 'react-router-dom';
 import MediaPlaceholder from '../shared/MediaPlaceholder';
 
@@ -43,10 +43,10 @@ export default function MediaCard({ title, subtitle, image, description, categor
         <div>
           {category && <span className="inline-flex w-fit items-center bg-white/15 text-white text-[11px] leading-none px-2 py-0.5 rounded-full mb-2 border border-white/25">{category}</span>}
           <h6 className="font-semibold text-white leading-snug">{title}</h6>
-          {description && <p className="text-xs mt-2 text-white/80 line-clamp-2">{description}</p>}
+          {description && <p className="text-xs mt-2 text-white/80 line-clamp-2">{stripHtml(description)}</p>}
           {subtitle && (
-            <p className="text-sm text-white/85" title={subtitle}>
-              {limitWords(subtitle, subtitleWordsLimit)}
+            <p className="text-sm text-white/85" title={stripHtml(subtitle)}>
+              {limitWords(stripHtml(subtitle), subtitleWordsLimit)}
             </p>
           )}
         </div>

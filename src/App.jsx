@@ -13,6 +13,7 @@ const ActivityForm = React.lazy(() => import('./pages/ActivityForm'));
 const Articles = React.lazy(() => import('./pages/Articles'));
 const ArticleForm = React.lazy(() => import('./pages/ArticleForm'));
 const CMSSettings = React.lazy(() => import('./pages/CMSSettings'));
+
 const MasterData = React.lazy(() => import('./pages/MasterData'));
 const InfoCenter = React.lazy(() => import('./pages/InfoCenter'));
 const Login = React.lazy(() => import('./pages/Login'));
@@ -123,6 +124,7 @@ export default function App() {
           <Route path="/artikel" element={<Articles />} />
           <Route path="/artikel/new" element={<ArticleForm mode="create" />} />
           <Route path="/artikel/:id/edit" element={<ArticleForm mode="edit" />} />
+
 
           {/* Divisi */}
           <Route path="/divisi" element={<Divisions />} />

@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Upload, X, File, Image as ImageIcon, FileText, Link as LinkIcon, Loader2 } from 'lucide-react';
-import { apiUpload, apiUploadStaging, getTempPreviewUrl } from '../../utils/api';
+import { apiUpload, apiUploadStaging, getTempPreviewUrl, normalizeFileUrl } from '../../utils/api';
 
 export default function FileUpload({
   label,
@@ -227,8 +227,9 @@ export default function FileUpload({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${isDragging ? 'border-primary-400 bg-primary-50' : 'border-neutral-300 hover:border-primary-300 hover:bg-neutral-50'
-          } ${uploading ? 'pointer-events-none opacity-70' : ''}`}
+        className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+          isDragging ? 'border-primary-400 bg-primary-50' : 'border-neutral-300 hover:border-primary-300 hover:bg-neutral-50'
+        } ${uploading ? 'pointer-events-none opacity-70' : ''}`}
       >
         <input ref={inputRef} type="file" accept={accept} multiple={multiple} onChange={handleFileSelect} className="hidden" />
 
@@ -260,7 +261,7 @@ export default function FileUpload({
           {files.map((file, index) => (
             <div key={index} className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg border border-neutral-200">
               {file.type?.startsWith('image/') && file.url ? (
-                <img src={file.url} alt={file.name} className="w-12 h-12 object-cover rounded-lg" />
+                <img src={normalizeFileUrl(file.url)} alt={file.name} className="w-12 h-12 object-cover rounded-lg" />
               ) : (
                 <div className="w-12 h-12 flex items-center justify-center bg-white rounded-lg border border-neutral-200">{getFileIcon(file)}</div>
               )}
@@ -418,14 +419,15 @@ export function CoverUpload({ label = 'Cover', value, onChange, className = '', 
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => !value && inputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-xl overflow-hidden transition-all ${value ? 'border-transparent' : isDragging ? 'border-primary-400 bg-primary-50' : 'border-neutral-300 hover:border-primary-300 cursor-pointer'
-          } ${uploading ? 'pointer-events-none opacity-70' : ''}`}
+        className={`relative border-2 border-dashed rounded-xl overflow-hidden transition-all ${
+          value ? 'border-transparent' : isDragging ? 'border-primary-400 bg-primary-50' : 'border-neutral-300 hover:border-primary-300 cursor-pointer'
+        } ${uploading ? 'pointer-events-none opacity-70' : ''}`}
       >
         <input ref={inputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
 
         {value?.url ? (
           <div className="relative" style={{ aspectRatio: '5 / 1' }}>
-            <img src={value.url} alt="Cover" className="w-full h-full object-cover" />
+            <img src={normalizeFileUrl(value.url)} alt="Cover" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all group">
               <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button

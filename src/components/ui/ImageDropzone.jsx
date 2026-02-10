@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { normalizeFileUrl } from '../../utils/api';
 
 export default function ImageDropzone({
   value,
@@ -97,9 +98,9 @@ export default function ImageDropzone({
         <input ref={inputRef} type="file" accept={accept} onChange={handleInputChange} className="hidden" />
 
         {value ? (
-          <div className={`relative ${previewClassName}`}>
-            <img src={value} alt="Preview" className="w-full h-full object-cover rounded-lg" />
-            <button type="button" onClick={handleRemove} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg">
+          <div className={`relative overflow-hidden ${previewClassName}`}>
+            <img src={normalizeFileUrl(value)} alt="Preview" className="w-full h-full object-cover" />
+            <button type="button" onClick={handleRemove} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg z-10">
               <X className="w-4 h-4" />
             </button>
           </div>

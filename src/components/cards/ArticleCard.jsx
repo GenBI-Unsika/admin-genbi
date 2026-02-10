@@ -2,10 +2,11 @@ import PropTypes from 'prop-types';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MediaPlaceholder from '../shared/MediaPlaceholder';
+import { formatDateID, stripHtml } from '../../utils/formatters';
 
-export default function ArticleCard({ title, excerpt, image, description, date, readTime, badge, href, to, state, className = '' }) {
-  const Wrapper = to ? Link : href ? 'a' : 'div';
-  const wrapperProps = to ? { to } : href ? { href } : {};
+export default function ArticleCard({ title, excerpt, image, description, date, readTime, badge, badgeColor, href, to, state, className = '' }) {
+  // Use a div for the inner wrapper if there's an outer Link or anchor
+  const InnerWrapper = 'div';
 
   const Card = (
     <article
@@ -30,19 +31,30 @@ export default function ArticleCard({ title, excerpt, image, description, date, 
             />
           ) : null}
         </div>
-        {badge && <span className="absolute top-3 right-3 bg-[#E3EEFC] text-[#01319F] text-xs font-medium px-2 py-1 rounded-md leading-none">{badge}</span>}
+        {badge && (
+          <span
+            className="absolute top-3 right-3 text-xs font-semibold px-2 py-1 rounded-md leading-none shadow-sm"
+            style={{
+              backgroundColor: badgeColor ? `${badgeColor}25` : '#E3EEFC',
+              color: badgeColor || '#01319F',
+              border: badgeColor ? `1px solid ${badgeColor}40` : 'none'
+            }}
+          >
+            {badge}
+          </span>
+        )}
       </div>
 
-      <Wrapper {...wrapperProps} aria-label={title} className="p-4 flex-1 flex flex-col space-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2">
+      <InnerWrapper className="p-4 flex-1 flex flex-col space-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2">
         <h6 className="font-semibold text-neutral-800 leading-snug line-clamp-2">{title}</h6>
-        {description && <p className="text-xs text-neutral-600 line-clamp-2">{description}</p>}
-        {excerpt && <p className="text-sm text-gray-600 mb-3 line-clamp-2">{excerpt}</p>}
+        {description && <p className="text-xs text-neutral-600 line-clamp-2">{stripHtml(description)}</p>}
+        {excerpt && <p className="text-sm text-gray-600 mb-3 line-clamp-2">{stripHtml(excerpt)}</p>}
 
         <div className="flex items-center gap-3 text-xs text-gray-500">
           {date && (
             <span className="inline-flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
-              {date}
+              {formatDateID(date)}
             </span>
           )}
           {readTime && (
@@ -59,17 +71,27 @@ export default function ArticleCard({ title, excerpt, image, description, date, 
             <ArrowRight className="w-4 h-4 ml-1" />
           </span>
         </div>
-      </Wrapper>
+      </InnerWrapper>
     </article>
   );
 
-  return to ? (
-    <Link to={to} state={state} className="block focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]">
-      {Card}
-    </Link>
-  ) : (
-    Card
-  );
+  if (to) {
+    return (
+      <Link to={to} state={state} className="block focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]">
+        {Card}
+      </Link>
+    );
+  }
+
+  if (href) {
+    return (
+      <a href={href} className="block focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]">
+        {Card}
+      </a>
+    );
+  }
+
+  return Card;
 }
 
 ArticleCard.propTypes = {
