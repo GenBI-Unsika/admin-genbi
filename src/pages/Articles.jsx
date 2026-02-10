@@ -28,11 +28,30 @@ export default function Articles() {
         description: item.content?.substring(0, 150) || '',
         excerpt: item.excerpt || '',
         slug: item.slug,
-        category: item.category || 'Artikel',
         status: item.status,
+        viewCount: item.viewCount || 0,
         raw: item, // Keep original data for edit
       }));
-      setArticles(mapped);
+
+      const enriched = mapped.map(a => {
+        const isNew = a.date && (new Date() - new Date(a.date)) / (1000 * 60 * 60 * 24) <= 7;
+        const isPopular = a.viewCount >= 50;
+
+        let badge = 'Artikel';
+        let badgeColor = '#6B7280';
+
+        if (isNew) {
+          badge = 'Terbaru';
+          badgeColor = '#10B981';
+        } else if (isPopular) {
+          badge = 'Populer';
+          badgeColor = '#F59E0B';
+        }
+
+        return { ...a, badge, badgeColor };
+      });
+
+      setArticles(enriched);
     } catch (err) {
       setError(err.message || 'Gagal memuat data artikel');
     } finally {
@@ -105,7 +124,8 @@ export default function Articles() {
             <ArticleCard
               key={a.id}
               title={a.title}
-              badge={a.category}
+              badge={a.badge}
+              badgeColor={a.badgeColor}
               excerpt={a.excerpt}
               date={a.date}
               image={a.cover}

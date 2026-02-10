@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, Save, Loader2, ArrowLeft, User, GraduationCap, Phone, AtSign, Hash } from 'lucide-react';
 import { apiRequest, apiUpload } from '../utils/api';
+import CoverUpload from '../components/ui/CoverUpload';
+import { Link as LinkIcon, AlertCircle, X, Upload } from 'lucide-react';
 
 const initialFormState = {
   name: '',
@@ -36,7 +37,6 @@ export default function TeamForm() {
   const [availableUsers, setAvailableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
 
 
@@ -112,46 +112,6 @@ export default function TeamForm() {
   };
 
 
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-
-    if (!file.type.startsWith('image/')) {
-      alert('File harus berupa gambar');
-      return;
-    }
-
-
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Ukuran file maksimal 2MB');
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await apiUpload('/upload', formData);
-      if (response?.data?.url) {
-        setForm((prev) => ({ ...prev, photo: response.data.url }));
-      }
-    } catch (err) {
-      console.error('Failed to upload avatar:', err);
-      alert(err.message || 'Gagal mengunggah foto');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const removeAvatar = () => {
-    setForm((prev) => ({ ...prev, photo: '' }));
-    if (avatarInputRef.current) {
-      avatarInputRef.current.value = '';
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -181,9 +141,11 @@ export default function TeamForm() {
         phone: form.phone || null,
         email: form.email || null,
         birthDate: form.birthDate ? new Date(form.birthDate).toISOString() : null,
-        photo: form.photo || null,
+        photoTempId: form.photo?.tempId || undefined,
+        photo: typeof form.photo === 'string' ? form.photo : (form.photo?.url || null),
         isActive: form.isActive,
         sortOrder: form.sortOrder || 0,
+        userId: form.userId || null,
       };
 
       if (isEdit) {
@@ -288,35 +250,17 @@ export default function TeamForm() {
           </h3>
 
           {/* Upload Avatar */}
-          <div className="mb-6 flex items-start gap-5">
-            <div className="relative group">
-              {form.photo ? (
-                <div className="relative">
-                  <img src={form.photo} alt="Avatar" className="w-24 h-24 rounded-xl object-cover border-2 border-neutral-200" />
-                  <button type="button" onClick={removeAvatar} className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md" title="Hapus foto">
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <div className="w-24 h-24 rounded-xl bg-neutral-100 border-2 border-dashed border-neutral-300 flex items-center justify-center">
-                  <User className="w-8 h-8 text-neutral-400" />
-                </div>
-              )}
-              {uploading && (
-                <div className="absolute inset-0 bg-white/80 rounded-xl flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-neutral-700 mb-2">Foto Profil</p>
-              <p className="text-xs text-neutral-500 mb-3">Format: JPG, PNG. Maksimal 2MB.</p>
-              <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" id="avatar-upload" />
-              <label htmlFor="avatar-upload" className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg cursor-pointer transition-colors">
-                <Upload className="w-4 h-4" />
-                {form.photo ? 'Ganti Foto' : 'Upload Foto'}
-              </label>
-            </div>
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-neutral-700 mb-2">Foto Profil</label>
+            <CoverUpload
+              value={form.photo}
+              onChange={(val) => handleChange('photo', val)}
+              folder="profiles/avatars"
+              useStaging
+              aspectRatio="square"
+              placeholder="Klik untuk upload foto profil"
+            />
+            <p className="text-xs text-neutral-500 mt-2">Format: JPG, PNG. Maksimal 2MB. Gunakan foto dengan rasio 1:1.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

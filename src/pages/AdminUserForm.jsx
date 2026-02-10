@@ -4,6 +4,7 @@ import { ChevronRight, Save, X, CheckCircle2, XCircle, Loader2, ChevronDown } fr
 import toast from 'react-hot-toast';
 import { useConfirm } from '../contexts/ConfirmContext.jsx';
 import { apiGet, apiPost, apiPatch } from '../utils/api';
+import CoverUpload from '../components/ui/CoverUpload';
 
 const ROLES = ['super_admin', 'admin', 'awardee', 'alumni'];
 const roleLabel = (name) => {
@@ -41,6 +42,7 @@ export default function AdminUserForm({ mode: modeProp }) {
     facultyId: '', // To filter study programs
 
     jabatan: '',
+    avatar: '',
     instagram: '',
     bankName: '',
     bankAccountNumber: '',
@@ -100,8 +102,8 @@ export default function AdminUserForm({ mode: modeProp }) {
             studyProgramId: data.studyProgramId || '',
             divisionId: data.divisionId || '',
             facultyId: data.facultyId ? String(data.facultyId) : '',
-
             jabatan: data.jabatan || '',
+            avatar: data.avatar || '',
             instagram: socials.instagram || '',
             bankName: data.bankName || '',
             bankAccountNumber: data.bankAccountNumber || '',
@@ -149,6 +151,8 @@ export default function AdminUserForm({ mode: modeProp }) {
         divisionId: form.divisionId ? parseInt(form.divisionId) : null,
         jabatan: form.jabatan?.trim() || null,
         socials: socials,
+        avatarTempId: form.avatar?.tempId || undefined,
+        avatar: typeof form.avatar === 'string' ? form.avatar : (form.avatar?.url || null),
         bankName: form.bankName?.trim() || null,
         bankAccountNumber: form.bankAccountNumber?.trim() || null,
         bankAccountName: form.bankAccountName?.trim() || null,
@@ -279,6 +283,18 @@ export default function AdminUserForm({ mode: modeProp }) {
                   value={form.birthDate}
                   onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
                 />
+              </div>
+              <div className="md:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-neutral-800">Foto Profil</label>
+                <CoverUpload
+                  value={form.avatar}
+                  onChange={(val) => setForm({ ...form, avatar: val })}
+                  folder="profiles/avatars"
+                  useStaging
+                  aspectRatio="square"
+                  placeholder="Klik untuk upload foto profil"
+                />
+                <p className="mt-1 text-xs text-neutral-400">Gunakan foto dengan rasio 1:1.</p>
               </div>
             </div>
           </div>

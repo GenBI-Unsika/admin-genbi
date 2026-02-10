@@ -13,8 +13,6 @@ export default function ArticleForm({ mode = 'create' }) {
   const [loading, setLoading] = useState(mode === 'edit');
   const [form, setForm] = useState({
     title: '',
-    category: '',
-    tags: '',
     excerpt: '',
     publishDate: '',
     description: '',
@@ -25,6 +23,9 @@ export default function ArticleForm({ mode = 'create' }) {
     links: [],
   });
 
+
+
+
   // Load data for edit mode
   useEffect(() => {
     if (mode === 'edit' && id) {
@@ -33,8 +34,6 @@ export default function ArticleForm({ mode = 'create' }) {
         .then((article) => {
           setForm({
             title: article.title || '',
-            category: article.category || '',
-            tags: Array.isArray(article.tags) ? article.tags.join(', ') : '',
             excerpt: article.excerpt || '',
             publishDate: article.publishedAt ? article.publishedAt.slice(0, 10) : '',
             description: article.content || '',
@@ -67,8 +66,6 @@ export default function ArticleForm({ mode = 'create' }) {
       // Build payload for API
       const payload = {
         title: form.title,
-        category: form.category,
-        tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
         excerpt: form.excerpt,
         content: form.description,
         status: form.publishDate ? 'PUBLISHED' : 'DRAFT',
@@ -134,10 +131,7 @@ export default function ArticleForm({ mode = 'create' }) {
             <div className="rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
               <Input label="Judul Artikel" value={form.title} onChange={update('title')} placeholder="Tuliskan judul artikel yang menarik" className="mb-4" />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                <Input label="Kategori" value={form.category} onChange={update('category')} placeholder="e.g. Berita, Opini, Teknologi" />
-                <Input label="Tag (pisahkan dengan koma)" value={form.tags} onChange={update('tags')} placeholder="e.g. GenBI, Beasiswa, Unsika" />
-              </div>
+
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Ringkasan (Excerpt)</label>

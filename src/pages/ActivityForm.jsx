@@ -116,37 +116,38 @@ export default function ActivityForm({ mode: modeProp }) {
 
     setSaving(true);
     try {
-      const finalizeStaged = async (fileObj, folder) => {
-        if (!fileObj) return null;
-        if (!fileObj?.tempId || !fileObj?.isStaged) return fileObj;
-
-        const result = await apiFinalizeUpload(fileObj.tempId, folder);
-        const url = result?.url || result?.fileUrl || result;
-        if (!url) throw new Error('Upload berhasil tapi URL tidak tersedia');
-
-        return {
-          name: result?.name || fileObj.name,
-          url,
-          type: result?.mimeType || fileObj.type,
-          size: result?.size || fileObj.size,
-        };
-      };
-
-      const finalizeMany = async (items, folder) => {
-        const list = Array.isArray(items) ? items : [];
-        return Promise.all(list.map((it) => finalizeStaged(it, folder)));
-      };
-
-      const cover = await finalizeStaged(form.coverImage, 'activities/covers');
-      const photos = await finalizeMany(form.photos, 'activities/photos');
-      const documents = await finalizeMany(form.documents, 'activities/documents');
-
       const payload = {
         title: form.title,
         description: form.description,
-        coverImage: cover?.url || null,
         status: form.category === 'proker' ? 'DRAFT' : 'PLANNED',
-        attachments: { photos, documents, links: form.links || [] },
+      };
+
+      // Handle cover image - prefer tempId
+      if (form.coverImage?.tempId) {
+        payload.coverImageTempId = form.coverImage.tempId;
+      } else if (form.coverImage?.url) {
+        payload.coverImage = form.coverImage.url;
+      }
+
+      // Handle attachments
+      const photos = (form.photos || []).map((p) => ({
+        name: p.name,
+        url: p.url,
+        ...(p.tempId ? { tempId: p.tempId } : {}),
+        ...(p.fileId ? { fileId: p.fileId } : {}),
+      }));
+
+      const documents = (form.documents || []).map((d) => ({
+        name: d.name,
+        url: d.url,
+        ...(d.tempId ? { tempId: d.tempId } : {}),
+        ...(d.fileId ? { fileId: d.fileId } : {}),
+      }));
+
+      payload.attachments = {
+        photos,
+        documents,
+        links: form.links || [],
       };
 
       // Event-specific fields
@@ -170,7 +171,6 @@ export default function ActivityForm({ mode: modeProp }) {
         await apiPost('/activities', payload);
       }
 
-      setForm((s) => ({ ...s, coverImage: cover, photos, documents }));
       navigate('/aktivitas');
     } catch (err) {
       alert(err.message || 'Gagal menyimpan');

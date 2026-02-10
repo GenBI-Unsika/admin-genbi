@@ -86,7 +86,12 @@ const defaultTestimonials = {
 const defaultFooter = {
   description: 'Komunitas penerima beasiswa Bank Indonesia Komisariat Universitas Singaperbangsa Karawang',
   address: 'Universitas Singaperbangsa Karawang Jl. HS. Ronggo Waluyo, Telukjambe Timur, Karawang, Jawa Barat, Indonesia - 41361',
-  socialLinks: [{ type: 'instagram', label: 'genbi.unsika', url: 'https://instagram.com/genbi.unsika', icon: 'tabler:brand-instagram' }],
+  socialLinks: [
+    { type: 'email', label: 'genbiunsika.org@gmail.com', url: 'mailto:genbiunsika.org@gmail.com', icon: 'tabler:mail' },
+    { type: 'instagram', label: 'genbi.unsika', url: 'https://instagram.com/genbi.unsika', icon: 'tabler:brand-instagram' },
+    { type: 'tiktok', label: 'genbi.unsika', url: 'https://tiktok.com/@genbi.unsika', icon: 'tabler:brand-tiktok' },
+    { type: 'youtube', label: 'GenBI Unsika', url: 'https://youtube.com/@GenBIUnsika', icon: 'tabler:brand-youtube' },
+  ],
 };
 
 const defaultScholarship = {
@@ -138,7 +143,17 @@ const colorOptions = [
   { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Purple' },
 ];
 
-const socialTypeOptions = [{ value: 'instagram', label: 'Instagram', icon: 'tabler:brand-instagram' }];
+const socialTypeOptions = [
+  { value: 'email', label: 'Email', icon: 'tabler:mail' },
+  { value: 'instagram', label: 'Instagram', icon: 'tabler:brand-instagram' },
+  { value: 'youtube', label: 'YouTube', icon: 'tabler:brand-youtube' },
+  { value: 'tiktok', label: 'TikTok', icon: 'tabler:brand-tiktok' },
+  { value: 'spotify', label: 'Spotify', icon: 'tabler:brand-spotify' },
+  { value: 'twitter', label: 'Twitter/X', icon: 'tabler:brand-twitter' },
+  { value: 'linkedin', label: 'LinkedIn', icon: 'tabler:brand-linkedin' },
+  { value: 'facebook', label: 'Facebook', icon: 'tabler:brand-facebook' },
+  { value: 'whatsapp', label: 'WhatsApp', icon: 'tabler:brand-whatsapp' },
+];
 
 export default function CMSSettings() {
   const [activeTab, setActiveTab] = useState('homepage');
@@ -527,7 +542,7 @@ export default function CMSSettings() {
   const addSocialLink = () => {
     setFooter((prev) => ({
       ...prev,
-      socialLinks: [...prev.socialLinks, { type: 'instagram', label: '', url: '', icon: 'tabler:brand-instagram' }],
+      socialLinks: [...prev.socialLinks, { type: 'email', label: '', url: '', icon: 'tabler:mail' }],
     }));
   };
 
@@ -552,6 +567,33 @@ export default function CMSSettings() {
         return s;
       }),
     }));
+  };
+
+  const moveSocialLink = (fromIndex, toIndex) => {
+    setFooter((prev) => {
+      const newLinks = [...prev.socialLinks];
+      const [movedItem] = newLinks.splice(fromIndex, 1);
+      newLinks.splice(toIndex, 0, movedItem);
+      return { ...prev, socialLinks: newLinks };
+    });
+  };
+
+  const handleSocialDragStart = (e, index) => {
+    e.dataTransfer.setData('socialLinkIndex', index.toString());
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleSocialDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleSocialDrop = (e, toIndex) => {
+    e.preventDefault();
+    const fromIndex = parseInt(e.dataTransfer.getData('socialLinkIndex'), 10);
+    if (fromIndex !== toIndex) {
+      moveSocialLink(fromIndex, toIndex);
+    }
   };
 
   const addHeroAvatar = () => {
@@ -1119,57 +1161,63 @@ export default function CMSSettings() {
 
             <div className="space-y-4">
               {testimonials.items.map((testimonial, index) => (
-                <div key={index} className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-                  <div className="flex items-start justify-between gap-3 mb-3">
+                <div key={index} className="p-5 bg-neutral-50 rounded-lg border border-neutral-200">
+                  <div className="flex items-start justify-between gap-3 mb-4">
                     <span className="text-sm font-medium text-neutral-700">Testimoni {index + 1}</span>
                     <button onClick={() => removeTestimonial(index)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-neutral-600 mb-1">Nama</label>
-                      <input
-                        type="text"
-                        value={testimonial.name}
-                        onChange={(e) => updateTestimonial(index, 'name', e.target.value)}
-                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="Nama alumni"
+                  <div className="flex flex-col md:flex-row gap-5">
+                    {/* Photo Profile Section */}
+                    <div className="flex-shrink-0">
+                      <label className="block text-xs font-medium text-neutral-600 mb-2">Foto Profil</label>
+                      <ImageDropzone
+                        value={testimonial.photo_profile}
+                        onChange={(file) => handleTestimonialImageUpload(file, index)}
+                        onRemove={() => handleTestimonialImageRemove(index)}
+                        previewClassName="h-48 w-48 rounded-full"
+                        hint="200x200px"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-neutral-600 mb-1">Jabatan/Posisi</label>
-                      <input
-                        type="text"
-                        value={testimonial.role}
-                        onChange={(e) => updateTestimonial(index, 'role', e.target.value)}
-                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="Ketua Umum 2023"
-                      />
+
+                    {/* Content Section */}
+                    <div className="flex-1 space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-neutral-600 mb-1">Nama</label>
+                          <input
+                            type="text"
+                            value={testimonial.name}
+                            onChange={(e) => updateTestimonial(index, 'name', e.target.value)}
+                            className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="Nama alumni"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-neutral-600 mb-1">Jabatan/Posisi</label>
+                          <input
+                            type="text"
+                            value={testimonial.role}
+                            onChange={(e) => updateTestimonial(index, 'role', e.target.value)}
+                            className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="Ketua Umum 2023"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-neutral-600 mb-1">Testimoni</label>
+                        <textarea
+                          value={testimonial.quote}
+                          onChange={(e) => updateTestimonial(index, 'quote', e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                          placeholder="Testimoni dari alumni..."
+                        />
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <label className="block text-xs font-medium text-neutral-600 mb-1">Testimoni</label>
-                    <textarea
-                      value={testimonial.quote}
-                      onChange={(e) => updateTestimonial(index, 'quote', e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-                      placeholder="Testimoni dari alumni..."
-                    />
-                  </div>
-
-                  <div className="mt-3">
-                    <label className="block text-xs font-medium text-neutral-600 mb-1">Foto Profil</label>
-                    <ImageDropzone
-                      value={testimonial.photo_profile}
-                      onChange={(file) => handleTestimonialImageUpload(file, index)}
-                      onRemove={() => handleTestimonialImageRemove(index)}
-                      previewClassName="h-24 w-24 rounded-full"
-                      hint="Ukuran disarankan: 200x200px"
-                    />
                   </div>
                 </div>
               ))}
@@ -1237,7 +1285,17 @@ export default function CMSSettings() {
 
             <div className="space-y-3">
               {footer.socialLinks.map((link, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
+                <div
+                  key={index}
+                  draggable
+                  onDragStart={(e) => handleSocialDragStart(e, index)}
+                  onDragOver={handleSocialDragOver}
+                  onDrop={(e) => handleSocialDrop(e, index)}
+                  className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg cursor-move hover:bg-neutral-100 transition-colors"
+                >
+                  <div className="p-1 text-neutral-400 hover:text-neutral-600 cursor-grab active:cursor-grabbing">
+                    <GripVertical className="w-4 h-4" />
+                  </div>
                   <select value={link.type} onChange={(e) => updateSocialLink(index, 'type', e.target.value)} className="px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-32">
                     {socialTypeOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -1453,6 +1511,15 @@ export default function CMSSettings() {
 
       {activeTab === 'branding' && (
         <div className="space-y-6">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+            <div className="flex gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-yellow-900 text-sm">Catatan</h4>
+                <p className="text-sm text-yellow-700 mt-1">Perubahan pada logo dan favicon akan terlihat setelah halaman website di-refresh. Favicon mungkin memerlukan waktu lebih lama untuk update karena browser caching.</p>
+              </div>
+            </div>
+          </div>
           <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
@@ -1486,16 +1553,6 @@ export default function CMSSettings() {
                   <label className="block text-sm font-medium text-neutral-700 mb-2">Favicon</label>
                   <ImageDropzone value={branding.favicon} onChange={(file) => handleImageUpload(file, 'branding', 'favicon')} onRemove={() => handleImageRemove('branding', 'favicon')} previewClassName="h-32" hint="32x32px atau 64x64px" />
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-blue-900 text-sm">Catatan</h4>
-                <p className="text-sm text-blue-700 mt-1">Perubahan pada logo dan favicon akan terlihat setelah halaman website di-refresh. Favicon mungkin memerlukan waktu lebih lama untuk update karena browser caching.</p>
               </div>
             </div>
           </div>

@@ -75,7 +75,6 @@ export default function AdminUsers() {
       if (roleFilter) params.set('role', roleFilter);
 
       const result = await apiRequest(`/users?${params.toString()}`);
-      console.log('[AdminUsers] API Response:', { meta: result.meta, dataLength: result.data?.length });
       const mapped = (result.data || result || []).map((u) => ({
         id: u.id,
         name: u.name || u.email.split('@')[0],
@@ -89,7 +88,6 @@ export default function AdminUsers() {
       }));
       setAccounts(mapped);
       const total = result.meta?.total ?? mapped.length;
-      console.log('[AdminUsers] Setting total:', total);
       setTotalAcc(total);
     } catch (err) {
       setErrorAcc({ status: err?.status, message: err?.message || 'Gagal memuat data user' });
