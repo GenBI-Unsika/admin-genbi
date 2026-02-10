@@ -311,16 +311,35 @@ export function isPublicFileUrl(url) {
 
 /**
  * Convert various file URL formats to the best displayable URL
+ * Handles relative URLs from server and converts them to absolute URLs
  * Prioritizes public proxy URLs over direct Drive URLs
  * @param {string} url - The original URL
  * @returns {string} The best URL for display
  */
 export function normalizeFileUrl(url) {
   if (!url) return '';
-  // If already a public proxy URL, return as-is
-  if (isPublicFileUrl(url)) return url;
-  // If it's a temp preview URL, return as-is (for staged files)
-  if (url.includes('/files/temp/')) return url;
-  // Return other URLs as-is (legacy support)
+
+  // If already an absolute URL (http/https), return as-is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+
+  // If it's a relative public proxy URL from the server, convert to absolute
+  // Pattern: /api/v1/files/{id}/public
+  if (url.startsWith('/api/v1/files/') && url.includes('/public')) {
+    return apiUrl(url.replace('/api/v1', ''));
+  }
+
+  // If it's another API path (like /api/v1/files/temp/xxx), convert to absolute
+  if (url.startsWith('/api/v1/')) {
+    return apiUrl(url.replace('/api/v1', ''));
+  }
+
+  // If it's a temp preview URL without prefix, build full URL
+  if (url.includes('/files/temp/')) {
+    return apiUrl(url.startsWith('/') ? url : `/${url}`);
+  }
+
+  // Return other URLs as-is (legacy support, external URLs, etc.)
   return url;
 }
