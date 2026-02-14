@@ -1,23 +1,24 @@
-// src/pages/ScholarshipDetail.jsx
 import { Link, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
+import { Eye, ExternalLink, FileX } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import EmptyState from '../components/EmptyState';
 import { apiRequest } from '../utils/api';
 
-// === Konfigurasi dokumen (sinkron dengan ScholarshipRegister) ===
-const DOCS = [
-  { key: 'formA1', title: 'Form A.1 & Surat Pernyataan', desc: 'PDF bertanda tangan.' },
-  { key: 'ktmKtp', title: 'KTM & KTP', desc: 'Gabung 1 PDF.' },
-  { key: 'transkrip', title: 'Transkrip Nilai', desc: 'Cap & ttd Prodi.' },
-  { key: 'motivation', title: 'Motivation Letter', desc: 'Bahasa Indonesia.' },
-  { key: 'sktmSlip', title: 'SKTM / Slip Gaji Orang Tua', desc: 'Pilih salah satu.' },
-  { key: 'rekomendasi', title: 'Surat Rekomendasi', desc: 'Tokoh akademik/non.' },
-  { key: 'videoUrl', title: 'URL Video IG (Reels)', desc: 'Men-tag @genbi.unsika.' },
-  { key: 'lainnya1', title: 'Dokumen Tambahan 1' },
-  { key: 'lainnya2', title: 'Dokumen Tambahan 2' },
+// === Fallback document config (used if server doesn't provide docs) ===
+const DEFAULT_DOCS = [
+  { key: 'ktmKtp', title: 'Scan KTP & KTM', desc: 'Dalam 1 file format PDF (Maks 10 MB).', kind: 'file' },
+  { key: 'transkrip', title: 'Transkrip Nilai', desc: 'Bertandatangan dan cap Koordinator Program Studi, format PDF (Maks 10 MB).', kind: 'file' },
+  { key: 'rekomendasi', title: 'Surat Rekomendasi', desc: 'Format PDF (Maks 10 MB).', kind: 'file' },
+  { key: 'suratAktif', title: 'Surat Keterangan Aktif', desc: 'Format PDF (Maks 10 MB).', kind: 'file' },
+  { key: 'sktmSlip', title: 'SKTM / Surat Keterangan Penghasilan / Slip Gaji', desc: 'Format PDF (Maks 10 MB).', kind: 'file' },
+  { key: 'formA1', title: 'Biodata Diri Form A.1', desc: 'Unduh formulir pada link yang tersedia.', kind: 'file' },
+  { key: 'suratPernyataan', title: 'Surat Pernyataan Tidak Mendaftar/Menerima Beasiswa Lain', desc: 'Unduh formulir pada link yang tersedia.', kind: 'file' },
+  { key: 'portofolio', title: 'Portofolio', desc: 'Dalam 1 file format PDF (Maks 10 MB).', kind: 'file' },
+  { key: 'videoUrl', title: 'Link Video Pengenalan Diri dan Motivasi', desc: 'Tag Instagram @genbi.unsika, akun tidak di-private (Maks 2 menit).', kind: 'url' },
+  { key: 'instagramUrl', title: 'Link Profil Instagram', desc: 'Akun tidak diprivat selama masa seleksi.', kind: 'url' },
 ];
 
 function statusLabel(status) {
@@ -25,6 +26,14 @@ function statusLabel(status) {
   if (status === 'MENUNGGU_VERIFIKASI') return 'Menunggu Verifikasi';
   if (status === 'LOLOS_ADMINISTRASI') return 'Lolos Administrasi';
   if (status === 'ADMINISTRASI_DITOLAK') return 'Administrasi Ditolak';
+  return String(status);
+}
+
+function interviewStatusLabel(status) {
+  if (!status || status === 'MENUNGGU_JADWAL') return 'Belum Dijadwalkan';
+  if (status === 'DIJADWALKAN') return 'Dijadwalkan';
+  if (status === 'LOLOS_WAWANCARA') return 'Lolos Wawancara';
+  if (status === 'GAGAL_WAWANCARA') return 'Tidak Lolos Wawancara';
   return String(status);
 }
 
@@ -44,6 +53,7 @@ export default function ScholarshipDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [row, setRow] = useState(null);
+  const [docConfig, setDocConfig] = useState(DEFAULT_DOCS);
 
   useEffect(() => {
     let alive = true;
@@ -51,9 +61,14 @@ export default function ScholarshipDetail() {
       setLoading(true);
       setError('');
       try {
-        const payload = await apiRequest(`/scholarships/applications/${id}`, { method: 'GET' });
+        // Fetch application detail and document config in parallel
+        const [appPayload, regPayload] = await Promise.all([apiRequest(`/scholarships/applications/${id}`, { method: 'GET' }), apiRequest(`/scholarships/registration`, { method: 'GET' }).catch(() => null)]);
         if (!alive) return;
-        setRow(payload?.data || null);
+        setRow(appPayload?.data || null);
+        // Use server doc config if available
+        if (Array.isArray(regPayload?.data?.documents) && regPayload.data.documents.length > 0) {
+          setDocConfig(regPayload.data.documents);
+        }
       } catch (e) {
         if (!alive) return;
         const msg = e?.message || 'Gagal memuat data.';
@@ -69,6 +84,16 @@ export default function ScholarshipDetail() {
     };
   }, [id]);
 
+  // Build merged docs: show server-configured docs + any extra keys found in applicant's files
+  const DOCS = useMemo(() => {
+    if (!row?.files) return docConfig;
+    const configKeys = new Set(docConfig.map((d) => d.key));
+    const extraDocs = Object.keys(row.files)
+      .filter((key) => !configKeys.has(key))
+      .map((key) => ({ key, title: key, desc: '', kind: 'file' }));
+    return [...docConfig, ...extraDocs];
+  }, [docConfig, row]);
+
   const d = useMemo(() => {
     if (!row) return null;
     const birth = row.birthDate ? new Date(row.birthDate).toISOString().slice(0, 10) : '';
@@ -76,6 +101,12 @@ export default function ScholarshipDetail() {
       ...row,
       birth,
       administrasi: statusLabel(row.administrasiStatus),
+      interviewLabel: interviewStatusLabel(row.interviewStatus),
+      interviewReviewerName: row.interviewReviewedBy?.profile?.name || row.interviewReviewedBy?.email || '',
+      // Resolve faculty/studyProgram display names from included relations
+      facultyName: row.faculty?.name || '',
+      studyProgramName: row.studyProgram?.name || '',
+      reviewerName: row.reviewedBy?.profile?.name || row.reviewedBy?.email || '',
     };
   }, [row]);
 
@@ -95,7 +126,7 @@ export default function ScholarshipDetail() {
 
   const renderDocRow = (doc) => {
     const val = d?.files?.[doc.key] ?? '';
-    const isLink = doc.key === 'videoUrl';
+    const isLink = doc.kind === 'url';
     const hasFile = Boolean(val);
 
     const { href, onClick } = (() => {
@@ -122,16 +153,32 @@ export default function ScholarshipDetail() {
         <div className="mt-2 md:mt-0">
           {hasFile ? (
             isLink ? (
-              <a href={href} target="_blank" rel="noreferrer" className="text-primary-600 hover:underline text-sm">
-                Buka Tautan
+              <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 transition-colors" title="Buka Tautan">
+                <ExternalLink className="w-4 h-4" />
+                <span className="text-sm">Buka Tautan</span>
               </a>
             ) : (
-              <a href={href} onClick={onClick} target={onClick ? undefined : '_blank'} rel={onClick ? undefined : 'noreferrer'} className="text-primary-600 hover:underline text-sm">
-                Lihat / Unduh
-              </a>
+              <span
+                onClick={
+                  onClick ||
+                  (() => {
+                    if (href && href !== '#') {
+                      window.open(href, '_blank', 'noopener,noreferrer');
+                    }
+                  })
+                }
+                className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 transition-colors cursor-pointer"
+                title="Lihat / Unduh"
+              >
+                <Eye className="w-4 h-4" />
+                <span className="text-sm">Lihat Dokumen</span>
+              </span>
             )
           ) : (
-            <span className="text-sm text-neutral-500">Belum diunggah</span>
+            <span className="inline-flex items-center gap-1.5 text-sm text-neutral-400">
+              <FileX className="w-4 h-4" />
+              <span>Belum Diunggah</span>
+            </span>
           )}
         </div>
       </div>
@@ -139,6 +186,7 @@ export default function ScholarshipDetail() {
   };
 
   const adminIntent = d?.administrasi === 'Lolos Administrasi' ? 'success' : d?.administrasi === 'Administrasi Ditolak' ? 'danger' : 'warn';
+  const interviewIntent = d?.interviewLabel === 'Lolos Wawancara' ? 'success' : d?.interviewLabel === 'Tidak Lolos Wawancara' ? 'danger' : d?.interviewLabel === 'Dijadwalkan' ? 'neutral' : 'warn';
 
   return (
     <div className="px-6 md:px-10 py-6">
@@ -166,11 +214,24 @@ export default function ScholarshipDetail() {
         <>
           <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <h2 className="text-xl md:text-2xl font-semibold text-neutral-900">{d.name}</h2>
+            {/* Periode */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-neutral-500">Periode:</span>
+              <Badge intent="neutral">
+                {d.year || new Date().getFullYear()} • Batch {d.batch || 1}
+              </Badge>
+            </div>
             {/* Status Administrasi (opsional, tampilkan ringkas di header) */}
             <div className="flex items-center gap-2">
               <span className="text-sm text-neutral-500">Status Administrasi:</span>
               <Badge intent={adminIntent}>{d.administrasi || 'Menunggu Verifikasi'}</Badge>
             </div>
+            {d.administrasiStatus === 'LOLOS_ADMINISTRASI' && (
+              <div className="flex items-center gap-2 mt-1 md:mt-0">
+                <span className="text-sm text-neutral-500">Status Wawancara:</span>
+                <Badge intent={interviewIntent}>{d.interviewLabel}</Badge>
+              </div>
+            )}
           </div>
 
           {/* Data Pribadi */}
@@ -187,8 +248,8 @@ export default function ScholarshipDetail() {
               <Input label="NIK" value={d.nik} readOnly />
               <Input label="No Telp" value={d.phone} readOnly />
 
-              <Input label="Fakultas" value={d.faculty} readOnly />
-              <Input label="Program Studi" value={d.study} readOnly />
+              <Input label="Fakultas" value={d.facultyName || '-'} readOnly />
+              <Input label="Program Studi" value={d.studyProgramName || '-'} readOnly />
 
               <Input label="NPM" value={d.npm} readOnly />
               <Input label="Semester Saat Ini" value={d.semester} readOnly />
@@ -228,14 +289,39 @@ export default function ScholarshipDetail() {
                   </span>
                 </div>
                 <div className="mt-2 text-xs text-neutral-500">Tanggal pengajuan: {d.submittedAt ? fmtIDDate(d.submittedAt) : '-'}</div>
+                {d.reviewerName && (
+                  <div className="mt-1 text-xs text-neutral-500">
+                    Direview oleh: <span className="font-medium">{d.reviewerName}</span>
+                    {d.reviewedAt ? ` pada ${fmtIDDate(d.reviewedAt)}` : ''}
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* (Opsional) tombol admin—jika ingin edit manual di sini, bisa tambahkan aksi */}
-            {/* <div className="mt-4 flex justify-end">
-          <button className="btn-primary">Simpan Perubahan</button>
-        </div> */}
           </div>
+
+          {/* Interview Info */}
+          {d.administrasiStatus === 'LOLOS_ADMINISTRASI' && (
+            <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 md:p-6">
+              <h3 className="mb-4 text-lg font-semibold text-neutral-900">Informasi Wawancara</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input label="Status Wawancara" value={d.interviewLabel} readOnly />
+                <Input label="Tanggal Wawancara" value={d.interviewDate ? new Date(d.interviewDate).toISOString().slice(0, 10) : '-'} readOnly />
+                <Input label="Waktu Wawancara" value={d.interviewTime || '-'} readOnly />
+                <Input label="Lokasi / Link" value={d.interviewLocation || '-'} readOnly />
+              </div>
+              {d.interviewNotes && (
+                <div className="mt-4">
+                  <Textarea label="Catatan Wawancara" value={d.interviewNotes} readOnly />
+                </div>
+              )}
+              {d.interviewReviewerName && (
+                <div className="mt-2 text-xs text-neutral-500">
+                  Dikelola oleh: <span className="font-medium">{d.interviewReviewerName}</span>
+                  {d.interviewReviewedAt ? ` pada ${fmtIDDate(d.interviewReviewedAt)}` : ''}
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>
