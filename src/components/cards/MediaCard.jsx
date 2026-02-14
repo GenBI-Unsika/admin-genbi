@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { Calendar } from 'lucide-react';
+import { Calendar, Trash2 } from 'lucide-react';
 import { formatDateID, limitWords, stripHtml } from '../../utils/formatters';
 import { Link } from 'react-router-dom';
 import MediaPlaceholder from '../shared/MediaPlaceholder';
@@ -16,7 +16,7 @@ const ImageWithFallback = ({ src, alt, className, fallback }) => {
   return <img src={resolvedSrc} alt={alt} className={className} loading="lazy" decoding="async" onError={onError} />;
 };
 
-export default function MediaCard({ title, subtitle, image, description, category, date, href, to, state, gradientClass = 'from-[var(--primary-500)] to-[var(--primary-400)]', subtitleWordsLimit = 10, badge, className = '' }) {
+export default function MediaCard({ title, subtitle, image, description, category, date, href, to, state, onDelete, gradientClass = 'from-[var(--primary-500)] to-[var(--primary-400)]', subtitleWordsLimit = 10, badge, className = '' }) {
   // NOTE: when `to` exists we wrap the whole card with <Link> below,
   // so the inner section must NOT be another <Link> (nested <a> is invalid).
   const Wrapper = to ? 'div' : href ? 'a' : 'div';
@@ -33,6 +33,20 @@ export default function MediaCard({ title, subtitle, image, description, categor
         </div>
         <ImageWithFallback src={image} alt={title} className="absolute inset-0 w-full h-full object-cover transform-gpu transition-transform duration-300 ease-out group-hover:scale-[1.03] motion-reduce:transform-none" />
         {badge && <span className="absolute top-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded">{badge}</span>}
+        {typeof onDelete === 'function' ? (
+          <button
+            type="button"
+            title="Hapus"
+            className="absolute top-3 left-3 inline-flex items-center justify-center rounded-md bg-white/90 p-1.5 text-red-600 shadow-sm ring-1 ring-neutral-200 hover:bg-white"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
 
       <Wrapper
@@ -78,6 +92,7 @@ MediaCard.propTypes = {
   date: PropTypes.string,
   href: PropTypes.string,
   to: PropTypes.string,
+  onDelete: PropTypes.func,
   gradientClass: PropTypes.string,
   subtitleWordsLimit: PropTypes.number,
   badge: PropTypes.string,

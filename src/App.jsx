@@ -4,10 +4,11 @@ import AdminLayout from './components/layout/AdminLayout';
 import { authLogout, authRefresh, fetchMe, hasAccessToken } from './utils/api';
 import { fetchMeViaTrpc } from './utils/me';
 
-// Route-level code splitting
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const ScholarshipList = React.lazy(() => import('./pages/ScholarshipList'));
 const ScholarshipDetail = React.lazy(() => import('./pages/ScholarshipDetail'));
+const ScholarshipInterview = React.lazy(() => import('./pages/ScholarshipInterview'));
+const ScholarshipDocuments = React.lazy(() => import('./pages/ScholarshipDocuments'));
 const Activities = React.lazy(() => import('./pages/Activities'));
 const ActivityForm = React.lazy(() => import('./pages/ActivityForm'));
 const Articles = React.lazy(() => import('./pages/Articles'));
@@ -28,7 +29,6 @@ const Dispensations = React.lazy(() => import('./pages/Dispensations'));
 const Points = React.lazy(() => import('./pages/Points'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 
-// Guard sederhana berbasis localStorage
 const RequireAuth = ({ children }) => {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(hasAccessToken());
@@ -95,12 +95,9 @@ export default function App() {
   return (
     <React.Suspense fallback={<div className="p-6 text-sm text-neutral-500">Memuat...</div>}>
       <Routes>
-        {/* Root -> login */}
         <Route index element={<Navigate to="/login" replace />} />
         {/* Public */}
         <Route path="/login" element={<Login />} />
-
-        {/* Protected area */}
         <Route
           element={
             <RequireAuth>
@@ -110,21 +107,16 @@ export default function App() {
         >
           <Route path="/dashboard" element={<Navigate to="/dashboard/traffic" replace />} />
           <Route path="/dashboard/:tab" element={<Dashboard />} />
-
-          {/* Beasiswa */}
           <Route path="/beasiswa" element={<ScholarshipList />} />
+          <Route path="/beasiswa/wawancara" element={<ScholarshipInterview />} />
+          <Route path="/beasiswa/dokumen" element={<ScholarshipDocuments />} />
           <Route path="/beasiswa/:id" element={<ScholarshipDetail />} />
-
-          {/* Aktivitas */}
           <Route path="/aktivitas" element={<Activities />} />
           <Route path="/aktivitas/new" element={<ActivityForm mode="create" />} />
           <Route path="/aktivitas/:id/edit" element={<ActivityForm mode="edit" />} />
-
-          {/* Artikel */}
           <Route path="/artikel" element={<Articles />} />
           <Route path="/artikel/new" element={<ArticleForm mode="create" />} />
           <Route path="/artikel/:id/edit" element={<ArticleForm mode="edit" />} />
-
 
           {/* Divisi */}
           <Route path="/divisi" element={<Divisions />} />
@@ -135,33 +127,19 @@ export default function App() {
           <Route path="/anggota" element={<Teams />} />
           <Route path="/anggota/new" element={<TeamForm />} />
           <Route path="/anggota/:id/edit" element={<TeamForm />} />
-
-          {/* Rekapitulasi Kas */}
           <Route path="/kas" element={<Treasury />} />
-
-          {/* Poin Kegiatan */}
           <Route path="/poin" element={<Points />} />
-
-          {/* Dispensasi */}
           <Route path="/dispensasi" element={<Dispensations />} />
-
-          {/* Kelola User Admin */}
           <Route path="/admin/users" element={<Navigate to="/admin/users/accounts" replace />} />
           <Route path="/admin/users/:tab" element={<AdminUsers />} />
           <Route path="/admin/users/new" element={<AdminUserForm mode="create" />} />
           <Route path="/admin/users/:id/edit" element={<AdminUserForm mode="edit" />} />
-
-          {/* CMS */}
           <Route path="/cms" element={<CMSSettings />} />
           <Route path="/master-data" element={<MasterData />} />
-
-          {/* Profil */}
           <Route path="/profile" element={<Profile />} />
 
           <Route path="/pusat-informasi" element={<InfoCenter />} />
         </Route>
-
-        {/* Fallback -> login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </React.Suspense>

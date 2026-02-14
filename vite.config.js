@@ -24,7 +24,8 @@ export default defineConfig({
     proxy: {
       '/api': {
         // Use IPv4 loopback explicitly to avoid occasional IPv6/localhost resolution issues on Windows.
-        target: process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:4000',
+        // Default: port 3500 (lebih jarang konflik daripada 4000)
+        target: process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:3500',
         changeOrigin: true,
       },
     },

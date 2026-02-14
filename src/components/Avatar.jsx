@@ -1,4 +1,16 @@
+import { useMemo, useState } from 'react';
+
 export default function Avatar({ name = '', src, size = 32 }) {
+  const [failed, setFailed] = useState(false);
+
+  const normalizedSrc = useMemo(() => {
+    if (typeof src !== 'string') return '';
+    const trimmed = src.trim();
+    if (!trimmed) return '';
+    if (trimmed === 'null' || trimmed === 'undefined') return '';
+    return trimmed;
+  }, [src]);
+
   const initials = name
     .split(' ')
     .filter(Boolean)
@@ -6,8 +18,10 @@ export default function Avatar({ name = '', src, size = 32 }) {
     .map((w) => w[0]?.toUpperCase())
     .join('');
 
-  if (src) {
-    return <img src={src} alt={name} className="rounded-full border border-neutral-200 object-cover" style={{ width: size, height: size }} />;
+  if (normalizedSrc && !failed) {
+    return (
+      <img src={normalizedSrc} alt={name} className="rounded-full border border-neutral-200 object-cover" style={{ width: size, height: size }} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+    );
   }
 
   return (

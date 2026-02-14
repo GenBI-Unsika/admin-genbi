@@ -63,6 +63,12 @@ export default function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState(getParam('acc_role', ''));
   const [pageAcc, setPageAcc] = useState(getIntParam('acc_page', 1));
 
+  const [subscribers, setSubscribers] = useState([]);
+  const [loadingSub, setLoadingSub] = useState(true);
+  const [errorSub, setErrorSub] = useState(null);
+  const [totalSub, setTotalSub] = useState(0);
+  const [pageSub, setPageSub] = useState(getIntParam('sub_page', 1));
+
   const fetchAccounts = useCallback(async () => {
     setLoadingAcc(true);
     setErrorAcc(null);
@@ -105,15 +111,53 @@ export default function AdminUsers() {
     }
   }, [fetchAccounts, tab]);
 
+  const fetchSubscribers = useCallback(async () => {
+    setLoadingSub(true);
+    setErrorSub(null);
+    try {
+      const params = new URLSearchParams({
+        page: String(pageSub),
+        limit: String(PER_PAGE),
+      });
+      const result = await apiRequest(`/subscribers?${params.toString()}`);
+      const data = result?.data || [];
+      setSubscribers(
+        data.map((s) => ({
+          id: s.id,
+          email: s.email,
+          name: s.name,
+          isActive: s.isActive,
+          subscribedAt: s.subscribedAt,
+        })),
+      );
+      setTotalSub(result?.meta?.total ?? data.length);
+    } catch (err) {
+      setErrorSub({ status: err?.status, message: err?.message || 'Gagal memuat data subscriber' });
+    } finally {
+      setLoadingSub(false);
+    }
+  }, [pageSub]);
+
+  useEffect(() => {
+    if (tab === 'subscribers') {
+      fetchSubscribers();
+    }
+  }, [fetchSubscribers, tab]);
+
   useEffect(() => {
     setQAcc(getParam('acc_q', ''));
     setRoleFilter(getParam('acc_role', ''));
     setPageAcc(getIntParam('acc_page', 1));
+    setPageSub(getIntParam('sub_page', 1));
   }, [searchParams]); // eslint-disable-line
 
   const totalPagesAcc = Math.max(1, Math.ceil(totalAcc / PER_PAGE));
   const currentAcc = Math.min(pageAcc, totalPagesAcc);
   const startAcc = (currentAcc - 1) * PER_PAGE;
+
+  const totalPagesSub = Math.max(1, Math.ceil(totalSub / PER_PAGE));
+  const currentSub = Math.min(pageSub, totalPagesSub);
+  const startSub = (currentSub - 1) * PER_PAGE;
 
   const onDeleteAccount = async (id) => {
     const ok = await confirm({
@@ -131,6 +175,24 @@ export default function AdminUsers() {
       fetchAccounts(); // Refresh list
     } catch (err) {
       alert(err.message || 'Gagal menghapus user');
+    }
+  };
+
+  const onDeleteSubscriber = async (id) => {
+    const ok = await confirm({
+      title: 'Hapus subscriber ini? ',
+      description: 'Subscriber akan dihapus dari sistem.',
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      tone: 'danger',
+    });
+    if (!ok) return;
+
+    try {
+      await apiDelete(`/subscribers/${id}`);
+      fetchSubscribers();
+    } catch (err) {
+      alert(err.message || 'Gagal menghapus subscriber');
     }
   };
 
@@ -337,7 +399,107 @@ export default function AdminUsers() {
             </>
           )}
 
-          {tab === 'subscribers' && <EmptyState icon="inbox" title="Belum Ada Subscriber" description="Belum ada data subscriber yang terdaftar di sistem." />}
+          {tab === 'subscribers' && (
+            <>
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h3 className="text-lg font-semibold text-neutral-900">Subscriber</h3>
+                <button type="button" onClick={fetchSubscribers} className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh
+                </button>
+              </div>
+
+              {loadingSub && subscribers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+                  <p className="text-neutral-600">Memuat data subscriber...</p>
+                </div>
+              ) : errorSub && subscribers.length === 0 ? (
+                errorSub?.status === 403 ? (
+                  <EmptyState icon="error" title="Akses dibatasi" description="Fitur Subscriber hanya dapat diakses oleh Admin." variant="warning" />
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16 gap-4">
+                    <p className="text-red-600">{errorSub?.message || 'Gagal memuat data subscriber'}</p>
+                    <button onClick={fetchSubscribers} className="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">
+                      <RefreshCw className="h-4 w-4" />
+                      Coba Lagi
+                    </button>
+                  </div>
+                )
+              ) : subscribers.length === 0 ? (
+                <EmptyState icon="inbox" title="Belum Ada Subscriber" description="Belum ada data subscriber yang terdaftar di sistem." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-neutral-500">
+                        <th className="py-3.5 pr-3 font-medium">Nama</th>
+                        <th className="px-3 py-3.5 font-medium">Email</th>
+                        <th className="px-3 py-3.5 font-medium">Status</th>
+                        <th className="px-3 py-3.5 font-medium">Subscribe</th>
+                        <th className="px-3 py-3.5 font-medium text-right">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subscribers.map((s) => (
+                        <tr key={s.id} className="border-t border-neutral-200 text-neutral-800">
+                          <td className="py-4 pr-3 font-medium">{s.name || '-'}</td>
+                          <td className="px-3 py-4 text-neutral-600">{s.email}</td>
+                          <td className="px-3 py-4">
+                            <StatusBadge status={s.isActive ? 'active' : 'inactive'} />
+                          </td>
+                          <td className="px-3 py-4 text-neutral-500 text-xs">{s.subscribedAt ? fmtDateID(s.subscribedAt) : '-'}</td>
+                          <td className="px-3 py-4">
+                            <div className="flex items-center justify-end gap-1">
+                              <button type="button" onClick={() => onDeleteSubscriber(s.id)} className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition" title="Hapus">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {subscribers.length > 0 && (
+                <div className="mt-4 flex flex-col items-center justify-between gap-3 text-sm sm:flex-row">
+                  <div className="text-neutral-600">
+                    Menampilkan <span className="text-neutral-800">{totalSub === 0 ? 0 : startSub + 1}</span>–<span className="text-neutral-800">{Math.min(startSub + PER_PAGE, totalSub)}</span> dari{' '}
+                    <span className="text-neutral-800">{totalSub}</span> data
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="h-8 rounded-md border border-neutral-200 px-3 text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+                      onClick={() => {
+                        const v = Math.max(1, currentSub - 1);
+                        setPageSub(v);
+                        patchParams({ sub_page: v });
+                      }}
+                      disabled={currentSub === 1}
+                    >
+                      ‹ Prev
+                    </button>
+                    <span className="text-neutral-600">
+                      Hal {currentSub} / {totalPagesSub}
+                    </span>
+                    <button
+                      className="h-8 rounded-md border border-neutral-200 px-3 text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+                      onClick={() => {
+                        const v = Math.min(totalPagesSub, currentSub + 1);
+                        setPageSub(v);
+                        patchParams({ sub_page: v });
+                      }}
+                      disabled={currentSub === totalPagesSub}
+                    >
+                      Next ›
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

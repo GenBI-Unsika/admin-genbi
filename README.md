@@ -5,12 +5,14 @@ Dashboard admin berbasis React untuk pengelolaan data GenBI Unsika (Anggota, Keg
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js v18+
 - Backend (`genbi-server`) harus berjalan.
 
 ### Installation
 
 1.  **Clone & Install Dependencies**
+
     ```bash
     cd admin-genbi
     npm install
@@ -18,8 +20,9 @@ Dashboard admin berbasis React untuk pengelolaan data GenBI Unsika (Anggota, Keg
 
 2.  **Environment Variables**
     Buat file `.env.local`:
+
     ```env
-    VITE_API_BASE_URL=http://localhost:4000/api/v1
+    VITE_API_BASE_URL=http://localhost:3500/api/v1
     VITE_GOOGLE_CLIENT_ID=your_google_client_id
     ```
 
@@ -31,12 +34,12 @@ Dashboard admin berbasis React untuk pengelolaan data GenBI Unsika (Anggota, Keg
 
 ## 🛠️ Tech Stack
 
--   **Framework**: React
--   **Build Tool**: Vite
--   **Styling**: Tailwind CSS
--   **Routing**: React Router v6
--   **HTTP Client**: Axios (atau fetch wrapper Custom)
--   **Icons**: Lucide React / Heroicons
+- **Framework**: React
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **Routing**: React Router v6
+- **HTTP Client**: Axios (atau fetch wrapper Custom)
+- **Icons**: Lucide React / Heroicons
 
 ## 📂 Folder Structure
 
@@ -58,36 +61,36 @@ admin-genbi/
 ## 🔄 Application Flow
 
 1.  **Authentication**:
-    -   Halaman Login memanggil API `/auth/admin/login`.
-    -   Token disimpan di LocalStorage/Cookie.
-    -   `AuthContext` mengecek status login saat aplikasi start.
-    -   Gunakan `ProtectedLayout` untuk membatasi akses halaman.
+    - Halaman Login memanggil API `/auth/admin/login`.
+    - Token disimpan di LocalStorage/Cookie.
+    - `AuthContext` mengecek status login saat aplikasi start.
+    - Gunakan `ProtectedLayout` untuk membatasi akses halaman.
 
 2.  **Data Fetching**:
-    -   Menggunakan `useEffect` di halaman untuk load data dari API.
-    -   Menampilkan loading state saat fetch.
-    -   Menampilkan data table/grid setelah berhasil.
+    - Menggunakan `useEffect` di halaman untuk load data dari API.
+    - Menampilkan loading state saat fetch.
+    - Menampilkan data table/grid setelah berhasil.
 
 3.  **CRUD Operations**:
-    -   Forms (Add/Edit) mengirim POST/PATCH request ke API.
-    -   Delete button mengirim DELETE request dengan konfirmasi.
+    - Forms (Add/Edit) mengirim POST/PATCH request ke API.
+    - Delete button mengirim DELETE request dengan konfirmasi.
 
 ## 🗺️ File Tour
 
--   **`src/App.jsx`**:
-    -   Definisi Route aplikasi (`/`, `/dashboard`, `/users`).
-    -   Penggunaan Layout wrapper.
+- **`src/App.jsx`**:
+  - Definisi Route aplikasi (`/`, `/dashboard`, `/users`).
+  - Penggunaan Layout wrapper.
 
--   **`src/contexts/AuthContext.jsx`**:
-    -   Provider untuk user session.
-    -   Fungsi `login`, `logout`.
+- **`src/contexts/AuthContext.jsx`**:
+  - Provider untuk user session.
+  - Fungsi `login`, `logout`.
 
--   **`src/pages/Dashboard.jsx`**:
-    -   Halaman utama setelah login.
-    -   Menampilkan summary stats.
+- **`src/pages/Dashboard.jsx`**:
+  - Halaman utama setelah login.
+  - Menampilkan summary stats.
 
--   **`src/components/Sidebar.jsx` (jika ada)**:
-    -   Navigasi utama sidebar.
+- **`src/components/Sidebar.jsx` (jika ada)**:
+  - Navigasi utama sidebar.
 
 ## 📚 Documentation
 

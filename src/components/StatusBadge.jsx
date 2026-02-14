@@ -9,6 +9,10 @@ const MAP = {
   completed: { label: 'Lengkap', tone: 'success' },
   lengkap: { label: 'Lengkap', tone: 'success' },
 
+  // AKTIF (untuk data umum seperti subscriber)
+  active: { label: 'Aktif', tone: 'success' },
+  aktif: { label: 'Aktif', tone: 'success' },
+
   // KUNING
   pending: { label: 'Menunggu Verifikasi', tone: 'warning' },
   menunggu: { label: 'Menunggu Verifikasi', tone: 'warning' },
@@ -19,6 +23,9 @@ const MAP = {
   gagal: { label: 'Tidak Lengkap', tone: 'danger' },
   tidak_lengkap: { label: 'Tidak Lengkap', tone: 'danger' },
   ditolak: { label: 'Tidak Lengkap', tone: 'danger' },
+
+  inactive: { label: 'Nonaktif', tone: 'danger' },
+  nonaktif: { label: 'Nonaktif', tone: 'danger' },
 };
 
 export default function StatusBadge({ status }) {

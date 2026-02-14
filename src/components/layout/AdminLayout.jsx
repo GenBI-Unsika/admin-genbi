@@ -12,7 +12,15 @@ import GlobalSearch from '../GlobalSearch';
 // Tambah item Kelola User (gunakan User2 biar beda dengan Aktivitas)
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
-  { to: '/beasiswa', label: 'Beasiswa', icon: GraduationCap },
+  {
+    label: 'Beasiswa',
+    icon: GraduationCap,
+    children: [
+      { to: '/beasiswa', label: 'Pendaftar Beasiswa', icon: GraduationCap },
+      { to: '/beasiswa/wawancara', label: 'Kelola Wawancara', icon: FileText },
+      { to: '/beasiswa/dokumen', label: 'Kelola Berkas', icon: FileText },
+    ],
+  },
   { to: '/aktivitas', label: 'Aktivitas', icon: Users },
   { to: '/artikel', label: 'Artikel', icon: Newspaper },
   { to: '/divisi', label: 'Divisi', icon: Layers },
@@ -218,7 +226,8 @@ export default function AdminLayout() {
                         </summary>
                         <ul className={`mt-1 space-y-1 ${collapsed ? 'hidden' : 'pl-3'}`}>
                           {item.children.map((child) => {
-                            const isChildActive = activeMatcher(child.to);
+                            const isChildActive =
+                              child.to === '/beasiswa' ? location.pathname.startsWith('/beasiswa') && !location.pathname.startsWith('/beasiswa/wawancara') && !location.pathname.startsWith('/beasiswa/dokumen') : activeMatcher(child.to);
                             return (
                               <li key={child.to}>
                                 <NavLink
@@ -325,7 +334,6 @@ export default function AdminLayout() {
           </main>
         </div>
       </div>
-
     </div>
   );
 }

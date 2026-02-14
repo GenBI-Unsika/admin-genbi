@@ -217,8 +217,8 @@ export default function AdminUserForm({ mode: modeProp }) {
         <span className="text-neutral-900 font-medium">{isEdit ? 'Edit User' : 'Tambah User'}</span>
       </nav>
 
-      <div className="rounded-2xl border border-neutral-100 bg-white p-6 md:p-8">
-        <h3 className="mb-6 text-xl font-semibold text-neutral-900 border-b border-neutral-100 pb-4">{isEdit ? 'Edit User' : 'Tambah User'}</h3>
+      <div className="rounded-2xl border border-neutral-200 bg-white p-6 md:p-8">
+        <h3 className="mb-6 text-xl font-semibold text-neutral-900 border-b border-neutral-200 pb-4">{isEdit ? 'Edit User' : 'Tambah User'}</h3>
 
         <form onSubmit={submit} className="space-y-8">
 
@@ -229,7 +229,7 @@ export default function AdminUserForm({ mode: modeProp }) {
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Nama *</label>
                 <input
-                  className="w-full rounded-lg border border-neutral-200/60 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
@@ -240,7 +240,7 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Email *</label>
                 <input
                   type="email"
-                  className="w-full rounded-lg border border-neutral-200/60 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 disabled:bg-neutral-100 disabled:text-neutral-500"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 disabled:bg-neutral-100 disabled:text-neutral-500"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   required
@@ -253,7 +253,7 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">No. Telepon</label>
                 <input
                   type="tel"
-                  className="w-full rounded-lg border border-neutral-200/60 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   placeholder="08xxxxxxxxxx"
@@ -264,7 +264,7 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Jenis Kelamin</label>
                 <div className="relative">
                   <select
-                    className="w-full appearance-none rounded-lg border border-neutral-200/60 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    className="w-full appearance-none rounded-lg border border-neutral-200 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                     value={form.gender}
                     onChange={(e) => setForm({ ...form, gender: e.target.value })}
                   >
@@ -279,7 +279,7 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Tanggal Lahir</label>
                 <input
                   type="date"
-                  className="w-full rounded-lg border border-neutral-200/60 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                   value={form.birthDate}
                   onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
                 />
@@ -306,7 +306,7 @@ export default function AdminUserForm({ mode: modeProp }) {
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">NPM</label>
                 <input
-                  className="w-full rounded-lg border border-neutral-200/60 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                   value={form.npm}
                   onChange={(e) => setForm({ ...form, npm: e.target.value })}
                   placeholder="NPM Mahasiswa"
@@ -317,7 +317,7 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Semester</label>
                 <div className="relative">
                   <select
-                    className="w-full appearance-none rounded-lg border border-neutral-200/60 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    className="w-full appearance-none rounded-lg border border-neutral-200 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                     value={form.semester}
                     onChange={(e) => setForm({ ...form, semester: e.target.value })}
                   >
@@ -335,7 +335,7 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Fakultas</label>
                 <div className="relative">
                   <select
-                    className="w-full appearance-none rounded-lg border border-neutral-200/60 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    className="w-full appearance-none rounded-lg border border-neutral-200 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                     value={form.facultyId}
                     onChange={(e) => {
                       setForm({ ...form, facultyId: e.target.value, studyProgramId: '' });
@@ -355,7 +355,7 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Program Studi</label>
                 <div className="relative">
                   <select
-                    className="w-full appearance-none rounded-lg border border-neutral-200/60 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 disabled:bg-neutral-100"
+                    className="w-full appearance-none rounded-lg border border-neutral-200 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 disabled:bg-neutral-100"
                     value={form.studyProgramId}
                     onChange={(e) => setForm({ ...form, studyProgramId: e.target.value })}
                     disabled={!form.facultyId}
@@ -382,7 +382,7 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Divisi</label>
                 <div className="relative">
                   <select
-                    className="w-full appearance-none rounded-lg border border-neutral-200/60 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    className="w-full appearance-none rounded-lg border border-neutral-200 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                     value={form.divisionId}
                     onChange={(e) => setForm({ ...form, divisionId: e.target.value })}
                   >
@@ -400,7 +400,7 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Jabatan</label>
                 <div className="relative">
                   <select
-                    className="w-full appearance-none rounded-lg border border-neutral-200/60 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    className="w-full appearance-none rounded-lg border border-neutral-200 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                     value={form.jabatan}
                     onChange={(e) => setForm({ ...form, jabatan: e.target.value })}
                   >
@@ -433,7 +433,7 @@ export default function AdminUserForm({ mode: modeProp }) {
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Instagram</label>
                 <input
-                  className="w-full rounded-lg border border-neutral-200/60 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                   value={form.instagram}
                   onChange={(e) => setForm({ ...form, instagram: e.target.value })}
                   placeholder="@username"
@@ -449,7 +449,7 @@ export default function AdminUserForm({ mode: modeProp }) {
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Nama Bank</label>
                 <input
-                  className="w-full rounded-lg border border-neutral-200/60 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                   value={form.bankName}
                   onChange={(e) => setForm({ ...form, bankName: e.target.value })}
                   placeholder="Nama Bank"
@@ -458,7 +458,7 @@ export default function AdminUserForm({ mode: modeProp }) {
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">No. Rekening</label>
                 <input
-                  className="w-full rounded-lg border border-neutral-200/60 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                   value={form.bankAccountNumber}
                   onChange={(e) => setForm({ ...form, bankAccountNumber: e.target.value })}
                   placeholder="Nomor Rekening"
@@ -467,7 +467,7 @@ export default function AdminUserForm({ mode: modeProp }) {
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Atas Nama</label>
                 <input
-                  className="w-full rounded-lg border border-neutral-200/60 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                   value={form.bankAccountName}
                   onChange={(e) => setForm({ ...form, bankAccountName: e.target.value })}
                   placeholder="Pemilik Rekening"
@@ -485,7 +485,7 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Role *</label>
                 <div className="relative">
                   <select
-                    className="w-full appearance-none rounded-lg border border-neutral-200/60 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    className="w-full appearance-none rounded-lg border border-neutral-200 bg-white px-3 py-2 pr-9 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                     value={form.role}
                     onChange={(e) => setForm({ ...form, role: e.target.value })}
                   >
@@ -504,7 +504,7 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">{isEdit ? 'Password Baru (Opsional)' : 'Password *'}</label>
                 <input
                   type="password"
-                  className="w-full rounded-lg border border-neutral-200/60 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                   placeholder={isEdit ? 'Biarkan kosong jika tidak ingin mengubah' : 'Masukkan password'}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -518,7 +518,7 @@ export default function AdminUserForm({ mode: modeProp }) {
               {/* Status Akun */}
               <div className="md:col-span-2">
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Status Akun</label>
-                <div role="group" aria-label="Status akun" className="inline-flex w-full max-w-[280px] overflow-hidden rounded-xl border border-neutral-200/60">
+                <div role="group" aria-label="Status akun" className="inline-flex w-full max-w-[280px] overflow-hidden rounded-xl border border-neutral-200">
                   <button
                     type="button"
                     aria-pressed={form.active}
@@ -548,11 +548,11 @@ export default function AdminUserForm({ mode: modeProp }) {
           </div>
 
           {/* Actions */}
-          <div className="md:col-span-2 mt-4 flex items-center gap-3 border-t border-neutral-100 pt-4">
+          <div className="md:col-span-2 mt-4 flex items-center gap-3 border-t border-neutral-200 pt-4">
             <button
               type="button"
               onClick={() => navigate('/admin/users')}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200/60 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
               disabled={saving}
             >
               <X className="h-4 w-4" />

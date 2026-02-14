@@ -19,6 +19,13 @@ const defaultAboutContent = {
   videoUrl: '',
 };
 
+const defaultHistoryContent = {
+  title: 'Sejarah GenBI Unsika',
+  subtitle: 'Ketahui bagaimana GenBI Unsika dapat terbentuk hingga sekarang',
+  image: '',
+  body: 'Genbi merupakan singkatan dari Generasi Baru Indonesia yaitu Komunitas Penerima Beasiswa Bank Indonesia. Genbi Unsika sendiri awal terbentuk pada Oktober 2018. Genbi Unsika sendiri masuk ke dalam Genbi Bandung Raya bersama dengan beberapa Universitas lainnya seperti UPI, ITB, Unpad, Ikopin, Uin Bandung, Unisba, Telkom-U, dan Unsika. Genbi Unsika terdiri dari 50 Anggota yang terbagi dalam 5 divisi yaitu pendidikan, kominfo, kewirausahaan, kesehatan masyarakat dan lingkungan hidup.\n\nGenbi\nEnergi Untuk Negeri!',
+};
+
 const defaultCtaContent = {
   text: 'Daftar Beasiswa Bank Indonesia Dan Bergabung Menjadi Anggota GenBI Unsika',
   buttonText: 'Daftar Sekarang',
@@ -106,7 +113,6 @@ const defaultScholarship = {
 const defaultScholarshipPage = {
   title: 'Tertarik Untuk Daftar Beasiswa Bank Indonesia?',
   subtitle: 'Ketahui persyaratan dan dokumen yang dibutuhkan untuk mendaftar beasiswa Bank Indonesia',
-  isOpen: true,
   buttonText: 'Daftar Beasiswa',
   closedMessage: 'Pendaftaran sedang ditutup. Pantau informasi selanjutnya ya!',
   requirements: [
@@ -167,6 +173,7 @@ export default function CMSSettings() {
   // Content states
   const [heroContent, setHeroContent] = useState(defaultHeroContent);
   const [aboutContent, setAboutContent] = useState(defaultAboutContent);
+  const [historyContent, setHistoryContent] = useState(defaultHistoryContent);
   const [ctaContent, setCtaContent] = useState(defaultCtaContent);
   const [branding, setBranding] = useState(defaultBranding);
   const [visionMission, setVisionMission] = useState(defaultVisionMission);
@@ -208,9 +215,10 @@ export default function CMSSettings() {
     try {
       clearAllPendingUploads();
 
-      const [heroRes, aboutRes, ctaRes, brandingRes, visionRes, faqsRes, testimonialsRes, footerRes, scholarshipRes, avatarsRes, scholarshipPageRes] = await Promise.allSettled([
+      const [heroRes, aboutRes, historyRes, ctaRes, brandingRes, visionRes, faqsRes, testimonialsRes, footerRes, scholarshipRes, avatarsRes, scholarshipPageRes] = await Promise.allSettled([
         apiGet('/site-settings/cms_hero'),
         apiGet('/site-settings/cms_about'),
+        apiGet('/site-settings/cms_history'),
         apiGet('/site-settings/cms_cta'),
         apiGet('/site-settings/cms_branding'),
         apiGet('/site-settings/cms_vision_mission'),
@@ -227,6 +235,9 @@ export default function CMSSettings() {
       }
       if (aboutRes.status === 'fulfilled' && aboutRes.value?.value) {
         setAboutContent({ ...defaultAboutContent, ...aboutRes.value.value });
+      }
+      if (historyRes.status === 'fulfilled' && historyRes.value?.value) {
+        setHistoryContent({ ...defaultHistoryContent, ...historyRes.value.value });
       }
       if (ctaRes.status === 'fulfilled' && ctaRes.value?.value) {
         setCtaContent({ ...defaultCtaContent, ...ctaRes.value.value });
@@ -253,7 +264,12 @@ export default function CMSSettings() {
         setHeroAvatars({ ...defaultHeroAvatars, ...avatarsRes.value.value });
       }
       if (scholarshipPageRes.status === 'fulfilled' && scholarshipPageRes.value?.value) {
-        setScholarshipPage({ ...defaultScholarshipPage, ...scholarshipPageRes.value.value });
+        const merged = { ...defaultScholarshipPage, ...scholarshipPageRes.value.value };
+        // Status pendaftaran di-handle oleh halaman /beasiswa (bukan CMS)
+        // Jangan tampilkan / simpan field ini dari CMS.
+        const sanitized = { ...merged };
+        delete sanitized.isOpen;
+        setScholarshipPage(sanitized);
       }
     } catch (err) {
       console.warn('Failed to load CMS settings, using defaults:', err);
@@ -272,9 +288,11 @@ export default function CMSSettings() {
     try {
       let nextHeroContent = heroContent;
       let nextAboutContent = aboutContent;
+      let nextHistoryContent = historyContent;
       let nextBranding = branding;
       let nextScholarship = scholarship;
       let nextVisionMission = visionMission;
+      let nextHeroAvatars = { ...heroAvatars };
 
       const uploadIfPending = async (section, field) => {
         const key = `${section}.${field}`;
@@ -292,6 +310,9 @@ export default function CMSSettings() {
 
       const aboutCoverUrl = await uploadIfPending('about', 'coverImage');
       if (aboutCoverUrl) nextAboutContent = { ...nextAboutContent, coverImage: aboutCoverUrl };
+
+      const historyImageUrl = await uploadIfPending('history', 'image');
+      if (historyImageUrl) nextHistoryContent = { ...nextHistoryContent, image: historyImageUrl };
 
       const logoUrl = await uploadIfPending('branding', 'logo');
       if (logoUrl) nextBranding = { ...nextBranding, logo: logoUrl };
@@ -330,9 +351,37 @@ export default function CMSSettings() {
         }
       }
 
+      // Upload hero avatars images (keep stored payload as array of URL strings)
+      const heroAvatarUploads = Object.keys(pendingUploads).filter((key) => key.startsWith('heroAvatar.'));
+      if (heroAvatarUploads.length > 0) {
+        const nextAvatars = [...(nextHeroAvatars.avatars || [])];
+        for (const key of heroAvatarUploads) {
+          const pending = pendingUploads[key];
+          if (!pending?.file) continue;
+          try {
+            const parts = key.split('.');
+            const idx = parseInt(parts[1], 10);
+            if (Number.isNaN(idx)) continue;
+
+            const result = await apiUpload('/site-settings/upload', pending.file);
+            const imageUrl = result?.url;
+            if (imageUrl && idx >= 0 && idx < nextAvatars.length) {
+              nextAvatars[idx] = imageUrl;
+            }
+          } catch (err) {
+            console.error(`Failed to upload hero avatar for ${key}:`, err);
+          }
+        }
+        nextHeroAvatars = { ...nextHeroAvatars, avatars: nextAvatars };
+      }
+
+      const scholarshipPagePayload = { ...scholarshipPage };
+      delete scholarshipPagePayload.isOpen;
+
       await Promise.all([
         apiPatch('/site-settings/cms_hero', { value: nextHeroContent }),
         apiPatch('/site-settings/cms_about', { value: nextAboutContent }),
+        apiPatch('/site-settings/cms_history', { value: nextHistoryContent }),
         apiPatch('/site-settings/cms_cta', { value: ctaContent }),
         apiPatch('/site-settings/cms_branding', { value: nextBranding }),
         apiPatch('/site-settings/cms_vision_mission', { value: nextVisionMission }),
@@ -340,16 +389,18 @@ export default function CMSSettings() {
         apiPatch('/site-settings/cms_testimonials', { value: nextTestimonials }),
         apiPatch('/site-settings/cms_footer', { value: footer }),
         apiPatch('/site-settings/cms_scholarship', { value: nextScholarship }),
-        apiPatch('/site-settings/cms_hero_avatars', { value: heroAvatars }),
-        apiPatch('/site-settings/cms_scholarship_page', { value: scholarshipPage }),
+        apiPatch('/site-settings/cms_hero_avatars', { value: nextHeroAvatars }),
+        apiPatch('/site-settings/cms_scholarship_page', { value: scholarshipPagePayload }),
       ]);
 
       setHeroContent(nextHeroContent);
       setAboutContent(nextAboutContent);
+      setHistoryContent(nextHistoryContent);
       setBranding(nextBranding);
       setScholarship(nextScholarship);
       setVisionMission(nextVisionMission);
       setTestimonials(nextTestimonials);
+      setHeroAvatars(nextHeroAvatars);
       clearAllPendingUploads();
 
       setSaveStatus('success');
@@ -384,6 +435,7 @@ export default function CMSSettings() {
 
     if (section === 'hero') setHeroContent((prev) => ({ ...prev, [field]: objectUrl }));
     else if (section === 'about') setAboutContent((prev) => ({ ...prev, [field]: objectUrl }));
+    else if (section === 'history') setHistoryContent((prev) => ({ ...prev, [field]: objectUrl }));
     else if (section === 'branding') setBranding((prev) => ({ ...prev, [field]: objectUrl }));
     else if (section === 'scholarship') setScholarship((prev) => ({ ...prev, [field]: objectUrl }));
     else if (section === 'visionMission') setVisionMission((prev) => ({ ...prev, [field]: objectUrl }));
@@ -406,6 +458,7 @@ export default function CMSSettings() {
 
     if (section === 'hero') setHeroContent((prev) => ({ ...prev, [field]: '' }));
     else if (section === 'about') setAboutContent((prev) => ({ ...prev, [field]: '' }));
+    else if (section === 'history') setHistoryContent((prev) => ({ ...prev, [field]: '' }));
     else if (section === 'branding') setBranding((prev) => ({ ...prev, [field]: '' }));
     else if (section === 'scholarship') setScholarship((prev) => ({ ...prev, [field]: '' }));
     else if (section === 'visionMission') setVisionMission((prev) => ({ ...prev, [field]: '' }));
@@ -604,6 +657,37 @@ export default function CMSSettings() {
   };
 
   const removeHeroAvatar = (index) => {
+    // Clean up any pending upload for this avatar, and reindex remaining pending keys
+    const baseKey = `heroAvatar.${index}`;
+    if (pendingUploads[baseKey]?.objectUrl) {
+      try {
+        URL.revokeObjectURL(pendingUploads[baseKey].objectUrl);
+      } catch {
+        // ignore
+      }
+      objectUrlsRef.current.delete(pendingUploads[baseKey].objectUrl);
+    }
+
+    setPendingUploads((prev) => {
+      const next = {};
+      for (const [key, val] of Object.entries(prev)) {
+        if (!key.startsWith('heroAvatar.')) {
+          next[key] = val;
+          continue;
+        }
+        const parts = key.split('.');
+        const idx = parseInt(parts[1], 10);
+        if (Number.isNaN(idx)) continue;
+        if (idx === index) continue;
+        if (idx > index) {
+          next[`heroAvatar.${idx - 1}`] = val;
+        } else {
+          next[key] = val;
+        }
+      }
+      return next;
+    });
+
     setHeroAvatars((prev) => ({
       ...prev,
       avatars: prev.avatars.filter((_, i) => i !== index),
@@ -617,8 +701,50 @@ export default function CMSSettings() {
     }));
   };
 
+  const handleHeroAvatarImageUpload = (file, index) => {
+    if (!file) return;
+
+    const key = `heroAvatar.${index}`;
+    const objectUrl = URL.createObjectURL(file);
+    objectUrlsRef.current.add(objectUrl);
+
+    setPendingUploads((prev) => {
+      const existing = prev[key];
+      if (existing?.objectUrl) {
+        try {
+          URL.revokeObjectURL(existing.objectUrl);
+        } catch {
+          // ignore
+        }
+        objectUrlsRef.current.delete(existing.objectUrl);
+      }
+      return { ...prev, [key]: { file, objectUrl } };
+    });
+
+    updateHeroAvatar(index, objectUrl);
+  };
+
+  const handleHeroAvatarImageRemove = (index) => {
+    const key = `heroAvatar.${index}`;
+    setPendingUploads((prev) => {
+      if (prev[key]?.objectUrl) {
+        try {
+          URL.revokeObjectURL(prev[key].objectUrl);
+        } catch {
+          // ignore
+        }
+        objectUrlsRef.current.delete(prev[key].objectUrl);
+      }
+      const { [key]: _, ...rest } = prev;
+      return rest;
+    });
+
+    updateHeroAvatar(index, '');
+  };
+
   const tabs = [
     { id: 'homepage', label: 'Homepage', icon: Layout },
+    { id: 'history', label: 'Sejarah', icon: FileText },
     { id: 'visi-misi', label: 'Visi Misi', icon: Target },
     { id: 'scholarship', label: 'Beasiswa', icon: GraduationCap },
     { id: 'scholarship-page', label: 'Halaman Beasiswa', icon: FileText },
@@ -766,20 +892,25 @@ export default function CMSSettings() {
             <div className="space-y-3">
               {heroAvatars.avatars.map((avatar, index) => (
                 <div key={index} className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
-                  {avatar ? (
-                    <img src={avatar} alt={`Avatar ${index + 1}`} className="w-10 h-10 rounded-full object-cover border border-neutral-200" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center">
-                      <Users className="w-5 h-5 text-neutral-400" />
-                    </div>
-                  )}
-                  <input
-                    type="text"
-                    value={avatar}
-                    onChange={(e) => updateHeroAvatar(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="URL gambar avatar"
-                  />
+                  <div className="w-16">
+                    {avatar ? (
+                      <img src={avatar} alt={`Avatar ${index + 1}`} className="w-10 h-10 rounded-full object-cover border border-neutral-200" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-neutral-400" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <ImageDropzone
+                      value={avatar}
+                      onChange={(file) => handleHeroAvatarImageUpload(file, index)}
+                      onRemove={() => handleHeroAvatarImageRemove(index)}
+                      previewClassName="h-24"
+                      placeholder="Upload avatar"
+                      hint="JPG/PNG/WebP. Maks 2MB."
+                    />
+                  </div>
                   <button onClick={() => removeHeroAvatar(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -829,7 +960,7 @@ export default function CMSSettings() {
                   <ImageDropzone value={aboutContent.coverImage} onChange={(file) => handleImageUpload(file, 'about', 'coverImage')} onRemove={() => handleImageRemove('about', 'coverImage')} previewClassName="h-32" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1.5">URL Video (Optional)</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1.5">URL Video</label>
                   <input
                     type="url"
                     value={aboutContent.videoUrl}
@@ -873,6 +1004,62 @@ export default function CMSSettings() {
                   onChange={(e) => setCtaContent({ ...ctaContent, buttonText: e.target.value })}
                   className="w-full max-w-xs px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Daftar Sekarang"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'history' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center">
+                <FileText className="w-4 h-4 text-neutral-700" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-neutral-900">Halaman Sejarah</h3>
+                <p className="text-xs text-neutral-500">Konten yang tampil di halaman Sejarah</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Judul</label>
+                <input
+                  type="text"
+                  value={historyContent.title}
+                  onChange={(e) => setHistoryContent((prev) => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Sejarah GenBI Unsika"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Subjudul</label>
+                <input
+                  type="text"
+                  value={historyContent.subtitle}
+                  onChange={(e) => setHistoryContent((prev) => ({ ...prev, subtitle: e.target.value }))}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Ketahui bagaimana GenBI Unsika dapat terbentuk hingga sekarang"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Gambar (Opsional)</label>
+                <ImageDropzone value={historyContent.image} onChange={(file) => handleImageUpload(file, 'history', 'image')} onRemove={() => handleImageRemove('history', 'image')} previewClassName="h-48" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Isi</label>
+                <textarea
+                  value={historyContent.body}
+                  onChange={(e) => setHistoryContent((prev) => ({ ...prev, body: e.target.value }))}
+                  rows={10}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-y"
+                  placeholder="Tulis sejarah GenBI Unsika di sini. Pisahkan paragraf dengan baris kosong."
                 />
               </div>
             </div>
@@ -1343,20 +1530,6 @@ export default function CMSSettings() {
             </div>
 
             <div className="space-y-5">
-              <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700">Status Pendaftaran</label>
-                    <p className="text-xs text-neutral-500 mt-0.5">Buka/tutup pendaftaran beasiswa</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" checked={scholarshipPage.isOpen} onChange={(e) => setScholarshipPage({ ...scholarshipPage, isOpen: e.target.checked })} />
-                    <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-                    <span className="ml-3 text-sm font-medium text-neutral-700">{scholarshipPage.isOpen ? 'Dibuka' : 'Ditutup'}</span>
-                  </label>
-                </div>
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1.5">Judul Halaman</label>
                 <input

@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
-import { Calendar, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MediaPlaceholder from '../shared/MediaPlaceholder';
 import { formatDateID, stripHtml } from '../../utils/formatters';
 
-export default function ArticleCard({ title, excerpt, image, description, date, readTime, badge, badgeColor, href, to, state, className = '' }) {
+export default function ArticleCard({ title, excerpt, image, description, date, readTime, badge, badgeColor, href, to, state, onDelete, className = '' }) {
   // Use a div for the inner wrapper if there's an outer Link or anchor
   const InnerWrapper = 'div';
 
@@ -37,12 +37,27 @@ export default function ArticleCard({ title, excerpt, image, description, date, 
             style={{
               backgroundColor: badgeColor ? `${badgeColor}25` : '#E3EEFC',
               color: badgeColor || '#01319F',
-              border: badgeColor ? `1px solid ${badgeColor}40` : 'none'
+              border: badgeColor ? `1px solid ${badgeColor}40` : 'none',
             }}
           >
             {badge}
           </span>
         )}
+
+        {typeof onDelete === 'function' ? (
+          <button
+            type="button"
+            title="Hapus"
+            className="absolute top-3 left-3 inline-flex items-center justify-center rounded-md bg-white/90 p-1.5 text-red-600 shadow-sm ring-1 ring-neutral-200 hover:bg-white"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
 
       <InnerWrapper className="p-4 flex-1 flex flex-col space-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2">
@@ -102,6 +117,7 @@ ArticleCard.propTypes = {
   readTime: PropTypes.string,
   badge: PropTypes.string,
   href: PropTypes.string,
+  onDelete: PropTypes.func,
 
   className: PropTypes.string,
 };
