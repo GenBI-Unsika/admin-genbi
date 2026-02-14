@@ -3,13 +3,21 @@ import { Link } from 'react-router-dom';
 import ArticleCard from '../components/cards/ArticleCard';
 import EmptyState from '../components/EmptyState';
 import { Loader2, Plus, RefreshCw, Search } from 'lucide-react';
-import { apiGet } from '../utils/api';
+import { toast } from 'react-hot-toast';
+import { useConfirm } from '../contexts/ConfirmContext';
+import { apiDelete, apiGet } from '../utils/api';
 
 export default function Articles() {
   const [q, setQ] = useState('');
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [sortBy, setSortBy] = useState('publishedAt');
+  const [sortOrder, setSortOrder] = useState('desc');
+
+  const { confirm } = useConfirm();
 
   const fetchArticles = useCallback(async () => {
     setLoading(true);
@@ -17,7 +25,13 @@ export default function Articles() {
     try {
       const params = new URLSearchParams({ limit: '50' });
       if (q.trim()) params.set('search', q.trim());
-      const result = await apiGet(`/articles?${params.toString()}`);
+      if (startDate) params.set('startDate', startDate);
+      if (endDate) params.set('endDate', endDate);
+      params.set('sortBy', sortBy);
+      params.set('sortOrder', sortOrder);
+
+      // Use manage endpoint to get drafts too
+      const result = await apiGet(`/articles/manage?${params.toString()}`);
       // Map API data to component format
       const mapped = (result.data || result || []).map((item) => ({
         id: item.id,
@@ -33,14 +47,17 @@ export default function Articles() {
         raw: item, // Keep original data for edit
       }));
 
-      const enriched = mapped.map(a => {
+      const enriched = mapped.map((a) => {
         const isNew = a.date && (new Date() - new Date(a.date)) / (1000 * 60 * 60 * 24) <= 7;
         const isPopular = a.viewCount >= 50;
 
         let badge = 'Artikel';
         let badgeColor = '#6B7280';
 
-        if (isNew) {
+        if (a.status === 'DRAFT') {
+          badge = 'DRAFT';
+          badgeColor = '#EF4444'; // Red for draft
+        } else if (isNew) {
           badge = 'Terbaru';
           badgeColor = '#10B981';
         } else if (isPopular) {
@@ -57,7 +74,7 @@ export default function Articles() {
     } finally {
       setLoading(false);
     }
-  }, [q]);
+  }, [q, startDate, endDate, sortBy, sortOrder]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -65,6 +82,26 @@ export default function Articles() {
     }, 300); // Debounce search
     return () => clearTimeout(timer);
   }, [fetchArticles]);
+
+  const handleDelete = async (article) => {
+    const isConfirmed = await confirm({
+      title: 'Hapus Artikel?',
+      description: `Artikel "${article.title}" akan dihapus dan tidak dapat dikembalikan.`,
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      tone: 'danger',
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      await apiDelete(`/articles/${article.id}`);
+      setArticles((prev) => prev.filter((a) => a.id !== article.id));
+      toast.success('Artikel berhasil dihapus');
+    } catch (err) {
+      toast.error(err.message || 'Gagal menghapus artikel');
+    }
+  };
 
   if (loading && articles.length === 0) {
     return (
@@ -105,8 +142,8 @@ export default function Articles() {
         </Link>
       </div>
 
-      <div className="mb-6">
-        <div className="relative">
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="relative lg:col-span-2">
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -115,6 +152,44 @@ export default function Articles() {
             className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
           />
           <Search size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+            title="Tanggal Mulai"
+          />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+            title="Tanggal Akhir"
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+          >
+            <option value="publishedAt">Tgl Terbit</option>
+            <option value="createdAt">Tgl Buat</option>
+            <option value="viewCount">Populer</option>
+            <option value="title">Judul</option>
+          </select>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="shrink-0 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+          >
+            <option value="desc">DESC</option>
+            <option value="asc">ASC</option>
+          </select>
         </div>
       </div>
 
@@ -132,6 +207,7 @@ export default function Articles() {
               description={a.description}
               to={`/artikel/${a.id}/edit`}
               state={{ article: a.raw }}
+              onDelete={() => handleDelete(a)}
             />
           ))}
         </div>

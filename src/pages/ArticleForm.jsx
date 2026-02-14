@@ -1,16 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Input from '../components/ui/Input';
 import RichTextEditor from '../components/ui/RichTextEditor';
-import FileUpload, { CoverUpload, LinkInput } from '../components/ui/FileUpload';
+import FileUpload, { LinkInput } from '../components/ui/FileUpload';
+import CoverUpload from '../components/ui/CoverUpload';
 import { Image, FileText, Link as LinkIcon, X, Plus, Loader2, ArrowLeft } from 'lucide-react';
 import { apiPost, apiPatch, apiGet } from '../utils/api';
+import { useFormDraft } from '../utils/useFormDraft';
 
 export default function ArticleForm({ mode = 'create' }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(mode === 'edit');
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
+  const draftRestoredRef = useRef(false);
+
+  // Draft auto-save (create mode only)
+  const draftKey = mode === 'create' ? 'article-create' : null;
+  const { restoreDraft, saveDraft, clearDraft, getDraftAge } = useFormDraft(draftKey || '__noop__');
+
   const [form, setForm] = useState({
     title: '',
     excerpt: '',
@@ -22,9 +31,6 @@ export default function ArticleForm({ mode = 'create' }) {
     documents: [],
     links: [],
   });
-
-
-
 
   // Load data for edit mode
   useEffect(() => {
@@ -53,23 +59,58 @@ export default function ArticleForm({ mode = 'create' }) {
     }
   }, [mode, id, navigate]);
 
+  // Restore draft on mount (create mode only)
+  useEffect(() => {
+    if (mode !== 'create' || draftRestoredRef.current) return;
+    draftRestoredRef.current = true;
+    const draft = restoreDraft();
+    if (draft?.form) {
+      setForm((prev) => ({ ...prev, ...draft.form }));
+      setShowDraftBanner(true);
+    }
+  }, [mode, restoreDraft]);
+
+  // Auto-save form to localStorage (create mode only)
+  useEffect(() => {
+    if (mode !== 'create' || saving) return;
+    saveDraft({ form });
+  }, [form, mode, saving, saveDraft]);
+
   const update = (k) => (eOrV) => setForm((s) => ({ ...s, [k]: eOrV?.target ? eOrV.target.value : eOrV }));
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e, forcedStatus) => {
+    if (e) e.preventDefault();
+
     if (!form.title.trim()) {
       alert('Judul artikel wajib diisi');
       return;
     }
     setSaving(true);
     try {
+      // Determine status: forcedStatus > form date logic
+      let status = 'DRAFT';
+      if (forcedStatus) {
+        status = forcedStatus;
+      } else {
+        status = form.publishDate ? 'PUBLISHED' : 'DRAFT';
+      }
+
       // Build payload for API
       const payload = {
         title: form.title,
         excerpt: form.excerpt,
         content: form.description,
-        status: form.publishDate ? 'PUBLISHED' : 'DRAFT',
+        status: status,
       };
+
+      // Set/Clear publish date based on status
+      if (status === 'PUBLISHED') {
+        // If already has date, start with that, otherwise now
+        if (!form.publishDate) {
+          payload.publishedAt = new Date().toISOString();
+          // Note: API might handle this automatically if status changes to PUBLISHED
+        }
+      }
 
       // Handle cover image - prefer tempId for staged files
       if (form.cover?.tempId) {
@@ -104,6 +145,7 @@ export default function ArticleForm({ mode = 'create' }) {
       } else {
         await apiPost('/articles', payload);
       }
+      clearDraft();
       navigate('/artikel');
     } catch (err) {
       alert(err.message || 'Gagal menyimpan');
@@ -126,12 +168,36 @@ export default function ArticleForm({ mode = 'create' }) {
           </Link>
           <h2 className="text-xl md:text-2xl font-semibold">{mode === 'edit' ? 'Edit Artikel' : 'Tulis Artikel Baru'}</h2>
 
+          {/* Draft restoration banner */}
+          {showDraftBanner && mode === 'create' && (
+            <div className="mt-3 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5">
+              <p className="text-sm text-amber-800">
+                <span className="font-medium">Draft tersimpan</span>
+                {getDraftAge() && <span className="ml-1 text-amber-600">({getDraftAge()})</span>}— konten sebelumnya dipulihkan.
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearDraft();
+                    setShowDraftBanner(false);
+                    setForm({ title: '', excerpt: '', publishDate: '', description: '', cover: null, attachmentType: '', photos: [], documents: [], links: [] });
+                  }}
+                  className="rounded border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100"
+                >
+                  Hapus Draft
+                </button>
+                <button type="button" onClick={() => setShowDraftBanner(false)} className="text-amber-400 hover:text-amber-600">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="mt-6 space-y-6">
             {/* Basic Info Card */}
             <div className="rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
               <Input label="Judul Artikel" value={form.title} onChange={update('title')} placeholder="Tuliskan judul artikel yang menarik" className="mb-4" />
-
-
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Ringkasan (Excerpt)</label>
@@ -174,8 +240,9 @@ export default function ArticleForm({ mode = 'create' }) {
                 <button
                   type="button"
                   onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'foto' ? '' : 'foto' }))}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                    }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                    form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                  }`}
                 >
                   <Image className="w-4 h-4" />
                   Foto
@@ -184,8 +251,9 @@ export default function ArticleForm({ mode = 'create' }) {
                 <button
                   type="button"
                   onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'dokumen' ? '' : 'dokumen' }))}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                    }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                    form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                  }`}
                 >
                   <FileText className="w-4 h-4" />
                   Dokumen
@@ -194,8 +262,9 @@ export default function ArticleForm({ mode = 'create' }) {
                 <button
                   type="button"
                   onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'tautan' ? '' : 'tautan' }))}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                    }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                    form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                  }`}
                 >
                   <LinkIcon className="w-4 h-4" />
                   Tautan
@@ -301,9 +370,27 @@ export default function ArticleForm({ mode = 'create' }) {
               <Link to="/artikel" className="btn-outline-primary px-4 py-2">
                 Batal
               </Link>
-              <button type="submit" disabled={saving} className="btn-primary flex items-center gap-2">
+
+              <button
+                type="button"
+                disabled={saving}
+                onClick={(e) => {
+                  // Set status to DRAFT and clear publishDate
+                  setForm((s) => ({ ...s, publishDate: '' }));
+                  // Hack: we need to trigger submit, but state update might be async.
+                  // Better to handle in a dedicated handler, but for now we'll pass a flag or handle in handleSubmit
+                  // adapting handleSubmit to accept status override would be cleaner.
+                  handleSubmit(e, 'DRAFT');
+                }}
+                className="px-4 py-2 rounded-lg border border-neutral-200 text-neutral-600 font-medium hover:bg-neutral-50 transition-colors flex items-center gap-2"
+              >
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                {mode === 'edit' ? 'Simpan Perubahan' : 'Publikasikan Artikel'}
+                Simpan Draft
+              </button>
+
+              <button type="button" disabled={saving} onClick={(e) => handleSubmit(e, 'PUBLISHED')} className="btn-primary flex items-center gap-2">
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                {mode === 'edit' && form.publishDate ? 'Simpan Perubahan' : 'Publikasikan Sekarang'}
               </button>
             </div>
           </form>

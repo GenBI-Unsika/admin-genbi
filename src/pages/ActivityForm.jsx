@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
-import FileUpload, { CoverUpload, LinkInput } from '../components/ui/FileUpload';
+import FileUpload, { LinkInput } from '../components/ui/FileUpload';
+import CoverUpload from '../components/ui/CoverUpload';
 import { ChevronRight, Image, FileText, Link as LinkIcon, X, Plus, Loader2, AlertTriangle } from 'lucide-react';
 import { apiFinalizeUpload, apiPost, apiPatch, apiGet } from '../utils/api';
 import RichTextEditor from '../components/ui/RichTextEditor';
+import { useFormDraft } from '../utils/useFormDraft';
 
 export default function ActivityForm({ mode: modeProp }) {
   const params = useParams();
@@ -23,12 +25,13 @@ export default function ActivityForm({ mode: modeProp }) {
     title: '',
     divisionId: '', // Event only
     theme: '', // Proker only
-    startDate: '', // Event only  
+    startDate: '', // Event only
     endDate: '', // Event only
     publicationDate: '', // Proker only
     location: '', // Event only
     description: '',
     benefits: [], // Event only
+    status: '', // NEW: explicit status
 
     coverImage: null,
 
@@ -39,6 +42,12 @@ export default function ActivityForm({ mode: modeProp }) {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [newBenefit, setNewBenefit] = useState('');
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
+  const draftRestoredRef = useRef(false);
+
+  // Draft auto-save (create mode only)
+  const draftKey = !isEdit ? 'activity-create' : null;
+  const { restoreDraft, saveDraft, clearDraft, getDraftAge } = useFormDraft(draftKey || '__noop__');
 
   // Fetch divisions
   useEffect(() => {
@@ -66,6 +75,7 @@ export default function ActivityForm({ mode: modeProp }) {
         location: payloadFromState.location || '',
         description: payloadFromState.description || '',
         benefits: payloadFromState.benefits ? (typeof payloadFromState.benefits === 'string' ? JSON.parse(payloadFromState.benefits) : payloadFromState.benefits) : [],
+        status: payloadFromState.status || (payloadFromState.type === 'proker' ? 'DRAFT' : 'PLANNED'),
         coverImage: payloadFromState.coverImage ? { url: payloadFromState.coverImage, name: 'Cover' } : null,
         attachmentType: '',
         photos: payloadFromState.attachments?.photos || [],
@@ -77,7 +87,7 @@ export default function ActivityForm({ mode: modeProp }) {
       apiGet(`/activities/${params.id}`)
         .then((data) => {
           setForm({
-            category: data.status === 'DRAFT' ? 'proker' : 'event',
+            category: data.status === 'DRAFT' ? 'proker' : 'event', // Heuristic if type not available
             title: data.title || '',
             divisionId: data.divisionId || '',
             theme: data.theme || '',
@@ -87,6 +97,7 @@ export default function ActivityForm({ mode: modeProp }) {
             location: data.location || '',
             description: data.description || '',
             benefits: data.benefits ? (typeof data.benefits === 'string' ? JSON.parse(data.benefits) : data.benefits) : [],
+            status: data.status,
             coverImage: data.coverImage ? { url: data.coverImage, name: 'Cover' } : null,
             attachmentType: '',
             photos: data.attachments?.photos || [],
@@ -101,6 +112,33 @@ export default function ActivityForm({ mode: modeProp }) {
         .finally(() => setLoading(false));
     }
   }, [isEdit, payloadFromState, params.id]);
+
+  // Restore draft on mount (create mode only)
+  useEffect(() => {
+    if (isEdit || draftRestoredRef.current) return;
+    draftRestoredRef.current = true;
+    const draft = restoreDraft();
+    if (draft?.form) {
+      setForm((prev) => ({ ...prev, ...draft.form }));
+      setShowDraftBanner(true);
+    }
+  }, [isEdit, restoreDraft]);
+
+  // Auto-save form to localStorage (create mode only)
+  useEffect(() => {
+    if (isEdit || saving) return;
+    saveDraft({ form });
+  }, [form, isEdit, saving, saveDraft]);
+
+  // Set default status when category changes (if creating new)
+  useEffect(() => {
+    if (isEdit) return;
+    if (form.category === 'proker') {
+      setForm((s) => ({ ...s, status: 'DRAFT' }));
+    } else if (form.category === 'event') {
+      setForm((s) => ({ ...s, status: 'PLANNED' }));
+    }
+  }, [form.category, isEdit]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -119,7 +157,7 @@ export default function ActivityForm({ mode: modeProp }) {
       const payload = {
         title: form.title,
         description: form.description,
-        status: form.category === 'proker' ? 'DRAFT' : 'PLANNED',
+        status: form.status, // Use selected status
       };
 
       // Handle cover image - prefer tempId
@@ -150,6 +188,9 @@ export default function ActivityForm({ mode: modeProp }) {
         links: form.links || [],
       };
 
+      // Ensure status is included in top-level payload if not already
+      payload.status = form.status;
+
       // Event-specific fields
       if (form.category === 'event') {
         payload.divisionId = form.divisionId ? parseInt(form.divisionId) : null;
@@ -171,6 +212,7 @@ export default function ActivityForm({ mode: modeProp }) {
         await apiPost('/activities', payload);
       }
 
+      clearDraft();
       navigate('/aktivitas');
     } catch (err) {
       alert(err.message || 'Gagal menyimpan');
@@ -221,6 +263,48 @@ export default function ActivityForm({ mode: modeProp }) {
 
       <h2 className="mt-2 text-xl md:text-2xl font-semibold">Event dan Proker</h2>
 
+      {/* Draft restoration banner */}
+      {showDraftBanner && !isEdit && (
+        <div className="mt-3 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5">
+          <p className="text-sm text-amber-800">
+            <span className="font-medium">Draft tersimpan</span>
+            {getDraftAge() && <span className="ml-1 text-amber-600">({getDraftAge()})</span>}— konten sebelumnya dipulihkan.
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                clearDraft();
+                setShowDraftBanner(false);
+                setForm({
+                  category: '',
+                  title: '',
+                  divisionId: '',
+                  theme: '',
+                  startDate: '',
+                  endDate: '',
+                  publicationDate: '',
+                  location: '',
+                  description: '',
+                  benefits: [],
+                  status: '',
+                  coverImage: null,
+                  photos: [],
+                  documents: [],
+                  links: [],
+                });
+              }}
+              className="rounded border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100"
+            >
+              Hapus Draft
+            </button>
+            <button type="button" onClick={() => setShowDraftBanner(false)} className="text-amber-400 hover:text-amber-600">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
         {/* Warning - Pilih Kategori */}
         {!form.category && (
@@ -242,24 +326,23 @@ export default function ActivityForm({ mode: modeProp }) {
             ]}
           />
 
-          {form.category === 'event' && (
-            <Select
-              label="Divisi Penanggung Jawab"
-              value={form.divisionId}
-              onChange={update('divisionId')}
-              placeholder="Pilih divisi..."
-              options={divisions}
-            />
-          )}
+          <Select
+            label="Status"
+            value={form.status}
+            onChange={update('status')}
+            placeholder="Pilih status..."
+            options={[
+              { value: 'DRAFT', label: 'Draft' },
+              { value: 'PLANNED', label: 'Direncanakan (Planned)' },
+              { value: 'ONGOING', label: 'Sedang Berjalan (Ongoing)' },
+              { value: 'COMPLETED', label: 'Selesai (Completed)' },
+              { value: 'CANCELLED', label: 'Dibatalkan (Cancelled)' },
+            ]}
+          />
 
-          {form.category === 'proker' && (
-            <Input
-              label="Tema"
-              value={form.theme}
-              onChange={update('theme')}
-              placeholder="Tema program kerja..."
-            />
-          )}
+          {form.category === 'event' && <Select label="Divisi Penanggung Jawab" value={form.divisionId} onChange={update('divisionId')} placeholder="Pilih divisi..." options={divisions} />}
+
+          {form.category === 'proker' && <Input label="Tema" value={form.theme} onChange={update('theme')} placeholder="Tema program kerja..." />}
 
           {/* Cover Image */}
           <div className="md:col-span-2">
@@ -278,15 +361,7 @@ export default function ActivityForm({ mode: modeProp }) {
             </>
           )}
 
-          {form.category === 'proker' && (
-            <Input
-              label="Tanggal Publikasi"
-              type="date"
-              value={form.publicationDate}
-              onChange={update('publicationDate')}
-              className="md:col-span-2"
-            />
-          )}
+          {form.category === 'proker' && <Input label="Tanggal Publikasi" type="date" value={form.publicationDate} onChange={update('publicationDate')} className="md:col-span-2" />}
 
           {form.category === 'event' && (
             <div className="md:col-span-2">
@@ -331,8 +406,9 @@ export default function ActivityForm({ mode: modeProp }) {
             <button
               type="button"
               onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'foto' ? '' : 'foto' }))}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+              }`}
             >
               <Image className="w-4 h-4" />
               Foto
@@ -341,8 +417,9 @@ export default function ActivityForm({ mode: modeProp }) {
             <button
               type="button"
               onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'dokumen' ? '' : 'dokumen' }))}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+              }`}
             >
               <FileText className="w-4 h-4" />
               Dokumen
@@ -351,8 +428,9 @@ export default function ActivityForm({ mode: modeProp }) {
             <button
               type="button"
               onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'tautan' ? '' : 'tautan' }))}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+              }`}
             >
               <LinkIcon className="w-4 h-4" />
               Tautan

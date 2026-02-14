@@ -4,6 +4,7 @@ import EventCard from '../components/cards/EventCard';
 import ProkerCard from '../components/cards/ProkerCard';
 import EmptyState from '../components/EmptyState';
 import { ChevronRight, Loader2, Plus, RefreshCw, Search } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { useConfirm } from '../contexts/ConfirmContext';
 import { apiGet, apiDelete } from '../utils/api';
 
@@ -13,6 +14,10 @@ export default function Activities() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [sortBy, setSortBy] = useState('startDate');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   const fetchActivities = useCallback(async () => {
     setLoading(true);
@@ -20,6 +25,10 @@ export default function Activities() {
     try {
       const params = new URLSearchParams({ limit: '50' });
       if (q.trim()) params.set('search', q.trim());
+      if (startDate) params.set('startDate', startDate);
+      if (endDate) params.set('endDate', endDate);
+      params.set('sortBy', sortBy);
+      params.set('sortOrder', sortOrder);
       const result = await apiGet(`/activities?${params.toString()}`);
       // Map API data to component format
       const mapped = (result.data || result || []).map((item) => {
@@ -36,6 +45,8 @@ export default function Activities() {
           cover: item.coverImage || null,
           description: item.description || '',
           status: item.status,
+          badge: item.status === 'DRAFT' ? 'DRAFT' : (item.status === 'PLANNED' ? 'Planned' : item.status), // Display status
+          badgeColor: item.status === 'DRAFT' ? '#EF4444' : (item.status === 'PLANNED' ? '#3B82F6' : '#10B981'),
           raw: item, // Keep original data for edit
         };
       });
@@ -45,7 +56,7 @@ export default function Activities() {
     } finally {
       setLoading(false);
     }
-  }, [q]);
+  }, [q, startDate, endDate, sortBy, sortOrder]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -70,8 +81,9 @@ export default function Activities() {
     try {
       await apiDelete(`/activities/${id}`);
       setActivities((prev) => prev.filter((a) => a.id !== id));
+      toast.success('Aktivitas berhasil dihapus');
     } catch (err) {
-      alert(err.message || 'Gagal menghapus aktivitas');
+      toast.error(err.message || 'Gagal menghapus aktivitas');
     }
   };
 
@@ -130,9 +142,9 @@ export default function Activities() {
       </div>
 
       {/* Toolbar */}
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3 md:items-center">
-        <div className="md:col-span-2">
-          <div className="relative">
+      <div className="mb-6 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="md:col-span-2 relative">
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -142,10 +154,7 @@ export default function Activities() {
             />
             <Search size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400" />
           </div>
-        </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-neutral-700 md:hidden">Kategori</label>
           <div className="relative">
             <select
               aria-label="Kategori"
@@ -153,13 +162,53 @@ export default function Activities() {
               onChange={(e) => setCat(e.target.value)}
               className="h-11 w-full appearance-none rounded-lg border border-neutral-200 bg-white px-3 pr-10 text-sm outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
             >
-              <option value="all">Semua</option>
+              <option value="all">Semua Tipe</option>
               <option value="event">Event</option>
               <option value="proker">Proker</option>
             </select>
             <svg className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" viewBox="0 0 20 20" fill="currentColor">
               <path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" />
             </svg>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full h-11 rounded-lg border border-neutral-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+              title="Tanggal Mulai"
+            />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full h-11 rounded-lg border border-neutral-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+              title="Tanggal Akhir"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full h-11 rounded-lg border border-neutral-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+            >
+              <option value="startDate">Tgl Kegiatan</option>
+              <option value="createdAt">Tgl Buat</option>
+              <option value="title">Judul</option>
+              <option value="status">Status</option>
+            </select>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="shrink-0 h-11 rounded-lg border border-neutral-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+            >
+              <option value="desc">DESC</option>
+              <option value="asc">ASC</option>
+            </select>
           </div>
         </div>
       </div>
