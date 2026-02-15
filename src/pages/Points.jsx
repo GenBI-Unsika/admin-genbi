@@ -26,7 +26,7 @@ export default function Points() {
       const res = await apiGet('/members/admin/all');
       setMembers(res.data || res || []);
     } catch (err) {
-      console.error('Failed to load members:', err);
+      // Error loading members
     }
   };
 
@@ -35,7 +35,7 @@ export default function Points() {
       const res = await apiGet('/activities?limit=100'); // Fetch recent activities
       setActivities(res.data || res || []);
     } catch (err) {
-      console.error('Failed to load activities:', err);
+      // Error loading activities
     }
   };
 
@@ -45,7 +45,7 @@ export default function Points() {
       const res = await apiGet('/leaderboard');
       setLeaderboard(res.data || res || []);
     } catch (err) {
-      console.error('Failed to load leaderboard:', err);
+      // Error loading leaderboard
     } finally {
       setLoading(false);
     }

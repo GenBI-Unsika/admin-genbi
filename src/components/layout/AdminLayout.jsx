@@ -108,7 +108,7 @@ export default function AdminLayout() {
         if (!alive) return;
         setUser(nextUser);
       } catch (err) {
-        console.error('Failed to fetch user:', err);
+        // Error fetching user
         if (alive) setUser(null);
       }
     };

@@ -476,7 +476,7 @@ export default function Dashboard() {
       const response = await apiGet(`/analytics/summary?days=${days}`);
       setSummary(response?.data || {});
     } catch (err) {
-      console.error('Failed to fetch dashboard summary:', err);
+      // Error fetching dashboard summary
       setError(err.message || 'Gagal memuat data dashboard');
     } finally {
       setLoading(false);

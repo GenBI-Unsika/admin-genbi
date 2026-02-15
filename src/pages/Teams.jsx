@@ -27,7 +27,7 @@ export default function Teams() {
       const response = await apiRequest(`/members/admin/all${params.toString() ? `?${params.toString()}` : ''}`);
       setMembers(response?.data || []);
     } catch (err) {
-      console.error('Failed to fetch members:', err);
+      // Error fetching members
       setError(err.message || 'Gagal memuat data anggota');
     } finally {
       setLoading(false);

@@ -81,7 +81,7 @@ export default function GlobalSearch({ className = '' }) {
 
       setResults(mockResults);
     } catch (error) {
-      console.error('Search error:', error);
+      // Search error
       setResults([]);
     } finally {
       setLoading(false);

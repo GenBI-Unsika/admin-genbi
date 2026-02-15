@@ -66,7 +66,7 @@ export default function AdminUserForm({ mode: modeProp }) {
         setFaculties(facultiesData);
         setDivisions(divisionsData);
       })
-      .catch((err) => console.error('Failed to fetch initial data:', err));
+      .catch((err) => { /* Error fetching initial data */ });
   }, []);
 
   // Update study programs when faculty changes
@@ -111,7 +111,7 @@ export default function AdminUserForm({ mode: modeProp }) {
           }));
         })
         .catch((err) => {
-          console.error('Failed to fetch user:', err);
+          // Error fetching user
           setError(err.message || 'Gagal memuat data user');
         })
         .finally(() => setLoading(false));
@@ -176,7 +176,7 @@ export default function AdminUserForm({ mode: modeProp }) {
       toast.success(isEdit ? 'Data user berhasil diperbarui' : 'User baru berhasil ditambahkan');
       navigate('/admin/users', { replace: true });
     } catch (err) {
-      console.error('Submit error:', err);
+      // Submit error
       const message = err.payload?.message || err.message || 'Gagal menyimpan data.';
       toast.error(message);
       setSaving(false);

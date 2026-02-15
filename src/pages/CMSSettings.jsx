@@ -272,7 +272,7 @@ export default function CMSSettings() {
         setScholarshipPage(sanitized);
       }
     } catch (err) {
-      console.warn('Failed to load CMS settings, using defaults:', err);
+      // Failed to load CMS settings
     } finally {
       setLoading(false);
     }
@@ -347,7 +347,7 @@ export default function CMSSettings() {
             }
           }
         } catch (err) {
-          console.error(`Failed to upload testimonial image for ${key}:`, err);
+          // Error uploading testimonial image
         }
       }
 
@@ -369,7 +369,7 @@ export default function CMSSettings() {
               nextAvatars[idx] = imageUrl;
             }
           } catch (err) {
-            console.error(`Failed to upload hero avatar for ${key}:`, err);
+            // Error uploading hero avatar
           }
         }
         nextHeroAvatars = { ...nextHeroAvatars, avatars: nextAvatars };
@@ -406,7 +406,7 @@ export default function CMSSettings() {
       setSaveStatus('success');
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err) {
-      console.error('Failed to save CMS settings:', err);
+      // Error saving CMS settings
       setSaveStatus('error');
     } finally {
       setSaving(false);

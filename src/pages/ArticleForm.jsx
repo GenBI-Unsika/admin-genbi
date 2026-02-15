@@ -51,7 +51,7 @@ export default function ArticleForm({ mode = 'create' }) {
           });
         })
         .catch((err) => {
-          console.error('Failed to load article:', err);
+          // Error loading article
           alert('Gagal memuat data artikel');
           navigate('/artikel');
         })
@@ -240,9 +240,8 @@ export default function ArticleForm({ mode = 'create' }) {
                 <button
                   type="button"
                   onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'foto' ? '' : 'foto' }))}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                    form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                    }`}
                 >
                   <Image className="w-4 h-4" />
                   Foto
@@ -251,9 +250,8 @@ export default function ArticleForm({ mode = 'create' }) {
                 <button
                   type="button"
                   onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'dokumen' ? '' : 'dokumen' }))}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                    form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                    }`}
                 >
                   <FileText className="w-4 h-4" />
                   Dokumen
@@ -262,9 +260,8 @@ export default function ArticleForm({ mode = 'create' }) {
                 <button
                   type="button"
                   onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'tautan' ? '' : 'tautan' }))}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                    form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                    }`}
                 >
                   <LinkIcon className="w-4 h-4" />
                   Tautan

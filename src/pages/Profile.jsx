@@ -67,7 +67,7 @@ export default function Profile() {
       setFaculties(facultiesRes.data || facultiesRes || []);
       setDivisions(divisionsRes.data || divisionsRes || []);
     } catch (err) {
-      console.error('Failed to fetch master data:', err);
+      // Error fetching master data
     }
   };
 

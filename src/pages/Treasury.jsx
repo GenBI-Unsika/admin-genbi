@@ -72,7 +72,7 @@ export default function Treasury() {
       const response = await apiRequest('/treasury');
       setData(response?.data || []);
     } catch (err) {
-      console.error('Failed to fetch treasury:', err);
+      // Error fetching treasury
       setError(err.message || 'Gagal memuat data rekapitulasi kas');
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ export default function Treasury() {
       setTx(listRes?.data || []);
       setTxSummary(sumRes?.data || { totalIncome: 0, totalExpense: 0, net: 0, incomeCount: 0, expenseCount: 0 });
     } catch (err) {
-      console.error('Failed to fetch transactions:', err);
+      // Error fetching transactions
       setTxError(err.message || 'Gagal memuat transaksi kas');
     } finally {
       setTxLoading(false);
@@ -305,7 +305,7 @@ export default function Treasury() {
       }
       closeEditModal();
     } catch (err) {
-      console.error('Failed to save treasury:', err);
+      // Error saving treasury
       alert(err.message || 'Gagal menyimpan data kas');
     } finally {
       setSaving(false);
@@ -363,7 +363,7 @@ export default function Treasury() {
       closeTxModal();
       await fetchTransactions();
     } catch (err) {
-      console.error('Failed to save transaction:', err);
+      // Error saving transaction
       alert(err.message || 'Gagal menyimpan transaksi kas');
     } finally {
       setTxSaving(false);
@@ -389,7 +389,7 @@ export default function Treasury() {
       await apiRequest(`/treasury/transactions/${id}`, { method: 'DELETE' });
       await fetchTransactions();
     } catch (err) {
-      console.error('Failed to delete transaction:', err);
+      // Error deleting transaction
       alert(err.message || 'Gagal menghapus transaksi');
     }
   };

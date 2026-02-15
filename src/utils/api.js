@@ -44,13 +44,13 @@ function normalizeErrorMessage(message, status) {
 
   if (isInternalError) {
     // Log for debugging (only visible in dev tools)
-    if (isDev) console.error('[API Error - Hidden from UI]:', msg);
+    if (isDev) { /* API Error - Hidden */ }
     return 'Terjadi gangguan pada sistem. Hubungi tim teknis jika masalah berlanjut.';
   }
 
   // === HTTP STATUS BASED MESSAGES ===
   if (status === 500) {
-    if (isDev) console.error('[500 Error]:', msg);
+    if (isDev) { /* 500 Error */ }
     return 'Terjadi kesalahan pada server. Silakan coba lagi nanti.';
   }
 

@@ -115,7 +115,7 @@ export function useFormDraft(formKey, options = {}) {
           };
           localStorage.setItem(storageKey, JSON.stringify(payload));
         } catch (e) {
-          console.warn('[useFormDraft] Failed to save draft:', e.message);
+          // Failed to save draft
         }
       }, debounceMs);
     },

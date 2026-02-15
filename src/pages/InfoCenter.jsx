@@ -96,7 +96,7 @@ export default function InfoCenter() {
         setActiveSectionId(activeSecId);
         setActiveItemId(activeItmId);
       } catch (e) {
-        console.error(e);
+        // Error loading info center
         if (!alive) return;
         setLoadError(e);
       } finally {

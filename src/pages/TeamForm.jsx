@@ -59,7 +59,7 @@ export default function TeamForm() {
         })));
 
       } catch (err) {
-        console.error('Failed to fetch initial data:', err);
+        // Error fetching initial data
       }
     };
     fetchInitialData();
@@ -84,7 +84,7 @@ export default function TeamForm() {
         cohort: member.cohort?.toString() || '',
       });
     } catch (err) {
-      console.error('Failed to fetch member:', err);
+      // Error fetching member
       setError(err.message || 'Gagal memuat data anggota');
     } finally {
       setLoading(false);
@@ -156,7 +156,7 @@ export default function TeamForm() {
 
       navigate('/anggota');
     } catch (err) {
-      console.error('Failed to save member:', err);
+      // Error saving member
       alert(err.message || 'Gagal menyimpan data anggota');
     } finally {
       setSaving(false);

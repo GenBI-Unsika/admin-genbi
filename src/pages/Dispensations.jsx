@@ -35,7 +35,7 @@ export default function Dispensations() {
         setPagination((p) => ({ ...p, total: res.meta.total }));
       }
     } catch (err) {
-      console.error('Failed to load dispensations:', err);
+      // Error loading dispensations
     } finally {
       setLoading(false);
     }
@@ -46,7 +46,7 @@ export default function Dispensations() {
       const res = await apiGet('/dispensations/template/active');
       setActiveTemplate(res.data || res || null);
     } catch (err) {
-      console.error('Failed to load template:', err);
+      // Error loading template
     }
   };
 

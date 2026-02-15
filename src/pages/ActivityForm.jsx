@@ -56,7 +56,7 @@ export default function ActivityForm({ mode: modeProp }) {
         const items = res.data || res || [];
         setDivisions(items.map((d) => ({ value: d.id, label: d.name })));
       })
-      .catch((err) => console.error('Failed to load divisions:', err));
+      .catch((err) => { /* Error loading divisions */ });
   }, []);
 
   const update = (k) => (eOrV) => setForm((s) => ({ ...s, [k]: eOrV?.target ? eOrV.target.value : eOrV }));
@@ -106,7 +106,7 @@ export default function ActivityForm({ mode: modeProp }) {
           });
         })
         .catch((err) => {
-          console.error('Failed to fetch activity:', err);
+          // Error fetching activity
           alert('Gagal memuat data aktivitas');
         })
         .finally(() => setLoading(false));
@@ -406,9 +406,8 @@ export default function ActivityForm({ mode: modeProp }) {
             <button
               type="button"
               onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'foto' ? '' : 'foto' }))}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'foto' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                }`}
             >
               <Image className="w-4 h-4" />
               Foto
@@ -417,9 +416,8 @@ export default function ActivityForm({ mode: modeProp }) {
             <button
               type="button"
               onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'dokumen' ? '' : 'dokumen' }))}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'dokumen' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                }`}
             >
               <FileText className="w-4 h-4" />
               Dokumen
@@ -428,9 +426,8 @@ export default function ActivityForm({ mode: modeProp }) {
             <button
               type="button"
               onClick={() => setForm((s) => ({ ...s, attachmentType: s.attachmentType === 'tautan' ? '' : 'tautan' }))}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${form.attachmentType === 'tautan' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                }`}
             >
               <LinkIcon className="w-4 h-4" />
               Tautan

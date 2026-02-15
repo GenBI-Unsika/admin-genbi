@@ -19,7 +19,7 @@ export default function Divisions() {
       const response = await apiRequest('/divisions/admin/all');
       setDivisions(response?.data || []);
     } catch (err) {
-      console.error('Failed to fetch divisions:', err);
+      // Error fetching divisions
       setError(err.message || 'Gagal memuat data divisi');
     } finally {
       setLoading(false);
@@ -45,7 +45,7 @@ export default function Divisions() {
       await apiRequest(`/divisions/${division.id}`, { method: 'DELETE' });
       setDivisions((prev) => prev.filter((d) => d.id !== division.id));
     } catch (err) {
-      console.error('Failed to delete division:', err);
+      // Error deleting division
       alert(err.message || 'Gagal menghapus divisi');
     }
   };
