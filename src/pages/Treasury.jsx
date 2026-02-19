@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Loader2, Search, Wallet, Users, TrendingUp, Edit2, Save, X, RefreshCw, Plus, Trash2, ArrowUpCircle, ArrowDownCircle, Calendar, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import { ChevronRight, Loader2, Search, Edit2, Save, X, Download, FileSpreadsheet, FileText } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
+import { RefreshIcon, FileIcon, CalendarIcon, PointIcon, MembersIcon, FireIcon, CourseUpIcon, CourseDownIcon, TrashIcon, AddIcon, TreasuryIcon } from '../components/icons/CustomIcons.jsx';
 import { apiRequest } from '../utils/api';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -414,7 +415,7 @@ export default function Treasury() {
           {tab === 'transactions' ? (
             <>
               <button onClick={() => openTxModal()} className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700 shadow-sm">
-                <Plus className="h-4 w-4" />
+                <AddIcon size={16} />
                 Tambah Transaksi
               </button>
               <button
@@ -423,7 +424,7 @@ export default function Treasury() {
                 className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Export ke PDF"
               >
-                <FileText className="h-4 w-4 text-red-500" />
+                <FileIcon size={16} className="text-red-500" />
                 PDF
               </button>
               <button
@@ -432,11 +433,11 @@ export default function Treasury() {
                 className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Export ke Excel"
               >
-                <FileSpreadsheet className="h-4 w-4 text-green-600" />
+                <FileIcon size={16} className="text-green-600" />
                 Excel
               </button>
               <button onClick={fetchTransactions} className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 shadow-sm">
-                <RefreshCw className="h-4 w-4" />
+                <RefreshIcon size={16} />
               </button>
             </>
           ) : (
@@ -448,7 +449,7 @@ export default function Treasury() {
                 className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Export ke PDF"
               >
-                <FileText className="h-4 w-4 text-red-500" />
+                <FileIcon size={16} className="text-red-500" />
                 PDF
               </button>
               <button
@@ -457,11 +458,11 @@ export default function Treasury() {
                 className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Export ke Excel"
               >
-                <FileSpreadsheet className="h-4 w-4 text-green-600" />
+                <FileIcon size={16} className="text-green-600" />
                 Excel
               </button>
               <button onClick={fetchData} className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 active:scale-[0.99] shadow-sm">
-                <RefreshCw className="h-4 w-4" />
+                <RefreshIcon size={16} />
                 Refresh
               </button>
             </>
@@ -491,7 +492,7 @@ export default function Treasury() {
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5" />
+                  <MembersIcon size={20} />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">{data.length}</p>
@@ -502,7 +503,7 @@ export default function Treasury() {
             <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Wallet className="w-5 h-5" />
+                  <TreasuryIcon size={20} />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">{formatCurrencyShort(grandTotal)}</p>
@@ -513,7 +514,7 @@ export default function Treasury() {
             <div className="bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl p-4 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5" />
+                  <FireIcon size={20} />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">{data.length > 0 ? formatCurrencyShort(grandTotal / data.length) : 'Rp0'}</p>
@@ -527,10 +528,10 @@ export default function Treasury() {
         <>
           <div className="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-neutral-500" />
+              <CalendarIcon size={16} className="text-neutral-500" />
               <input value={txYear} onChange={(e) => setTxYear(e.target.value)} className="w-28 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm" placeholder="Tahun" />
               <button onClick={fetchTransactions} className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 shadow-sm">
-                <RefreshCw className="h-4 w-4" />
+                <RefreshIcon size={16} />
                 Terapkan
               </button>
             </div>
@@ -539,7 +540,7 @@ export default function Treasury() {
               <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 text-white">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                    <ArrowUpCircle className="w-5 h-5" />
+                    <CourseUpIcon size={20} />
                   </div>
                   <div>
                     <p className="text-xl font-bold text-white">{formatCurrencyShort(txSummary.totalIncome)}</p>
@@ -550,7 +551,7 @@ export default function Treasury() {
               <div className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl p-4 text-white">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                    <ArrowDownCircle className="w-5 h-5" />
+                    <CourseDownIcon size={20} />
                   </div>
                   <div>
                     <p className="text-xl font-bold text-white">{formatCurrencyShort(txSummary.totalExpense)}</p>
@@ -561,7 +562,7 @@ export default function Treasury() {
               <div className="bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl p-4 text-white">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                    <Wallet className="w-5 h-5" />
+                    <TreasuryIcon size={20} />
                   </div>
                   <div>
                     <p className="text-xl font-bold text-white">{formatCurrencyShort(txSummary.net)}</p>
@@ -604,12 +605,12 @@ export default function Treasury() {
                     <div key={row.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
                       <div className="flex items-start gap-3">
                         <div className={`mt-0.5 w-10 h-10 rounded-lg flex items-center justify-center ${isIncome ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                          {isIncome ? <ArrowUpCircle className="w-5 h-5" /> : <ArrowDownCircle className="w-5 h-5" />}
+                          {isIncome ? <CourseUpIcon size={20} /> : <CourseDownIcon size={20} />}
                         </div>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold text-neutral-900">{isIncome ? 'Pemasukan' : 'Pengeluaran'}</p>
-                            <Calendar className='h-3 w-3 text-neutral-500' />
+                            <CalendarIcon size={12} className="text-neutral-500" />
                             <span className="text-sm text-neutral-500">{new Date(row.occurredAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                           </div>
                           {row.description ? <p className="text-sm text-neutral-700 mt-1 whitespace-pre-wrap">{row.description}</p> : null}
@@ -624,7 +625,7 @@ export default function Treasury() {
                           Edit
                         </button>
                         <button onClick={() => deleteTx(row.id)} className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50" title="Hapus">
-                          <Trash2 className="h-4 w-4" />
+                          <TrashIcon size={16} />
                           Hapus
                         </button>
                       </div>

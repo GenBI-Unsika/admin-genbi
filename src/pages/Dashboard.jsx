@@ -2,7 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import StatCard from '../components/StatCard';
 import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, LineChart, Line } from 'recharts';
-import { GraduationCap, Users, CalendarDays, FileText, Download, Sparkles, Eye, Clock, TrendingUp, ChevronDown, Loader2, RefreshCw } from 'lucide-react';
+import { Users, Download, Sparkles, TrendingUp, ChevronDown, Loader2 } from 'lucide-react';
+import { RefreshIcon, FileIcon, AcademicIcon, HistoryIcon, CalendarIcon, ArticleIcon, ActivityIcon, EyeIcon } from '../components/icons/CustomIcons.jsx';
 import { apiGet } from '../utils/api';
 
 const formatID = (n) => new Intl.NumberFormat('id-ID').format(n);
@@ -52,7 +53,7 @@ function TimeRangeSelector({ value, onChange }) {
   return (
     <div className="relative">
       <button type="button" onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 transition-colors text-sm font-medium text-neutral-700">
-        <Clock className="w-4 h-4 text-neutral-500" />
+        <HistoryIcon className="w-4 h-4 text-neutral-500" />
         {selectedLabel}
         <ChevronDown className={`w-4 h-4 text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -84,7 +85,7 @@ function EmptyChart({ message = 'Belum ada data' }) {
   return (
     <div className="h-[360px] w-full flex items-center justify-center">
       <div className="text-center text-neutral-500">
-        <CalendarDays className="w-12 h-12 mx-auto mb-3 text-neutral-300" />
+        <CalendarIcon className="w-12 h-12 mx-auto mb-3 text-neutral-300" />
         <p className="text-sm">{message}</p>
       </div>
     </div>
@@ -187,7 +188,7 @@ function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
         <div className="flex items-center gap-2">
           <TimeRangeSelector value={days} onChange={onDaysChange} />
           <button onClick={onRetry} disabled={loading} className="p-2 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-500 transition-colors disabled:opacity-50" title="Refresh data">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshIcon className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleExport}
@@ -212,10 +213,10 @@ function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <StatCard title="Jumlah Pendaftar Beasiswa" value={loading ? '...' : formatID(applicants)} unit="peserta" icon={<GraduationCap size={22} className="text-primary-500" />} to="/beasiswa" />
-        <StatCard title="Jumlah Pengunjung Proker" value={loading ? '...' : formatID(prokerVisitors)} unit="pengunjung" icon={<Users size={22} className="text-primary-500" />} to="/aktivitas" />
-        <StatCard title="Jumlah Pengunjung Event" value={loading ? '...' : formatID(eventVisitors)} unit="pengunjung" icon={<CalendarDays size={22} className="text-primary-500" />} to="/aktivitas" />
-        <StatCard title="Jumlah Pengunjung Artikel" value={loading ? '...' : formatID(articleVisitors)} unit="pengunjung" icon={<FileText size={22} className="text-primary-500" />} to="/artikel" />
+        <StatCard title="Jumlah Pendaftar Beasiswa" value={loading ? '...' : formatID(applicants)} unit="peserta" icon={<AcademicIcon size={22} className="text-primary-500" />} to="/beasiswa" />
+        <StatCard title="Jumlah Pengunjung Proker" value={loading ? '...' : formatID(prokerVisitors)} unit="pengunjung" icon={<ActivityIcon size={22} className="text-primary-500" />} to="/aktivitas" />
+        <StatCard title="Jumlah Pengunjung Event" value={loading ? '...' : formatID(eventVisitors)} unit="pengunjung" icon={<ActivityIcon size={22} className="text-primary-500" />} to="/aktivitas" />
+        <StatCard title="Jumlah Pengunjung Artikel" value={loading ? '...' : formatID(articleVisitors)} unit="pengunjung" icon={<ArticleIcon size={22} className="text-primary-500" />} to="/artikel" />
       </div>
 
 
@@ -339,7 +340,7 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
         <div className="flex items-center gap-2">
           <TimeRangeSelector value={days} onChange={onDaysChange} />
           <button onClick={onRetry} disabled={loading} className="p-2 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-500 transition-colors disabled:opacity-50" title="Refresh data">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshIcon className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleExportInsight}
@@ -366,7 +367,7 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <FileText size={18} className="text-primary-500" />
+              <ArticleIcon size={18} className="text-primary-500" />
               <span className="text-xs font-medium text-neutral-600">Artikel</span>
             </div>
             <div className="text-2xl font-bold text-neutral-900">{loading ? '...' : formatID(articlesThisYear)}</div>
@@ -374,7 +375,7 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
 
           <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Eye size={18} className="text-blue-500" />
+              <EyeIcon size={18} className="text-blue-500" />
               <span className="text-xs font-medium text-neutral-600">Views</span>
             </div>
             <div className="text-2xl font-bold text-neutral-900">{loading ? '...' : formatID(allTimeViews)}</div>
@@ -390,7 +391,7 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
 
           <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <CalendarDays size={18} className="text-amber-500" />
+              <ActivityIcon size={18} className="text-amber-500" />
               <span className="text-xs font-medium text-neutral-600">Aktivitas</span>
             </div>
             <div className="text-2xl font-bold text-neutral-900">{loading ? '...' : formatID(activitiesCount)}</div>
@@ -404,7 +405,7 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
           title="Artikel Terbaru"
           right={
             <div className="hidden md:flex items-center gap-2 text-sm text-neutral-500">
-              <Clock size={16} /> Recent
+              <HistoryIcon size={16} /> Recent
             </div>
           }
         >

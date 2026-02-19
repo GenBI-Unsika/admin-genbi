@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, GraduationCap, Users, Newspaper, LayoutGrid, LogOut, ChevronDown, User2, ChartNoAxesGantt, BookOpen, Layers, Wallet, Award, FileText, Database } from 'lucide-react';
+import { Menu, ChevronDown } from 'lucide-react';
+import {
+  HomeIcon, AcademicIcon, FileIcon, CalendarIcon, ProfileIcon, LogoutIcon,
+  ArticleIcon, ActivityIcon, DivisionIcon, WebContentIcon, MembersIcon, InfoCenterIcon, PortalIcon, PointIcon, MasterDataIcon, TreasuryIcon
+} from '../icons/CustomIcons.jsx';
 import { authLogout, authRefresh, fetchMe } from '../../utils/api';
 import { Toaster } from 'react-hot-toast';
 import { useConfirm } from '../../contexts/ConfirmContext.jsx';
@@ -9,33 +13,32 @@ import Avatar from '../Avatar';
 import GlobalSearch from '../GlobalSearch';
 
 // Tambah item Kelola User (gunakan User2 biar beda dengan Aktivitas)
-// Tambah item Kelola User (gunakan User2 biar beda dengan Aktivitas)
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
+  { to: '/dashboard', label: 'Dashboard', icon: HomeIcon },
   {
     label: 'Beasiswa',
-    icon: GraduationCap,
+    icon: AcademicIcon,
     children: [
-      { to: '/beasiswa', label: 'Pendaftar Beasiswa', icon: GraduationCap },
-      { to: '/beasiswa/wawancara', label: 'Kelola Wawancara', icon: FileText },
-      { to: '/beasiswa/dokumen', label: 'Kelola Berkas', icon: FileText },
+      { to: '/beasiswa', label: 'Pendaftar Beasiswa', icon: AcademicIcon },
+      { to: '/beasiswa/wawancara', label: 'Kelola Wawancara', icon: FileIcon },
+      { to: '/beasiswa/dokumen', label: 'Kelola Berkas', icon: FileIcon },
     ],
   },
-  { to: '/aktivitas', label: 'Aktivitas', icon: Users },
-  { to: '/artikel', label: 'Artikel', icon: Newspaper },
-  { to: '/divisi', label: 'Divisi', icon: Layers },
-  { to: '/anggota', label: 'Anggota', icon: Users },
-  { to: '/admin/users', label: 'Kelola User', icon: User2 },
-  { to: '/master-data', label: 'Master Data', icon: Database },
-  { to: '/cms', label: 'Kelola Konten Web', icon: ChartNoAxesGantt },
-  { to: '/pusat-informasi', label: 'Pusat Informasi', icon: BookOpen },
+  { to: '/aktivitas', label: 'Aktivitas', icon: ActivityIcon },
+  { to: '/artikel', label: 'Artikel', icon: ArticleIcon },
+  { to: '/divisi', label: 'Divisi', icon: DivisionIcon },
+  { to: '/anggota', label: 'Anggota', icon: MembersIcon },
+  { to: '/admin/users', label: 'Kelola User', icon: MembersIcon },
+  { to: '/master-data', label: 'Master Data', icon: MasterDataIcon },
+  { to: '/cms', label: 'Kelola Konten Web', icon: WebContentIcon },
+  { to: '/pusat-informasi', label: 'Pusat Informasi', icon: InfoCenterIcon },
   {
     label: 'Menu Portal GenBI',
-    icon: LayoutGrid, // Icon parent
+    icon: PortalIcon, // Icon parent
     children: [
-      { to: '/kas', label: 'Rekapitulasi Kas', icon: Wallet },
-      { to: '/poin', label: 'Poin Kegiatan', icon: Award },
-      { to: '/dispensasi', label: 'Dispensasi', icon: FileText },
+      { to: '/kas', label: 'Rekapitulasi Kas', icon: TreasuryIcon },
+      { to: '/poin', label: 'Poin Kegiatan', icon: PointIcon },
+      { to: '/dispensasi', label: 'Dispensasi', icon: FileIcon },
     ],
   },
 ];
@@ -276,7 +279,7 @@ export default function AdminLayout() {
               className="flex w-full items-center justify-center gap-2 rounded-xl scale-100 hover:scale-101 bg-red-500 hover:bg-red-600 border border-red-600 px-3 py-2.5 text-sm font-medium text-white transition"
               onClick={doLogout}
             >
-              <LogOut className="h-4 w-4" />
+              <LogoutIcon className="h-4 w-4" />
               {!collapsed && <span>Logout</span>}
             </button>
           </div>
@@ -315,11 +318,11 @@ export default function AdminLayout() {
                       }}
                       role="menuitem"
                     >
-                      <User2 className="h-4 w-4" />
+                      <ProfileIcon className="h-4 w-4" />
                       Profil
                     </button>
                     <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-secondary-700 hover:bg-neutral-50" onClick={doLogout} role="menuitem">
-                      <LogOut className="h-4 w-4" />
+                      <LogoutIcon className="h-4 w-4" />
                       Keluar
                     </button>
                   </div>

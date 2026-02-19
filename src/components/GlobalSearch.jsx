@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, FileText, Users, Calendar, Newspaper, Layers, X, Loader2, ArrowRight } from 'lucide-react';
+import { Search, FileText, Layers, X, Loader2, ArrowRight } from 'lucide-react';
+import { CalendarIcon, ProfileIcon, ArticleIcon, ActivityIcon, DivisionIcon, MembersIcon } from './icons/CustomIcons';
 
 // Sample search categories for filtering
 const SEARCH_CATEGORIES = [
   { key: 'all', label: 'Semua', icon: Search },
-  { key: 'artikel', label: 'Artikel', icon: Newspaper },
-  { key: 'aktivitas', label: 'Aktivitas', icon: Calendar },
-  { key: 'anggota', label: 'Anggota', icon: Users },
-  { key: 'divisi', label: 'Divisi', icon: Layers },
+  { key: 'artikel', label: 'Artikel', icon: ArticleIcon },
+  { key: 'aktivitas', label: 'Aktivitas', icon: ActivityIcon },
+  { key: 'anggota', label: 'Anggota', icon: MembersIcon },
+  { key: 'divisi', label: 'Divisi', icon: DivisionIcon },
 ];
 
 export default function GlobalSearch({ className = '' }) {
@@ -91,13 +92,13 @@ export default function GlobalSearch({ className = '' }) {
   const getResultIcon = (type) => {
     switch (type) {
       case 'artikel':
-        return <Newspaper className="w-4 h-4" />;
+        return <ArticleIcon className="w-4 h-4" />;
       case 'aktivitas':
-        return <Calendar className="w-4 h-4" />;
+        return <ActivityIcon className="w-4 h-4" />;
       case 'anggota':
-        return <Users className="w-4 h-4" />;
+        return <MembersIcon className="w-4 h-4" />;
       case 'divisi':
-        return <Layers className="w-4 h-4" />;
+        return <DivisionIcon className="w-4 h-4" />;
       default:
         return <FileText className="w-4 h-4" />;
     }
@@ -216,7 +217,7 @@ export default function GlobalSearch({ className = '' }) {
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 rounded-lg text-xs font-medium text-neutral-700 transition-colors"
                 >
-                  <Calendar className="w-3.5 h-3.5" />
+                  <CalendarIcon className="w-3.5 h-3.5" />
                   Tambah Aktivitas
                 </button>
               </div>

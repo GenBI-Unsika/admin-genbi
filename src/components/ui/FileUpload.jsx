@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Upload, X, File, Image as ImageIcon, FileText, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Link as LinkIcon, Loader2 } from 'lucide-react';
 import { apiUpload, apiUploadStaging, getTempPreviewUrl, normalizeFileUrl } from '../../utils/api';
+import { FileIcon } from '../icons/CustomIcons.jsx';
 
 export default function FileUpload({
   label,
@@ -207,8 +208,8 @@ export default function FileUpload({
 
   const getFileIcon = (file) => {
     if (file.type?.startsWith('image/')) return <ImageIcon className="w-5 h-5 text-primary-500" />;
-    if (file.type?.includes('pdf')) return <FileText className="w-5 h-5 text-red-500" />;
-    return <File className="w-5 h-5 text-neutral-500" />;
+    if (file.type?.includes('pdf')) return <FileIcon className="w-5 h-5 text-red-500" />;
+    return <FileIcon className="w-5 h-5 text-neutral-500" />;
   };
 
   const formatFileSize = (bytes) => {

@@ -3,7 +3,8 @@ import { useMemo, useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Avatar from '../components/Avatar';
 import EmptyState from '../components/EmptyState';
-import { Search, CheckCircle2, XCircle, Upload, FileDown, Download, Eye, AlertTriangle, Lock, Unlock } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Upload, FileDown, Download, AlertTriangle, Lock, Unlock } from 'lucide-react';
+import { EyeIcon } from '../components/icons/CustomIcons.jsx';
 import { apiRequest } from '../utils/api';
 import { trpc } from '../utils/trpc';
 
@@ -178,15 +179,15 @@ export default function ScholarshipList() {
     setToggleModal(
       nextOpen
         ? {
-            action: 'open',
-            confirm: false,
-            year: activeYear,
-            batch: activeBatch,
-          }
+          action: 'open',
+          confirm: false,
+          year: activeYear,
+          batch: activeBatch,
+        }
         : {
-            action: 'close',
-            confirm: false,
-          },
+          action: 'close',
+          confirm: false,
+        },
     );
   };
 
@@ -760,7 +761,7 @@ export default function ScholarshipList() {
                     <td className="px-3 py-3.5">
                       <div className="flex items-center justify-end gap-3">
                         <Link to={`/beasiswa/${row.id}`} className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 hover:underline" title="Detail">
-                          <Eye className="h-4 w-4" />
+                          <EyeIcon className="h-4 w-4" />
                           Detail
                         </Link>
 
@@ -889,9 +890,8 @@ export default function ScholarshipList() {
                 const canSubmit = toggleModal.confirm;
                 return (
                   <button
-                    className={`rounded-lg px-3 py-2 text-sm font-medium text-white ${toggleModal.action === 'open' ? 'bg-primary-500 hover:bg-primary-600' : 'bg-red-600 hover:bg-red-700'} ${
-                      !canSubmit ? 'opacity-60 cursor-not-allowed' : ''
-                    }`}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium text-white ${toggleModal.action === 'open' ? 'bg-primary-500 hover:bg-primary-600' : 'bg-red-600 hover:bg-red-700'} ${!canSubmit ? 'opacity-60 cursor-not-allowed' : ''
+                      }`}
                     onClick={confirmToggle}
                     disabled={!canSubmit}
                   >
