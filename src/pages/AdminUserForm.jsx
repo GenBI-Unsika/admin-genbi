@@ -6,13 +6,14 @@ import { useConfirm } from '../contexts/ConfirmContext.jsx';
 import { apiGet, apiPost, apiPatch } from '../utils/api';
 import CoverUpload from '../components/ui/CoverUpload';
 
-const ROLES = ['super_admin', 'admin', 'awardee', 'alumni'];
+const ROLES = ['super_admin', 'admin', 'awardee', 'alumni', 'user'];
 const roleLabel = (name) => {
   const map = {
     super_admin: 'Super Admin',
     admin: 'Admin',
     awardee: 'Awardee',
     alumni: 'Alumni',
+    user: 'User',
   };
   return map[name] || name;
 };

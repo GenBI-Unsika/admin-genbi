@@ -12,6 +12,7 @@ const ROLE_DEFS = [
   { role_name: 'admin', label: 'Admin' },
   { role_name: 'awardee', label: 'Awardee' },
   { role_name: 'alumni', label: 'Alumni' },
+  { role_name: 'user', label: 'User' },
 ];
 const roleLabel = (name) => ROLE_DEFS.find((r) => r.role_name === name)?.label || name;
 
@@ -161,9 +162,9 @@ export default function AdminUsers() {
 
   const onDeleteAccount = async (id) => {
     const ok = await confirm({
-      title: 'Nonaktifkan user ini?',
-      description: 'User akan dinonaktifkan dari sistem.',
-      confirmText: 'Nonaktifkan',
+      title: 'Hapus akun user ini?',
+      description: 'Data user akan dihapus permanen. Gunakan fitur "Edit > Nonaktif" jika hanya ingin mencabut akses sementera tanpa menghapus data.',
+      confirmText: 'Hapus',
       cancelText: 'Batal',
       tone: 'danger',
     });
