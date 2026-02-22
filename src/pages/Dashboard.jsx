@@ -8,7 +8,6 @@ import { apiGet } from '../utils/api';
 
 const formatID = (n) => new Intl.NumberFormat('id-ID').format(n);
 
-
 const TIME_RANGES = [
   { value: 7, label: '7 hari terakhir' },
   { value: 14, label: '14 hari terakhir' },
@@ -17,7 +16,6 @@ const TIME_RANGES = [
   { value: 90, label: '90 hari terakhir' },
   { value: 365, label: 'Tahun lalu' },
 ];
-
 
 function Section({ title, right, children }) {
   return (
@@ -101,7 +99,6 @@ function LoadingState() {
   );
 }
 
-
 function ChartCard({ title, value, unit, series, colorVar = 'var(--primary-500)', loading }) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-4 md:p-5">
@@ -144,7 +141,6 @@ function ChartCard({ title, value, unit, series, colorVar = 'var(--primary-500)'
   );
 }
 
-
 function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
   const traffic = summary?.traffic?.series ?? [];
   const applicants = summary?.counts?.scholarshipApplications ?? 0;
@@ -152,12 +148,10 @@ function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
   const eventVisitors = summary?.byPrefix?.events?.visitors ?? 0;
   const articleVisitors = summary?.byPrefix?.articles?.visitors ?? 0;
 
-
   const endDate = new Date();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
   const dateRange = `${startDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`;
-
 
   const handleExport = () => {
     if (!traffic.length) return;
@@ -177,7 +171,6 @@ function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
 
   return (
     <>
-      {/* Header with filters */}
       <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-neutral-900">Traffic Analytics</h2>
@@ -211,14 +204,12 @@ function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
         </div>
       )}
 
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <StatCard title="Jumlah Pendaftar Beasiswa" value={loading ? '...' : formatID(applicants)} unit="peserta" icon={<AcademicIcon size={22} className="text-primary-500" />} to="/beasiswa" />
         <StatCard title="Jumlah Pengunjung Proker" value={loading ? '...' : formatID(prokerVisitors)} unit="pengunjung" icon={<ActivityIcon size={22} className="text-primary-500" />} to="/aktivitas" />
         <StatCard title="Jumlah Pengunjung Event" value={loading ? '...' : formatID(eventVisitors)} unit="pengunjung" icon={<ActivityIcon size={22} className="text-primary-500" />} to="/aktivitas" />
         <StatCard title="Jumlah Pengunjung Artikel" value={loading ? '...' : formatID(articleVisitors)} unit="pengunjung" icon={<ArticleIcon size={22} className="text-primary-500" />} to="/artikel" />
       </div>
-
 
       <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 md:p-6">
         <div className="mb-4 flex items-center justify-between">
@@ -272,7 +263,6 @@ function TrafficTab({ summary, loading, error, onRetry, days, onDaysChange }) {
   );
 }
 
-
 function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
   const allTimeViews = summary?.allTime?.views ?? 0;
   const allTimeVisitors = summary?.allTime?.visitors ?? 0;
@@ -285,12 +275,10 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
   const currentYear = new Date().getFullYear();
   const articlesThisYear = latestArticles.filter((a) => new Date(a.publishedAt || a.createdAt).getFullYear() === currentYear).length;
 
-
   const endDate = new Date();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
   const dateRange = `${startDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`;
-
 
   const handleExportInsight = () => {
     const data = [
@@ -329,7 +317,6 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
         </div>
       )}
 
-      {/* Header with filters */}
       <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-neutral-900">Content Insights</h2>
@@ -353,7 +340,6 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
           </button>
         </div>
       </div>
-
 
       <div className="rounded-2xl border border-neutral-200 bg-white p-5 md:p-6">
         <div className="mb-5 flex items-center justify-between">
@@ -398,7 +384,6 @@ function InsightTab({ summary, loading, error, onRetry, days, onDaysChange }) {
           </div>
         </div>
       </div>
-
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6">
         <Section
@@ -463,12 +448,10 @@ export default function Dashboard() {
   const initial = allowed.includes(tabParam) ? tabParam : 'traffic';
   const [tab, setTab] = useState(initial);
 
-
   const [days, setDays] = useState(30);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
 
   const fetchSummary = useCallback(async () => {
     setLoading(true);
@@ -477,7 +460,6 @@ export default function Dashboard() {
       const response = await apiGet(`/analytics/summary?days=${days}`);
       setSummary(response?.data || {});
     } catch (err) {
-      // Error fetching dashboard summary
       setError(err.message || 'Gagal memuat data dashboard');
     } finally {
       setLoading(false);
@@ -488,7 +470,6 @@ export default function Dashboard() {
     fetchSummary();
   }, [fetchSummary]);
 
-
   useEffect(() => {
     if (allowed.includes(tabParam) && tabParam !== tab) setTab(tabParam);
     if (!allowed.includes(tabParam)) navigate('/dashboard/traffic', { replace: true });
@@ -497,7 +478,7 @@ export default function Dashboard() {
   const onSwitch = (key) => {
     if (key !== tab) {
       setTab(key);
-      navigate(`/dashboard/${key}`); // push slug
+      navigate(`/dashboard/${key}`); // Pindah ke halaman tab tsb
     }
   };
 

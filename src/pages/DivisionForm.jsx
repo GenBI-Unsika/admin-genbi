@@ -50,7 +50,6 @@ export default function DivisionForm() {
           isActive: division.isActive ?? true,
         });
       } catch (err) {
-        // Error loading division
         if (err?.status === 403) {
           setError({ kind: 'forbidden', message: 'Anda tidak memiliki izin untuk mengakses fitur ini.' });
         } else {
@@ -106,7 +105,6 @@ export default function DivisionForm() {
       }
       navigate('/divisi');
     } catch (err) {
-      // Error saving division
       if (err?.status === 403) {
         setError({ kind: 'forbidden', message: 'Anda tidak memiliki izin untuk melakukan aksi ini.' });
       } else {

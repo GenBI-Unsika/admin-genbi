@@ -23,15 +23,15 @@ export default function ActivityForm({ mode: modeProp }) {
   const [form, setForm] = useState({
     category: '',
     title: '',
-    divisionId: '', // Event only
-    theme: '', // Proker only
-    startDate: '', // Event only
-    endDate: '', // Event only
-    publicationDate: '', // Proker only
-    location: '', // Event only
+    divisionId: '', // Khusus Event aja
+    theme: '', // Khusus Proker aja
+    startDate: '', // Khusus Event aja
+    endDate: '', // Khusus Event aja
+    publicationDate: '', // Khusus Proker aja
+    location: '', // Khusus Event aja
     description: '',
-    benefits: [], // Event only
-    status: '', // NEW: explicit status
+    benefits: [], // Khusus Event aja
+    status: '', // Diset manual statusnya
 
     coverImage: null,
 
@@ -45,11 +45,9 @@ export default function ActivityForm({ mode: modeProp }) {
   const [showDraftBanner, setShowDraftBanner] = useState(false);
   const draftRestoredRef = useRef(false);
 
-  // Draft auto-save (create mode only)
   const draftKey = !isEdit ? 'activity-create' : null;
   const { restoreDraft, saveDraft, clearDraft, getDraftAge } = useFormDraft(draftKey || '__noop__');
 
-  // Fetch divisions
   useEffect(() => {
     apiGet('/divisions')
       .then((res) => {
@@ -87,7 +85,7 @@ export default function ActivityForm({ mode: modeProp }) {
       apiGet(`/activities/${params.id}`)
         .then((data) => {
           setForm({
-            category: data.status === 'DRAFT' ? 'proker' : 'event', // Heuristic if type not available
+            category: data.status === 'DRAFT' ? 'proker' : 'event', // Nilai default jaga-jaga kalo tipenya kosong
             title: data.title || '',
             divisionId: data.divisionId || '',
             theme: data.theme || '',
@@ -106,14 +104,12 @@ export default function ActivityForm({ mode: modeProp }) {
           });
         })
         .catch((err) => {
-          // Error fetching activity
           alert('Gagal memuat data aktivitas');
         })
         .finally(() => setLoading(false));
     }
   }, [isEdit, payloadFromState, params.id]);
 
-  // Restore draft on mount (create mode only)
   useEffect(() => {
     if (isEdit || draftRestoredRef.current) return;
     draftRestoredRef.current = true;
@@ -124,13 +120,11 @@ export default function ActivityForm({ mode: modeProp }) {
     }
   }, [isEdit, restoreDraft]);
 
-  // Auto-save form to localStorage (create mode only)
   useEffect(() => {
     if (isEdit || saving) return;
     saveDraft({ form });
   }, [form, isEdit, saving, saveDraft]);
 
-  // Set default status when category changes (if creating new)
   useEffect(() => {
     if (isEdit) return;
     if (form.category === 'proker') {
@@ -157,17 +151,15 @@ export default function ActivityForm({ mode: modeProp }) {
       const payload = {
         title: form.title,
         description: form.description,
-        status: form.status, // Use selected status
+        status: form.status, // Pake status yang emg kepilih
       };
 
-      // Handle cover image - prefer tempId
       if (form.coverImage?.tempId) {
         payload.coverImageTempId = form.coverImage.tempId;
       } else if (form.coverImage?.url) {
         payload.coverImage = form.coverImage.url;
       }
 
-      // Handle attachments
       const photos = (form.photos || []).map((p) => ({
         name: p.name,
         url: p.url,
@@ -188,10 +180,8 @@ export default function ActivityForm({ mode: modeProp }) {
         links: form.links || [],
       };
 
-      // Ensure status is included in top-level payload if not already
       payload.status = form.status;
 
-      // Event-specific fields
       if (form.category === 'event') {
         payload.divisionId = form.divisionId ? parseInt(form.divisionId) : null;
         payload.startDate = form.startDate ? new Date(form.startDate).toISOString() : null;
@@ -200,7 +190,6 @@ export default function ActivityForm({ mode: modeProp }) {
         payload.benefits = form.benefits;
       }
 
-      // Proker-specific fields
       if (form.category === 'proker') {
         payload.theme = form.theme;
         payload.publicationDate = form.publicationDate ? new Date(form.publicationDate).toISOString() : null;
@@ -263,7 +252,6 @@ export default function ActivityForm({ mode: modeProp }) {
 
       <h2 className="mt-2 text-xl md:text-2xl font-semibold">Event dan Proker</h2>
 
-      {/* Draft restoration banner */}
       {showDraftBanner && !isEdit && (
         <div className="mt-3 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5">
           <p className="text-sm text-amber-800">
@@ -306,7 +294,6 @@ export default function ActivityForm({ mode: modeProp }) {
       )}
 
       <form onSubmit={handleSubmit} className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
-        {/* Warning - Pilih Kategori */}
         {!form.category && (
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
@@ -344,7 +331,6 @@ export default function ActivityForm({ mode: modeProp }) {
 
           {form.category === 'proker' && <Input label="Tema" value={form.theme} onChange={update('theme')} placeholder="Tema program kerja..." />}
 
-          {/* Cover Image */}
           <div className="md:col-span-2">
             <CoverUpload label="Cover Image" value={form.coverImage} onChange={(v) => setForm((s) => ({ ...s, coverImage: v }))} useStaging />
             {!isEdit && !form.coverImage?.url && <p className="mt-2 text-xs text-neutral-500">Cover wajib diisi untuk aktivitas baru.</p>}

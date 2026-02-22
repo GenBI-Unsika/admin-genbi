@@ -10,14 +10,13 @@ export default function CoverUpload({ label = 'Cover', value, onChange, classNam
     const objectUrlsRef = useRef(new Set());
 
     useEffect(() => {
-        // Cabut object URL yang tidak digunakan (misal value diganti dengan url remote)
         const activeUrl = typeof value?.url === 'string' && value.url.startsWith('blob:') ? value.url : null;
         for (const url of Array.from(objectUrlsRef.current)) {
             if (!activeUrl || url !== activeUrl) {
                 try {
                     URL.revokeObjectURL(url);
                 } catch {
-                    // ignore
+                    // Sengaja dicuekin errornya, aman kok
                 }
                 objectUrlsRef.current.delete(url);
             }
@@ -31,7 +30,7 @@ export default function CoverUpload({ label = 'Cover', value, onChange, classNam
                 try {
                     URL.revokeObjectURL(url);
                 } catch {
-                    // ignore
+                    // Sengaja dicuekin errornya, aman kok
                 }
             }
             urls.clear();
@@ -63,15 +62,14 @@ export default function CoverUpload({ label = 'Cover', value, onChange, classNam
             return;
         }
 
-        // Tunda upload - simpan file secara lokal
         if (deferUpload) {
             setError('');
-            // Cabut preview lokal sebelumnya jika ada
+            // Buang dlu yak preview foto versi lama (kalo emg ada)
             if (value?.isLocal && typeof value?.url === 'string' && value.url.startsWith('blob:')) {
                 try {
                     URL.revokeObjectURL(value.url);
                 } catch {
-                    // ignore
+                    // Sengaja dicuekin errornya, aman kok
                 }
                 objectUrlsRef.current.delete(value.url);
             }
@@ -82,7 +80,7 @@ export default function CoverUpload({ label = 'Cover', value, onChange, classNam
             return;
         }
 
-        // Upload ke staging untuk preview
+        // Lempar dl ke tmpt sementara buat preview
         if (useStaging) {
             setUploading(true);
             setError('');
@@ -105,7 +103,6 @@ export default function CoverUpload({ label = 'Cover', value, onChange, classNam
             return;
         }
 
-        // Upload langsung
         setUploading(true);
         setError('');
         try {

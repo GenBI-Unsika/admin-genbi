@@ -1,11 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { apiUploadStaging, apiFinalizeUpload, apiFinalizeBulkUpload, apiDeleteStaging, getTempPreviewUrl } from './api';
 
-/**
- * Hook untuk mengelola staging upload
- * File di-upload ke temporary storage untuk preview,
- * kemudian di-finalize ke Google Drive saat submit
- */
+// Hook buat ngatur upload file sementara (buat diliat dulu sblm disave permanen ke GDrive pas submit)
 export function useStagingUpload() {
   const [stagedFiles, setStagedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -20,9 +16,7 @@ export function useStagingUpload() {
     };
   }, []);
 
-  /**
-   * Upload satu file ke staging
-   */
+  // Upload satu file ke tempat sementara
   const uploadToStaging = useCallback(async (file, options = {}) => {
     setUploading(true);
     setError(null);
@@ -56,9 +50,7 @@ export function useStagingUpload() {
     }
   }, []);
 
-  /**
-   * Upload banyak file ke staging
-   */
+  // Upload banyak file sekaligus ke tempat sementara
   const uploadMultipleToStaging = useCallback(async (files, options = {}) => {
     setUploading(true);
     setError(null);
@@ -100,23 +92,19 @@ export function useStagingUpload() {
     }
   }, []);
 
-  /**
-   * Hapus file dari staging
-   */
+  // Hapus file dari tempat sementara
   const removeStagedFile = useCallback(async (tempId) => {
     try {
       await apiDeleteStaging(tempId);
     } catch {
-      // ignore
+      // Sengaja dicuekin errornya, aman kok
     }
     if (mountedRef.current) {
       setStagedFiles((prev) => prev.filter((f) => f.tempId !== tempId));
     }
   }, []);
 
-  /**
-   * Finalisasi satu file staging ke Google Drive
-   */
+  // Simpan permanen satu file dari tempat sementara ke Google Drive
   const finalizeSingle = useCallback(async (tempId, folder) => {
     setFinalizing(true);
     setError(null);
@@ -144,9 +132,7 @@ export function useStagingUpload() {
     }
   }, []);
 
-  /**
-   * Finalisasi semua file staging ke Google Drive
-   */
+  // Simpan permanen SEMUA file dari tempat sementara ke Google Drive
   const finalizeAll = useCallback(async () => {
     if (stagedFiles.length === 0) return { uploaded: [], errors: [] };
 
@@ -183,9 +169,7 @@ export function useStagingUpload() {
     }
   }, [stagedFiles]);
 
-  /**
-   * Bersihkan semua file staging (tanpa finalisasi)
-   */
+  // Bersihin semua file yang ada di tempat sementara (tanpa dikirim ke GDrive)
   const clearAll = useCallback(async () => {
 
     await Promise.all(stagedFiles.map((f) => apiDeleteStaging(f.tempId).catch(() => { })));
@@ -194,9 +178,7 @@ export function useStagingUpload() {
     }
   }, [stagedFiles]);
 
-  /**
-   * Finalisasi file spesifik berdasarkan tempId
-   */
+  // Pilih dan simpan permanen beberapa file spesifik aja ke Google Drive
   const finalizeFiles = useCallback(
     async (tempIds, folder) => {
       const files = tempIds.map((tempId) => ({

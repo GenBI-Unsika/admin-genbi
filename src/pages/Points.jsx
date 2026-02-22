@@ -7,8 +7,8 @@ import EmptyState from '../components/EmptyState';
 export default function Points() {
   const { confirm } = useConfirm();
   const [leaderboard, setLeaderboard] = useState([]);
-  const [members, setMembers] = useState([]); // All members for dropdown
-  const [activities, setActivities] = useState([]); // Store fetched activities
+  const [members, setMembers] = useState([]); // Kumpulin semua member buat milih di dropdown
+  const [activities, setActivities] = useState([]); // Simpen data proker/event yg abis diambil
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
@@ -26,16 +26,14 @@ export default function Points() {
       const res = await apiGet('/members/admin/all');
       setMembers(res.data || res || []);
     } catch (err) {
-      // Error loading members
     }
   };
 
   const fetchActivities = async () => {
     try {
-      const res = await apiGet('/activities?limit=100'); // Fetch recent activities
+      const res = await apiGet('/activities?limit=100'); // Ambil riwayat aktivitas maba yg terbaru
       setActivities(res.data || res || []);
     } catch (err) {
-      // Error loading activities
     }
   };
 
@@ -45,7 +43,6 @@ export default function Points() {
       const res = await apiGet('/leaderboard');
       setLeaderboard(res.data || res || []);
     } catch (err) {
-      // Error loading leaderboard
     } finally {
       setLoading(false);
     }
@@ -96,7 +93,6 @@ export default function Points() {
     return leaderboard.filter((m) => m.name?.toLowerCase().includes(q) || m.division?.toLowerCase().includes(q));
   }, [leaderboard, search]);
 
-  // Stats
   const stats = useMemo(() => {
     const totalMembers = leaderboard.length;
     const totalPoints = leaderboard.reduce((sum, m) => sum + (m.points || 0), 0);
@@ -106,7 +102,6 @@ export default function Points() {
 
   return (
     <div className="px-4 md:px-6 lg:px-10 py-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-xl md:text-2xl font-semibold text-neutral-900">Kelola Poin Kegiatan</h1>
@@ -123,7 +118,6 @@ export default function Points() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl border border-neutral-200 p-4">
           <div className="flex items-center gap-3">
@@ -160,7 +154,6 @@ export default function Points() {
         </div>
       </div>
 
-      {/* Search */}
       <div className="mb-6">
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
@@ -174,7 +167,6 @@ export default function Points() {
         </div>
       </div>
 
-      {/* Leaderboard Table */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
@@ -239,7 +231,6 @@ export default function Points() {
         </div>
       )}
 
-      {/* Member Detail Modal */}
       {selectedMember && (
         <MemberDetailModal
           member={selectedMember}
@@ -254,10 +245,8 @@ export default function Points() {
         />
       )}
 
-      {/* Add Point Modal */}
       {addModal && <AddPointModal members={members} activities={activities} onClose={() => setAddModal(false)} onSubmit={handleAddPoint} />}
 
-      {/* Edit Point Modal */}
       {editModal && <EditPointModal memberId={editModal.memberId} activity={editModal.activity} onClose={() => setEditModal(null)} onSubmit={handleEditPoint} />}
     </div>
   );
@@ -285,7 +274,6 @@ function MemberDetailModal({ member, onClose, onEdit, onDelete }) {
         </div>
 
         <div className="p-5 flex-1 overflow-y-auto">
-          {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="text-center p-3 bg-primary-50 rounded-lg">
               <p className="text-2xl font-semibold text-primary-700">{member.points || 0}</p>
@@ -301,7 +289,6 @@ function MemberDetailModal({ member, onClose, onEdit, onDelete }) {
             </div>
           </div>
 
-          {/* Activities */}
           <h4 className="font-medium text-neutral-900 mb-3">Riwayat Kegiatan</h4>
           {member.activities?.length > 0 ? (
             <div className="space-y-2">
@@ -371,7 +358,6 @@ function AddPointModal({ members, activities, onClose, onSubmit }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {/* Anggota */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Anggota</label>
             <select
@@ -389,7 +375,6 @@ function AddPointModal({ members, activities, onClose, onSubmit }) {
             </select>
           </div>
 
-          {/* Kegiatan */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Kegiatan</label>
             <input
@@ -408,7 +393,6 @@ function AddPointModal({ members, activities, onClose, onSubmit }) {
             </datalist>
           </div>
 
-          {/* Poin & Tipe */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-1.5">Poin</label>
@@ -435,7 +419,6 @@ function AddPointModal({ members, activities, onClose, onSubmit }) {
             </div>
           </div>
 
-          {/* Tanggal */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Tanggal</label>
             <input
@@ -446,7 +429,6 @@ function AddPointModal({ members, activities, onClose, onSubmit }) {
             />
           </div>
 
-          {/* Actions */}
           <div className="flex justify-end gap-3 pt-3">
             <button type="button" onClick={onClose} disabled={saving} className="px-4 py-2.5 border border-neutral-200 rounded-lg text-sm font-medium hover:bg-neutral-50 transition">
               Batal

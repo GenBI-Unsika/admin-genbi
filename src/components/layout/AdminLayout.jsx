@@ -12,7 +12,6 @@ import { fetchMeViaTrpc } from '../../utils/me';
 import Avatar from '../Avatar';
 import GlobalSearch from '../GlobalSearch';
 
-// Tambah item Kelola User (gunakan User2 biar beda dengan Aktivitas)
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: HomeIcon },
   {
@@ -34,7 +33,7 @@ const navItems = [
   { to: '/pusat-informasi', label: 'Pusat Informasi', icon: InfoCenterIcon },
   {
     label: 'Menu Portal GenBI',
-    icon: PortalIcon, // Icon parent
+    icon: PortalIcon, // Ikon menu induk
     children: [
       { to: '/kas', label: 'Rekapitulasi Kas', icon: TreasuryIcon },
       { to: '/poin', label: 'Poin Kegiatan', icon: PointIcon },
@@ -64,7 +63,6 @@ export default function AdminLayout() {
   };
 
   const normalizeMe = (raw) => {
-    // Support different response shapes (TRPC vs REST)
     const base = raw?.data ?? raw;
     const maybeUser = base?.user ?? base;
     const profile = maybeUser?.profile ?? base?.profile ?? null;
@@ -101,7 +99,6 @@ export default function AdminLayout() {
     return normalizeMe(me);
   };
 
-  // Fetch user data and refresh on profile updates
   useEffect(() => {
     let alive = true;
 
@@ -111,7 +108,6 @@ export default function AdminLayout() {
         if (!alive) return;
         setUser(nextUser);
       } catch (err) {
-        // Error fetching user
         if (alive) setUser(null);
       }
     };
@@ -134,12 +130,10 @@ export default function AdminLayout() {
     localStorage.setItem('sidebar-collapsed', JSON.stringify(collapsed));
   }, [collapsed]);
 
-  // Tutup dropdown saat route berubah
   useEffect(() => {
     setProfileOpen(false);
   }, [location.pathname]);
 
-  // Tutup dropdown saat klik di luar
   useEffect(() => {
     if (!profileOpen) return;
 
@@ -190,9 +184,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-white text-neutral-800">
       <div className="flex">
-        {/* Sidebar */}
         <aside className={`sticky top-0 hidden md:flex shrink-0 h-screen flex-col border-r border-neutral-200 bg-white transition-[width] duration-200 ${collapsed ? 'w-[88px]' : 'w-[264px]'}`}>
-          {/* Top row */}
           <div className={`flex items-center border-b border-neutral-200 ${collapsed ? 'justify-center py-3' : 'justify-between px-3 py-3'}`}>
             {Brand}
             <button
@@ -204,14 +196,11 @@ export default function AdminLayout() {
               <Menu className="h-5 w-5 text-neutral-700" />
             </button>
           </div>
-          {/* Nav */}
           <nav className="flex-1 px-2 py-4">
             <ul className="space-y-1.5">
               {navItems.map((item, idx) => {
-                // If it's a dropdown menu
                 if (item.children) {
                   const isActiveParent = item.children.some((child) => activeMatcher(child.to));
-                  // Use details/summary for simple collapsible behavior
                   return (
                     <li key={idx} className="mb-1">
                       <details className="group/details" open={isActiveParent || undefined}>
@@ -248,12 +237,10 @@ export default function AdminLayout() {
                           })}
                         </ul>
                       </details>
-                      {/* For collapsed mode, show children as a popover on hover (optional enhancement, skipping for now to keep it simple, user requested dropdown) */}
                     </li>
                   );
                 }
 
-                // Normal item
                 const active = activeMatcher(item.to);
                 return (
                   <li key={item.to}>
@@ -272,7 +259,6 @@ export default function AdminLayout() {
               })}
             </ul>
           </nav>
-          {/* Logout di sidebar */}
           <div className="mt-auto px-2 pb-4">
             <button
               type="button"
@@ -285,12 +271,9 @@ export default function AdminLayout() {
           </div>
         </aside>
 
-        {/* Main */}
         <div className="flex min-h-screen min-w-0 flex-1 flex-col overflow-hidden">
-          {/* NAVBAR */}
           <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/90 backdrop-blur">
             <div className="flex items-center gap-3 px-4 py-3 md:px-6">
-              {/* Mobile toggle */}
               <button type="button" className="inline-grid h-9 w-9 place-items-center rounded-lg border border-neutral-200 hover:bg-neutral-50 md:hidden" onClick={() => setCollapsed((s) => !s)} aria-label="Toggle sidebar">
                 <Menu className="h-5 w-5 text-neutral-700" />
               </button>
@@ -331,7 +314,6 @@ export default function AdminLayout() {
             </div>
           </header>
 
-          {/* Content */}
           <main className="flex-1 overflow-x-auto p-4 md:p-6">
             <Outlet />
           </main>

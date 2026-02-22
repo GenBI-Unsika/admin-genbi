@@ -13,16 +13,7 @@ const icons = {
   default: FileQuestion,
 };
 
-/**
- * EmptyState - Komponen reusable untuk menampilkan state kosong dengan desain menarik
- *
- * @param {Object} props
- * @param {string} props.icon - Nama icon: 'box' | 'empty' | 'inbox' | 'search' | 'error' | 'users' | 'files' | 'calendar' | 'clipboard'
- * @param {string} props.title - Judul utama
- * @param {string} props.description - Deskripsi detail
- * @param {React.ReactNode} props.action - Optional button atau action element
- * @param {string} props.variant - 'default' | 'primary' | 'secondary' | 'warning'
- */
+// Komponen cakep buat nampilin tampilan kosong (empty state) pas datanya nggak ada
 export default function EmptyState({ icon = 'default', title, description, action, variant = 'default' }) {
   const Icon = icons[icon] || icons.default;
 

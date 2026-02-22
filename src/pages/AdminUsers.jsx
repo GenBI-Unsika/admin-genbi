@@ -173,7 +173,7 @@ export default function AdminUsers() {
 
     try {
       await apiDelete(`/users/${id}`);
-      fetchAccounts(); // Refresh list
+      fetchAccounts(); // Refresh daftar datanya
     } catch (err) {
       alert(err.message || 'Gagal menghapus user');
     }
@@ -208,7 +208,6 @@ export default function AdminUsers() {
       </nav>
 
       <div className="rounded-2xl border border-neutral-200 bg-white">
-        {/* Sub-tabs full-width, underline biru */}
         <div role="tablist" aria-label="Kelola User tabs" className="grid grid-cols-2 border-b border-neutral-200">
           {[
             { key: 'accounts', label: 'Akun Website' },
@@ -233,15 +232,12 @@ export default function AdminUsers() {
           })}
         </div>
 
-        {/* Panels */}
         <div className="p-4 md:p-6">
           {tab === 'accounts' && (
             <>
-              {/* Header tools */}
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="text-lg font-semibold text-neutral-900">Akun Website</h3>
                 <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                  {/* Filter role */}
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-medium text-neutral-700">Role</label>
                     <div className="relative">
@@ -265,7 +261,6 @@ export default function AdminUsers() {
                     </div>
                   </div>
 
-                  {/* Search */}
                   <div className="relative">
                     <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
                     <input
@@ -280,7 +275,6 @@ export default function AdminUsers() {
                     />
                   </div>
 
-                  {/* Tambah user */}
                   <button
                     type="button"
                     onClick={() => navigate('/admin/users/new')}

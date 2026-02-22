@@ -19,7 +19,6 @@ export default function Divisions() {
       const response = await apiRequest('/divisions/admin/all');
       setDivisions(response?.data || []);
     } catch (err) {
-      // Error fetching divisions
       setError(err.message || 'Gagal memuat data divisi');
     } finally {
       setLoading(false);
@@ -45,7 +44,6 @@ export default function Divisions() {
       await apiRequest(`/divisions/${division.id}`, { method: 'DELETE' });
       setDivisions((prev) => prev.filter((d) => d.id !== division.id));
     } catch (err) {
-      // Error deleting division
       alert(err.message || 'Gagal menghapus divisi');
     }
   };
@@ -77,7 +75,6 @@ export default function Divisions() {
         </Link>
       </div>
 
-      {/* Search */}
       <div className="mb-6">
         <div className="relative max-w-md">
           <input
@@ -91,7 +88,6 @@ export default function Divisions() {
         </div>
       </div>
 
-      {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
@@ -99,7 +95,6 @@ export default function Divisions() {
         </div>
       )}
 
-      {/* Error State */}
       {error && !loading && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
           <p>{error}</p>
@@ -109,7 +104,6 @@ export default function Divisions() {
         </div>
       )}
 
-      {/* Content */}
       {!loading && !error && (
         <>
           {filteredDivisions.length > 0 ? (

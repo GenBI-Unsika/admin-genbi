@@ -7,7 +7,6 @@ import Textarea from '../components/ui/Textarea';
 import EmptyState from '../components/EmptyState';
 import { apiRequest } from '../utils/api';
 
-// === Fallback document config (used if server doesn't provide docs) ===
 const DEFAULT_DOCS = [
   { key: 'ktmKtp', title: 'Scan KTP & KTM', desc: 'Dalam 1 file format PDF (Maks 10 MB).', kind: 'file' },
   { key: 'transkrip', title: 'Transkrip Nilai', desc: 'Bertandatangan dan cap Koordinator Program Studi, format PDF (Maks 10 MB).', kind: 'file' },
@@ -61,11 +60,9 @@ export default function ScholarshipDetail() {
       setLoading(true);
       setError('');
       try {
-        // Fetch application detail and document config in parallel
         const [appPayload, regPayload] = await Promise.all([apiRequest(`/scholarships/applications/${id}`, { method: 'GET' }), apiRequest(`/scholarships/registration`, { method: 'GET' }).catch(() => null)]);
         if (!alive) return;
         setRow(appPayload?.data || null);
-        // Use server doc config if available
         if (Array.isArray(regPayload?.data?.documents) && regPayload.data.documents.length > 0) {
           setDocConfig(regPayload.data.documents);
         }
@@ -84,7 +81,6 @@ export default function ScholarshipDetail() {
     };
   }, [id]);
 
-  // Build merged docs: show server-configured docs + any extra keys found in applicant's files
   const DOCS = useMemo(() => {
     if (!row?.files) return docConfig;
     const configKeys = new Set(docConfig.map((d) => d.key));
@@ -103,7 +99,6 @@ export default function ScholarshipDetail() {
       administrasi: statusLabel(row.administrasiStatus),
       interviewLabel: interviewStatusLabel(row.interviewStatus),
       interviewReviewerName: row.interviewReviewedBy?.profile?.name || row.interviewReviewedBy?.email || '',
-      // Resolve faculty/studyProgram display names from included relations
       facultyName: row.faculty?.name || '',
       studyProgramName: row.studyProgram?.name || '',
       reviewerName: row.reviewedBy?.profile?.name || row.reviewedBy?.email || '',
@@ -134,7 +129,6 @@ export default function ScholarshipDetail() {
       if (isLink) return { href: String(val), onClick: undefined };
       const s = String(val);
       if (s.startsWith('http://') || s.startsWith('https://')) return { href: s, onClick: undefined };
-      // asumsikan ID FileObject
       return {
         href: '#',
         onClick: (e) => {
@@ -214,14 +208,12 @@ export default function ScholarshipDetail() {
         <>
           <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <h2 className="text-xl md:text-2xl font-semibold text-neutral-900">{d.name}</h2>
-            {/* Periode */}
             <div className="flex items-center gap-2">
               <span className="text-sm text-neutral-500">Periode:</span>
               <Badge intent="neutral">
                 {d.year || new Date().getFullYear()} • Batch {d.batch || 1}
               </Badge>
             </div>
-            {/* Status Administrasi (opsional, tampilkan ringkas di header) */}
             <div className="flex items-center gap-2">
               <span className="text-sm text-neutral-500">Status Administrasi:</span>
               <Badge intent={adminIntent}>{d.administrasi || 'Menunggu Verifikasi'}</Badge>
@@ -234,7 +226,6 @@ export default function ScholarshipDetail() {
             )}
           </div>
 
-          {/* Data Pribadi */}
           <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 md:p-6">
             <h3 className="mb-4 text-lg font-semibold text-neutral-900">Data Pribadi</h3>
 
@@ -259,7 +250,6 @@ export default function ScholarshipDetail() {
             </div>
           </div>
 
-          {/* Jawaban Pengetahuan GenBI */}
           <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 md:p-6">
             <h3 className="mb-4 text-lg font-semibold text-neutral-900">Pengetahuan GenBI</h3>
 
@@ -270,13 +260,11 @@ export default function ScholarshipDetail() {
             </div>
           </div>
 
-          {/* Pemberkasan */}
           <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 md:p-6">
             <h3 className="mb-4 text-lg font-semibold text-neutral-900">Dokumen Pemberkasan</h3>
             <div className="space-y-3">{DOCS.map(renderDocRow)}</div>
           </div>
 
-          {/* Deklarasi & Metadata */}
           <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 md:p-6">
             <h3 className="mb-4 text-lg font-semibold text-neutral-900">Deklarasi</h3>
             <div className="flex flex-col gap-3">
@@ -299,7 +287,6 @@ export default function ScholarshipDetail() {
             </div>
           </div>
 
-          {/* Interview Info */}
           {d.administrasiStatus === 'LOLOS_ADMINISTRASI' && (
             <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 md:p-6">
               <h3 className="mb-4 text-lg font-semibold text-neutral-900">Informasi Wawancara</h3>

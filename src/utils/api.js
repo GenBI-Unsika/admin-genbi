@@ -2,26 +2,19 @@ const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/+$/
 
 export const API_BASE_URL = API_BASE;
 
-// Environment check - only show technical errors in development
 const isDev = import.meta.env.DEV || import.meta.env.MODE === 'development';
 
 export function apiUrl(path) {
   return `${API_BASE}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
-/**
- * Normalize error messages for user display
- * Technical errors are hidden from users in production
- * Admin users get slightly more detail but still no raw technical errors
- */
+// Bikin pesan error jadi lebih ramah buat dibaca user (error teknis disembunyikan)
 function normalizeErrorMessage(message, status) {
   const msg = String(message || '').trim();
   if (!msg) return 'Terjadi kesalahan. Silakan coba lagi.';
   const lower = msg.toLowerCase();
 
-  // === INTERNAL/TECHNICAL ERRORS - Never show to users ===
   const isInternalError =
-    // Database errors
     lower.includes("can't reach database server") ||
     lower.includes('p1001') ||
     lower.includes('localhost:3306') ||
@@ -31,24 +24,20 @@ function normalizeErrorMessage(message, status) {
     lower.includes('mysql') ||
     lower.includes('mariadb') ||
     lower.includes('invalid `prisma') ||
-    // Server errors
     lower.includes('internal server error') ||
     lower.includes('syntax error') ||
     lower.includes('undefined') ||
     lower.includes('null pointer') ||
     lower.includes('stack trace') ||
     lower.includes('at line') ||
-    // Network errors
     lower.includes('fetch failed') ||
     lower.includes('network error');
 
   if (isInternalError) {
-    // Log for debugging (only visible in dev tools)
     if (isDev) { /* API Error - Hidden */ }
     return 'Terjadi gangguan pada sistem. Hubungi tim teknis jika masalah berlanjut.';
   }
 
-  // === HTTP STATUS BASED MESSAGES ===
   if (status === 500) {
     if (isDev) { /* 500 Error */ }
     return 'Terjadi kesalahan pada server. Silakan coba lagi nanti.';
@@ -71,7 +60,6 @@ function normalizeErrorMessage(message, status) {
   }
 
   if (status === 400) {
-    // Bad request might have user-relevant validation messages
     if (lower.includes('validation') || lower.includes('wajib') || lower.includes('harus') || lower.includes('tidak valid')) {
       return msg;
     }
@@ -82,15 +70,12 @@ function normalizeErrorMessage(message, status) {
     return msg || 'Data sudah ada (duplikat).';
   }
 
-  // === SAFE USER-FACING MESSAGES ===
-  // Only return raw message if it looks safe/user-friendly
   const looksUserFriendly = !lower.includes('error') && !lower.includes('exception') && !lower.includes('failed') && msg.length < 200;
 
   if (looksUserFriendly) {
     return msg;
   }
 
-  // Default fallback
   return 'Terjadi kesalahan. Silakan coba lagi.';
 }
 
@@ -194,7 +179,6 @@ export function hasAccessToken() {
   return !!getAccessToken();
 }
 
-// Helper API Generik
 export async function apiGet(path) {
   const payload = await apiRequest(path, { method: 'GET' });
   return payload?.data || payload;
@@ -229,12 +213,7 @@ export async function apiUpload(path, file, options = {}) {
   return payload?.data || payload;
 }
 
-/**
- * Upload file ke staging/temporary storage untuk preview
- * File akan expired setelah 30 menit jika tidak di-finalize
- * @param {File} file - File object dari input
- * @returns {Promise<Object>} - { tempId, name, mimeType, size, previewUrl, expiresAt, isStaged }
- */
+// Upload file ke tempat sementara buat preview (bakal ilang setelah 30 menit kalau nggak disave max)
 export async function apiUploadStaging(file) {
   const formData = new FormData();
   formData.append('file', file);
@@ -243,12 +222,7 @@ export async function apiUploadStaging(file) {
   return payload?.data || payload;
 }
 
-/**
- * Finalisasi file staged - upload ke Google Drive
- * @param {string} tempId - ID file temp dari upload staging
- * @param {string} [folder] - Nama folder opsional
- * @returns {Promise<Object>} - Object file final dengan URL
- */
+// Simpan permanen file yang ada di tempat sementara ke Google Drive
 export async function apiFinalizeUpload(tempId, folder) {
   const payload = await apiRequest('/files/finalize', {
     method: 'POST',
@@ -257,11 +231,7 @@ export async function apiFinalizeUpload(tempId, folder) {
   return payload?.data || payload;
 }
 
-/**
- * Finalisasi banyak file staged sekaligus
- * @param {Array<{tempId: string, folder?: string}>} files
- * @returns {Promise<Object>} - { uploaded: [], errors: [], totalSuccess, totalErrors }
- */
+// Simpan permanen banyak file sekaligus ke Google Drive
 export async function apiFinalizeBulkUpload(files) {
   const payload = await apiRequest('/files/finalize-bulk', {
     method: 'POST',
@@ -270,76 +240,48 @@ export async function apiFinalizeBulkUpload(files) {
   return payload?.data || payload;
 }
 
-/**
- * Hapus file staged
- * @param {string} tempId
- */
+// Hapus file dari tempat sementara
 export async function apiDeleteStaging(tempId) {
   const payload = await apiRequest(`/files/temp/${tempId}`, { method: 'DELETE' });
   return payload?.data || payload;
 }
 
-/**
- * Dapatkan URL preview file temp
- * @param {string} tempId
- * @returns {string}
- */
+// Ambil URL buat lihat preview file yang masih sementara
 export function getTempPreviewUrl(tempId) {
   return apiUrl(`/files/temp/${tempId}`);
 }
 
-/**
- * Get the public proxy URL for a permanent file
- * This URL does not expire and works for public viewing
- * @param {number|string} fileId - The FileObject ID
- * @returns {string} The public proxy URL
- */
+// Ambil URL publik yang aman buat nampilin file permanen
 export function getPublicFileUrl(fileId) {
   if (!fileId) return '';
   return apiUrl(`/files/${fileId}/public`);
 }
 
-/**
- * Check if a URL is a public file proxy URL
- * @param {string} url - The URL to check
- * @returns {boolean}
- */
+// Cek apakah URL ini tuh URL proxy publik atau bukan
 export function isPublicFileUrl(url) {
   if (!url || typeof url !== 'string') return false;
   return /\/api\/v1\/files\/\d+\/public/.test(url);
 }
 
-/**
- * Convert various file URL formats to the best displayable URL
- * Handles relative URLs from server and converts them to absolute URLs
- * Prioritizes public proxy URLs over direct Drive URLs
- * @param {string} url - The original URL
- * @returns {string} The best URL for display
- */
+// Bikin URL file jadi rapi dan siap ditampilin (ubah path relatif jadi absolut)
 export function normalizeFileUrl(url) {
   if (!url) return '';
 
-  // If already an absolute URL (http/https), return as-is
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url;
   }
 
-  // If it's a relative public proxy URL from the server, convert to absolute
-  // Pattern: /api/v1/files/{id}/public
   if (url.startsWith('/api/v1/files/') && url.includes('/public')) {
     return apiUrl(url.replace('/api/v1', ''));
   }
 
-  // If it's another API path (like /api/v1/files/temp/xxx), convert to absolute
   if (url.startsWith('/api/v1/')) {
     return apiUrl(url.replace('/api/v1', ''));
   }
 
-  // If it's a temp preview URL without prefix, build full URL
   if (url.includes('/files/temp/')) {
     return apiUrl(url.startsWith('/') ? url : `/${url}`);
   }
 
-  // Return other URLs as-is (legacy support, external URLs, etc.)
   return url;
 }

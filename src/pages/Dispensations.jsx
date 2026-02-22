@@ -35,7 +35,6 @@ export default function Dispensations() {
         setPagination((p) => ({ ...p, total: res.meta.total }));
       }
     } catch (err) {
-      // Error loading dispensations
     } finally {
       setLoading(false);
     }
@@ -46,11 +45,9 @@ export default function Dispensations() {
       const res = await apiGet('/dispensations/template/active');
       setActiveTemplate(res.data || res || null);
     } catch (err) {
-      // Error loading template
     }
   };
 
-  // Load data on mount and when filters change
   useEffect(() => {
     loadDispensations();
     loadActiveTemplate();
@@ -95,7 +92,6 @@ export default function Dispensations() {
 
   return (
     <div className="px-4 md:px-6 lg:px-10 py-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-xl md:text-2xl font-semibold text-neutral-900">Kelola Dispensasi</h1>
@@ -113,7 +109,6 @@ export default function Dispensations() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
@@ -141,7 +136,6 @@ export default function Dispensations() {
         </div>
       </div>
 
-      {/* Table */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
@@ -211,10 +205,8 @@ export default function Dispensations() {
         </div>
       )}
 
-      {/* Review Modal */}
       {reviewModal && selectedItem && <ReviewModal item={selectedItem} onClose={() => setReviewModal(false)} onUpdate={handleStatusUpdate} />}
 
-      {/* Template Modal */}
       {templateModal && <TemplateModal template={activeTemplate} onClose={() => setTemplateModal(false)} onUpload={handleTemplateUpload} />}
     </div>
   );
@@ -244,7 +236,6 @@ function ReviewModal({ item, onClose, onUpdate }) {
         </div>
 
         <div className="p-5 space-y-4">
-          {/* Info */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-neutral-500">Nama</p>
@@ -288,7 +279,6 @@ function ReviewModal({ item, onClose, onUpdate }) {
 
           <hr className="border-neutral-200" />
 
-          {/* Update Status */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Ubah Status</label>
             <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">

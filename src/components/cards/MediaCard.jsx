@@ -17,8 +17,6 @@ const ImageWithFallback = ({ src, alt, className, fallback }) => {
 };
 
 export default function MediaCard({ title, subtitle, image, description, category, date, href, to, state, onDelete, gradientClass = 'from-[var(--primary-500)] to-[var(--primary-400)]', subtitleWordsLimit = 10, badge, className = '' }) {
-  // NOTE: when `to` exists we wrap the whole card with <Link> below,
-  // so the inner section must NOT be another <Link> (nested <a> is invalid).
   const Wrapper = to ? 'div' : href ? 'a' : 'div';
   const wrapperProps = href && !to ? { href } : {};
 

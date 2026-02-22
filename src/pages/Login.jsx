@@ -5,7 +5,6 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { authAdminGoogle, authAdminLogin } from '../utils/api';
 import { waitForGoogleIdentity } from '../utils/googleIdentity.js';
 
-// Keys for localStorage form persistence (NOT for auth data)
 const FORM_STORAGE_KEY = 'admin_login_form_draft';
 
 export default function Login() {
@@ -49,7 +48,7 @@ export default function Login() {
           width: 360,
         });
       } catch {
-        // ignore; fallback message stays visible
+        // Biarin error, lagian pesannya jg tetep di layar kok
       }
     })();
 
@@ -58,7 +57,7 @@ export default function Login() {
     };
   }, [navigate]);
 
-  // Restore form draft on mount (untuk UX agar tidak hilang jika error)
+  // Panggil draft yg prnh disimpen (biar datanya ga ilang kalo user apes)
   useEffect(() => {
     try {
       const saved = localStorage.getItem(FORM_STORAGE_KEY);
@@ -68,11 +67,10 @@ export default function Login() {
         if (savedRemember) setRememberMe(savedRemember);
       }
     } catch {
-      // ignore parse errors
+      // Biarin kalo misal kodingannya gagal nge-parse string
     }
   }, []);
 
-  // Save form draft when email changes (NOT password for security)
   useEffect(() => {
     if (rememberMe && email) {
       localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify({ email, rememberMe }));
@@ -115,7 +113,6 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-100 p-4">
       <div className="w-full max-w-md bg-white border border-neutral-200 rounded-3xl p-8 sm:p-10">
-        {/* Logo */}
         <div className="flex justify-center mb-6">
           <img
             src="/favicon-genbi.webp"
@@ -127,15 +124,12 @@ export default function Login() {
           />
         </div>
 
-        {/* Title */}
         <h1 className="text-2xl font-bold text-center text-neutral-900 mb-2">Masuk</h1>
         <p className="text-sm text-center text-neutral-500 mb-6">Silakan login untuk mengakses panel admin.</p>
 
-        {/* Error Alert */}
         {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
 
         <form onSubmit={onSubmit} className="space-y-4" noValidate>
-          {/* Email Field */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5" htmlFor="email">
               Email
@@ -154,7 +148,6 @@ export default function Login() {
             <p className="mt-2 text-xs text-neutral-500">Khusus admin dengan email @unsika.ac.id / @student.unsika.ac.id.</p>
           </div>
 
-          {/* Password Field */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-sm font-medium text-neutral-700" htmlFor="password">
@@ -194,7 +187,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Remember Me */}
           <div className="flex items-center gap-2">
             <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="w-4 h-4 rounded border-neutral-300 text-blue-600 focus:ring-blue-500" disabled={submitting} />
             <label htmlFor="rememberMe" className="text-sm text-neutral-600 select-none cursor-pointer">
@@ -202,7 +194,6 @@ export default function Login() {
             </label>
           </div>
 
-          {/* Submit Button */}
           <button type="submit" disabled={submitting} className="w-full h-11 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
             {submitting ? (
               <>
@@ -214,7 +205,6 @@ export default function Login() {
             )}
           </button>
 
-          {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-neutral-200" />
@@ -224,7 +214,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Google Login */}
           {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
             <div className="flex justify-center">
               <div>

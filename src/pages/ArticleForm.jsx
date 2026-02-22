@@ -16,7 +16,6 @@ export default function ArticleForm({ mode = 'create' }) {
   const [showDraftBanner, setShowDraftBanner] = useState(false);
   const draftRestoredRef = useRef(false);
 
-  // Draft auto-save (create mode only)
   const draftKey = mode === 'create' ? 'article-create' : null;
   const { restoreDraft, saveDraft, clearDraft, getDraftAge } = useFormDraft(draftKey || '__noop__');
 
@@ -32,7 +31,6 @@ export default function ArticleForm({ mode = 'create' }) {
     links: [],
   });
 
-  // Load data for edit mode
   useEffect(() => {
     if (mode === 'edit' && id) {
       setLoading(true);
@@ -51,7 +49,6 @@ export default function ArticleForm({ mode = 'create' }) {
           });
         })
         .catch((err) => {
-          // Error loading article
           alert('Gagal memuat data artikel');
           navigate('/artikel');
         })
@@ -59,7 +56,6 @@ export default function ArticleForm({ mode = 'create' }) {
     }
   }, [mode, id, navigate]);
 
-  // Restore draft on mount (create mode only)
   useEffect(() => {
     if (mode !== 'create' || draftRestoredRef.current) return;
     draftRestoredRef.current = true;
@@ -70,7 +66,6 @@ export default function ArticleForm({ mode = 'create' }) {
     }
   }, [mode, restoreDraft]);
 
-  // Auto-save form to localStorage (create mode only)
   useEffect(() => {
     if (mode !== 'create' || saving) return;
     saveDraft({ form });
@@ -87,7 +82,6 @@ export default function ArticleForm({ mode = 'create' }) {
     }
     setSaving(true);
     try {
-      // Determine status: forcedStatus > form date logic
       let status = 'DRAFT';
       if (forcedStatus) {
         status = forcedStatus;
@@ -95,7 +89,6 @@ export default function ArticleForm({ mode = 'create' }) {
         status = form.publishDate ? 'PUBLISHED' : 'DRAFT';
       }
 
-      // Build payload for API
       const payload = {
         title: form.title,
         excerpt: form.excerpt,
@@ -103,23 +96,18 @@ export default function ArticleForm({ mode = 'create' }) {
         status: status,
       };
 
-      // Set/Clear publish date based on status
       if (status === 'PUBLISHED') {
-        // If already has date, start with that, otherwise now
         if (!form.publishDate) {
           payload.publishedAt = new Date().toISOString();
-          // Note: API might handle this automatically if status changes to PUBLISHED
         }
       }
 
-      // Handle cover image - prefer tempId for staged files
       if (form.cover?.tempId) {
         payload.coverImageTempId = form.cover.tempId;
       } else if (form.cover?.url && !form.cover?.isLocal) {
         payload.coverImage = form.cover.url;
       }
 
-      // Handle attachments
       const photos = (form.photos || []).map((p) => ({
         name: p.name,
         url: p.url,
@@ -168,7 +156,6 @@ export default function ArticleForm({ mode = 'create' }) {
           </Link>
           <h2 className="text-xl md:text-2xl font-semibold">{mode === 'edit' ? 'Edit Artikel' : 'Tulis Artikel Baru'}</h2>
 
-          {/* Draft restoration banner */}
           {showDraftBanner && mode === 'create' && (
             <div className="mt-3 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5">
               <p className="text-sm text-amber-800">
@@ -195,7 +182,6 @@ export default function ArticleForm({ mode = 'create' }) {
           )}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-            {/* Basic Info Card */}
             <div className="rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
               <Input label="Judul Artikel" value={form.title} onChange={update('title')} placeholder="Tuliskan judul artikel yang menarik" className="mb-4" />
 
@@ -211,7 +197,6 @@ export default function ArticleForm({ mode = 'create' }) {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Cover Upload */}
                 <CoverUpload label="Cover Artikel" value={form.cover} onChange={(cover) => setForm((s) => ({ ...s, cover }))} useStaging />
 
                 <div className="space-y-4">
@@ -221,7 +206,6 @@ export default function ArticleForm({ mode = 'create' }) {
               </div>
             </div>
 
-            {/* Content Editor Card */}
             <div className="rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
               <RichTextEditor
                 label="Konten Artikel"
@@ -232,7 +216,6 @@ export default function ArticleForm({ mode = 'create' }) {
               <p className="mt-2 text-xs text-neutral-500">💡 Tips: Klik tombol gambar di toolbar untuk menyisipkan foto. File akan di-upload otomatis.</p>
             </div>
 
-            {/* Attachments Card */}
             <div className="rounded-xl border border-neutral-200 bg-white p-4 md:p-6">
               <h3 className="text-base font-semibold text-neutral-900 mb-4">Lampiran Tambahan</h3>
 
@@ -372,11 +355,7 @@ export default function ArticleForm({ mode = 'create' }) {
                 type="button"
                 disabled={saving}
                 onClick={(e) => {
-                  // Set status to DRAFT and clear publishDate
                   setForm((s) => ({ ...s, publishDate: '' }));
-                  // Hack: we need to trigger submit, but state update might be async.
-                  // Better to handle in a dedicated handler, but for now we'll pass a flag or handle in handleSubmit
-                  // adapting handleSubmit to accept status override would be cleaner.
                   handleSubmit(e, 'DRAFT');
                 }}
                 className="px-4 py-2 rounded-lg border border-neutral-200 text-neutral-600 font-medium hover:bg-neutral-50 transition-colors flex items-center gap-2"

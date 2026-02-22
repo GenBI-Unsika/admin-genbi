@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import App from './App.jsx';
 import { ConfirmProvider } from './contexts/ConfirmContext.jsx';
-import './index.css'; // index.css kamu (berisi token warna + plugin FlyonUI)
+import './index.css'; // File sakti styling buat app UI (warna & segudang plugin)
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

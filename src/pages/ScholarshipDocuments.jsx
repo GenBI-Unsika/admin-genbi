@@ -47,7 +47,6 @@ export default function ScholarshipDocuments() {
     setDocs((prev) => {
       const next = [...prev];
       next[idx] = { ...next[idx], [field]: value };
-      // Auto-generate key from title if key is empty
       if (field === 'title' && !next[idx].key) {
         next[idx].key = slugify(value);
       }
@@ -79,7 +78,6 @@ export default function ScholarshipDocuments() {
   };
 
   const saveDocs = async () => {
-    // Validate
     for (let i = 0; i < docs.length; i++) {
       if (!docs[i].key?.trim()) {
         toast.error(`Dokumen #${i + 1}: Key wajib diisi.`);
@@ -115,7 +113,6 @@ export default function ScholarshipDocuments() {
     }
   };
 
-  // Drag handlers
   const handleDragStart = (idx) => setDragIdx(idx);
   const handleDragOver = (e, idx) => {
     e.preventDefault();
@@ -147,9 +144,7 @@ export default function ScholarshipDocuments() {
         <div className="mt-6 text-sm text-neutral-500">Memuat konfigurasi...</div>
       ) : (
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
-          {/* Left Column: Editor */}
           <div className="min-w-0">
-            {/* Document list */}
             <div className="space-y-4">
               {docs.map((doc, idx) => (
                 <div
@@ -161,13 +156,11 @@ export default function ScholarshipDocuments() {
                   className={`rounded-xl border bg-white p-4 md:p-5 transition-all ${dragIdx === idx ? 'opacity-50 border-primary-300' : dragOverIdx === idx ? 'border-primary-400 shadow-md' : 'border-neutral-200'}`}
                 >
                   <div className="flex items-start gap-3">
-                    {/* Drag handle */}
                     <div className="mt-2 cursor-grab text-neutral-400 hover:text-neutral-600" title="Seret untuk mengubah urutan">
                       <GripVertical className="h-5 w-5" />
                     </div>
 
                     <div className="flex-1 space-y-3">
-                      {/* Row 1: Title + Kind + Required */}
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
                         <div>
                           <label className="mb-1 block text-xs font-medium text-neutral-500">Judul Dokumen</label>
@@ -198,7 +191,6 @@ export default function ScholarshipDocuments() {
                         </div>
                       </div>
 
-                      {/* Row 2: Description */}
                       <div>
                         <label className="mb-1 block text-xs font-medium text-neutral-500">Deskripsi / Keterangan</label>
                         <input
@@ -210,7 +202,6 @@ export default function ScholarshipDocuments() {
                         />
                       </div>
 
-                      {/* Row 3: Download Link (only for file kind) */}
                       {doc.kind === 'file' && (
                         <div>
                           <label className="mb-1 block text-xs font-medium text-neutral-500">Link Unduh Formulir (opsional)</label>
@@ -226,7 +217,6 @@ export default function ScholarshipDocuments() {
                       )}
                     </div>
 
-                    {/* Delete button */}
                     <button type="button" onClick={() => removeDoc(idx)} className="mt-2 rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-500 transition-colors" title="Hapus dokumen">
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -235,7 +225,6 @@ export default function ScholarshipDocuments() {
               ))}
             </div>
 
-            {/* Add button */}
             <button
               type="button"
               onClick={addDoc}
@@ -245,7 +234,6 @@ export default function ScholarshipDocuments() {
               Tambah Dokumen
             </button>
 
-            {/* Actions */}
             <div className="mt-6 flex items-center justify-between border-t border-neutral-200 pt-4">
               <div className="text-sm text-neutral-500">
                 {docs.length} dokumen &middot; {docs.filter((d) => d.required).length} wajib
@@ -273,7 +261,6 @@ export default function ScholarshipDocuments() {
             </div>
           </div>
 
-          {/* Right Column: Preview (sticky) */}
           {docs.length > 0 && (
             <div className="lg:sticky lg:top-6 h-fit">
               <h3 className="text-sm font-semibold text-neutral-700 mb-3">Preview Urutan Berkas</h3>

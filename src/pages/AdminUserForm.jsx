@@ -40,7 +40,7 @@ export default function AdminUserForm({ mode: modeProp }) {
     semester: '',
     studyProgramId: '',
     divisionId: '',
-    facultyId: '', // To filter study programs
+    facultyId: '', // Buat filter jurusan
 
     jabatan: '',
     avatar: '',
@@ -58,7 +58,6 @@ export default function AdminUserForm({ mode: modeProp }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch faculties and divisions on mount
   useEffect(() => {
     Promise.all([apiGet('/master-data/faculties'), apiGet('/divisions/admin/all')])
       .then(([facultiesRes, divisionsRes]) => {
@@ -70,7 +69,6 @@ export default function AdminUserForm({ mode: modeProp }) {
       .catch((err) => { /* Error fetching initial data */ });
   }, []);
 
-  // Update study programs when faculty changes
   useEffect(() => {
     if (form.facultyId && faculties.length > 0) {
       const faculty = faculties.find((f) => f.id === parseInt(form.facultyId));
@@ -80,7 +78,6 @@ export default function AdminUserForm({ mode: modeProp }) {
     }
   }, [form.facultyId, faculties]);
 
-  // Fetch user data when editing
   useEffect(() => {
     if (isEdit && userId) {
       setLoading(true);
@@ -94,7 +91,7 @@ export default function AdminUserForm({ mode: modeProp }) {
             email: data.email || '',
             role: data.role || 'awardee',
             active: data.isActive ?? true,
-            password: '', // Always empty on edit
+            password: '', // Sengaja dikosongin pas lg mode edit
             phone: data.phone || '',
             npm: data.npm || '',
             gender: data.gender || '',
@@ -112,7 +109,6 @@ export default function AdminUserForm({ mode: modeProp }) {
           }));
         })
         .catch((err) => {
-          // Error fetching user
           setError(err.message || 'Gagal memuat data user');
         })
         .finally(() => setLoading(false));
@@ -159,7 +155,7 @@ export default function AdminUserForm({ mode: modeProp }) {
         bankAccountName: form.bankAccountName?.trim() || null,
       };
 
-      // Hanya kirim password jika diisi
+      // Kirim passwordnya cuma pas diisi aja
       if (form.password) {
         payload.password = form.password;
       }
@@ -167,7 +163,6 @@ export default function AdminUserForm({ mode: modeProp }) {
       if (isEdit) {
         await apiPatch(`/users/${userId}`, payload);
       } else {
-        // Mode Buat
         if (!form.password) {
           throw new Error('Password wajib diisi untuk user baru.');
         }
@@ -177,7 +172,6 @@ export default function AdminUserForm({ mode: modeProp }) {
       toast.success(isEdit ? 'Data user berhasil diperbarui' : 'User baru berhasil ditambahkan');
       navigate('/admin/users', { replace: true });
     } catch (err) {
-      // Submit error
       const message = err.payload?.message || err.message || 'Gagal menyimpan data.';
       toast.error(message);
       setSaving(false);
@@ -205,7 +199,6 @@ export default function AdminUserForm({ mode: modeProp }) {
 
   return (
     <div className="px-6 md:px-10 py-6 mb-10">
-      {/* Breadcrumb */}
       <nav className="mb-4 flex items-center text-sm text-neutral-600">
         <Link to="/dashboard" className="hover:text-neutral-800 hover:underline">
           Dashboard
@@ -223,7 +216,6 @@ export default function AdminUserForm({ mode: modeProp }) {
 
         <form onSubmit={submit} className="space-y-8">
 
-          {/* Account Info */}
           <div>
             <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-4">Informasi Akun</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -300,7 +292,6 @@ export default function AdminUserForm({ mode: modeProp }) {
             </div>
           </div>
 
-          {/* Academic Info */}
           <div>
             <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-4">Data Akademik</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -375,7 +366,6 @@ export default function AdminUserForm({ mode: modeProp }) {
             </div>
           </div>
 
-          {/* Organization & Bio */}
           <div>
             <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-4">Keorganisasian & Bio</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
@@ -427,7 +417,6 @@ export default function AdminUserForm({ mode: modeProp }) {
 
           </div>
 
-          {/* Social Media */}
           <div>
             <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-4">Media Sosial</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -443,7 +432,6 @@ export default function AdminUserForm({ mode: modeProp }) {
             </div>
           </div>
 
-          {/* Bank Details */}
           <div>
             <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-4">Data Bank</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -477,11 +465,9 @@ export default function AdminUserForm({ mode: modeProp }) {
             </div>
           </div>
 
-          {/* Role & Security */}
           <div>
             <h4 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-4">Role & Keamanan</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Role */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Role *</label>
                 <div className="relative">
@@ -500,7 +486,6 @@ export default function AdminUserForm({ mode: modeProp }) {
                 </div>
               </div>
 
-              {/* Password */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">{isEdit ? 'Password Baru (Opsional)' : 'Password *'}</label>
                 <input
@@ -516,7 +501,6 @@ export default function AdminUserForm({ mode: modeProp }) {
                 <p className="mt-1 text-xs text-neutral-400">Minimal 8 karakter</p>
               </div>
 
-              {/* Status Akun */}
               <div className="md:col-span-2">
                 <label className="mb-1.5 block text-sm font-medium text-neutral-800">Status Akun</label>
                 <div role="group" aria-label="Status akun" className="inline-flex w-full max-w-[280px] overflow-hidden rounded-xl border border-neutral-200">
@@ -548,7 +532,6 @@ export default function AdminUserForm({ mode: modeProp }) {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="md:col-span-2 mt-4 flex items-center gap-3 border-t border-neutral-200 pt-4">
             <button
               type="button"

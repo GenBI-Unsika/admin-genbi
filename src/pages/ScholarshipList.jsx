@@ -1,4 +1,3 @@
-// src/pages/ScholarshipList.jsx
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Avatar from '../components/Avatar';
@@ -21,7 +20,6 @@ const statusLabel = (status) => {
 const normalizeDecision = (v) => {
   if (!v) return '';
   const s = String(v).trim().toLowerCase().replace(/\s+/g, ' ');
-  // Excel bulk update input (required)
   if (s === 'lolos administrasi') return 'Lolos Administrasi';
   if (s === 'administrasi ditolak') return 'Administrasi Ditolak';
   return '';
@@ -38,7 +36,7 @@ const AdminBadge = ({ status }) => {
   return <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${cls}`}>{status}</span>;
 };
 
-// Muat SheetJS via CDN (tanpa install paket) — untuk baca & tulis XLSX
+// Pake SheetJS lgsg dr cloud, biar app gada beban (baca Excel dll)
 async function loadXLSXFromCDN() {
   const mod = await import(/* @vite-ignore */ 'https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
   return mod;
@@ -80,7 +78,6 @@ export default function ScholarshipList() {
   const { toasts, push: toast, remove: closeToast } = useToasts();
 
   const [regOpen, setRegOpen] = useState(false);
-  // Saved/active period from server; used for filtering and locking behavior
   const [activeYear, setActiveYear] = useState(new Date().getFullYear());
   const [activeBatch, setActiveBatch] = useState(1);
   const [regLoading, setRegLoading] = useState(true);
@@ -138,7 +135,6 @@ export default function ScholarshipList() {
             administrasi: statusLabel(r.administrasiStatus),
             files: r.files || {},
             photo: r?.createdBy?.profile?.avatar || r.photo || '',
-            // Resolve display names from included relations
             facultyName: r.faculty?.name || '',
             studyProgramName: r.studyProgram?.name || '',
           };
@@ -175,7 +171,6 @@ export default function ScholarshipList() {
   const requestToggle = (nextOpen) => {
     if (regLoading) return;
 
-    // Better UX: choose period inside the open flow (no separate save step)
     setToggleModal(
       nextOpen
         ? {
@@ -198,7 +193,6 @@ export default function ScholarshipList() {
       try {
         const nextOpen = toggleModal.action === 'open';
 
-        // Set period first (only when opening)
         if (nextOpen) {
           const y = Number(toggleModal.year || activeYear);
           const b = Number(toggleModal.batch || activeBatch);
@@ -244,12 +238,10 @@ export default function ScholarshipList() {
     try {
       const XLSX = await loadXLSXFromCDN();
 
-      // Template is for BULK UPDATE only (keep it minimal and match uploader requirements)
       const header = ['Nama', 'NPM', 'Prodi', 'Status'];
       const data = [];
       const ws = XLSX.utils.json_to_sheet(data, { header });
 
-      // Dropdown for Status: Lolos Administrasi / Administrasi Ditolak
       try {
         const dv = [
           {
@@ -257,7 +249,6 @@ export default function ScholarshipList() {
             allowBlank: true,
             showInputMessage: true,
             showErrorMessage: true,
-            // Status is in column D
             sqref: 'D2:D1000',
             formulas: ['"Lolos Administrasi,Administrasi Ditolak"'],
           },
@@ -265,10 +256,9 @@ export default function ScholarshipList() {
         ws['!dataValidation'] = dv;
         ws['!dataValidations'] = dv;
       } catch {
-        // ignore
+        // Sengaja dicuekin errornya, aman kok
       }
 
-      // Fixed-ish widths so columns don't auto-stretch too aggressively
       ws['!cols'] = header.map((h) => ({ wch: Math.min(Math.max(String(h).length + 2, 18), 40) }));
 
       const wb = XLSX.utils.book_new();
@@ -293,7 +283,6 @@ export default function ScholarshipList() {
     try {
       const XLSX = await loadXLSXFromCDN();
 
-      // Fixed columns only (do not add/remove dynamically)
       const FILE_KEYS = [
         { key: 'formA1', col: 'File_FormA1' },
         { key: 'ktmKtp', col: 'File_KTMKTP' },
@@ -305,7 +294,6 @@ export default function ScholarshipList() {
         { key: 'portofolio', col: 'File_Portofolio' },
       ];
 
-      // Resolve numeric FileObject IDs -> signed preview URL
       const linkCache = new Map();
       const ids = new Set();
       rows.forEach((r) => {
@@ -352,8 +340,6 @@ export default function ScholarshipList() {
         return d.toISOString().slice(0, 10);
       };
 
-      // Full export: show all (Data Pribadi + Pengetahuan GenBI + Files)
-      // Keep required bulk-update columns in the exact order: Nama | NPM | Prodi | Status
       const header = [
         'Nama',
         'NPM',
@@ -380,7 +366,6 @@ export default function ScholarshipList() {
           Nama: r.name,
           NPM: r.npm,
           Prodi: r.studyProgramName || r.study || '',
-          // Bulk update input - leave blank by default
           Status: '',
 
           Email: r.email || '',
@@ -411,7 +396,6 @@ export default function ScholarshipList() {
         header,
       });
 
-      // Dropdown for Status: Lolos Administrasi / Administrasi Ditolak (col D)
       try {
         const lastRow = Math.max(2, data.length + 1);
         const sqref = `D2:D${lastRow}`;
@@ -428,7 +412,7 @@ export default function ScholarshipList() {
         ws['!dataValidation'] = dv;
         ws['!dataValidations'] = dv;
       } catch {
-        // ignore
+        // Sengaja dicuekin errornya, aman kok
       }
 
       ws['!cols'] = header.map((h) => ({ wch: Math.min(Math.max(String(h).length + 2, 18), 40) }));

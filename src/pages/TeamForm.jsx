@@ -39,17 +39,15 @@ export default function TeamForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         const [divRes, usersRes] = await Promise.all([
           apiRequest('/divisions'),
-          apiRequest('/users') // Assuming this endpoint exists and returns all users for admin
+          apiRequest('/users') // Asumsinya tuh ini ngasih semua daftar user ke admin
         ]);
         setDivisions(divRes?.data || []);
 
-        // Transform users for select options
         const users = usersRes?.data || [];
         setAvailableUsers(users.map(u => ({
           id: u.id,
@@ -59,12 +57,10 @@ export default function TeamForm() {
         })));
 
       } catch (err) {
-        // Error fetching initial data
       }
     };
     fetchInitialData();
   }, []);
-
 
   const fetchMember = useCallback(async () => {
     if (!id) return;
@@ -84,7 +80,6 @@ export default function TeamForm() {
         cohort: member.cohort?.toString() || '',
       });
     } catch (err) {
-      // Error fetching member
       setError(err.message || 'Gagal memuat data anggota');
     } finally {
       setLoading(false);
@@ -99,7 +94,6 @@ export default function TeamForm() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-
   /* Removed auto-email from NPM logic, let user input/admin input email manually as it's the primary key for User */
   /* Or keep it as helper but allow edit */
   const handleNpmChange = (value) => {
@@ -107,10 +101,8 @@ export default function TeamForm() {
     setForm((prev) => ({
       ...prev,
       npm,
-      // email: npm ? `${npm}@student.unsika.ac.id` : prev.email, // Disable auto-email for now or make it optional helper
     }));
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -156,7 +148,6 @@ export default function TeamForm() {
 
       navigate('/anggota');
     } catch (err) {
-      // Error saving member
       alert(err.message || 'Gagal menyimpan data anggota');
     } finally {
       setSaving(false);
@@ -208,7 +199,6 @@ export default function TeamForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Link User Account */}
         <div className="bg-white rounded-xl border border-neutral-200 p-6">
           <h3 className="text-sm font-semibold text-neutral-700 mb-4 flex items-center gap-2">
             <LinkIcon className="w-4 h-4" />
@@ -242,14 +232,12 @@ export default function TeamForm() {
           </div>
         </div>
 
-        {/* Avatar & Informasi Dasar */}
         <div className="bg-white rounded-xl border border-neutral-200 p-6">
           <h3 className="text-sm font-semibold text-neutral-700 mb-4 flex items-center gap-2">
             <User className="w-4 h-4" />
             Informasi Dasar
           </h3>
 
-          {/* Upload Avatar */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-neutral-700 mb-2">Foto Profil</label>
             <CoverUpload
@@ -328,7 +316,6 @@ export default function TeamForm() {
           </div>
         </div>
 
-        {/* Informasi Akademik */}
         <div className="bg-white rounded-xl border border-neutral-200 p-6">
           <h3 className="text-sm font-semibold text-neutral-700 mb-4 flex items-center gap-2">
             <GraduationCap className="w-4 h-4" />
@@ -368,7 +355,6 @@ export default function TeamForm() {
           </div>
         </div>
 
-        {/* Informasi Kontak */}
         <div className="bg-white rounded-xl border border-neutral-200 p-6">
           <h3 className="text-sm font-semibold text-neutral-700 mb-4 flex items-center gap-2">
             <Phone className="w-4 h-4" />
@@ -407,7 +393,6 @@ export default function TeamForm() {
           </div>
         </div>
 
-        {/* Status Keanggotaan */}
         <div className="bg-white rounded-xl border border-neutral-200 p-6">
           <div className="flex items-center gap-3">
             <input type="checkbox" id="isActive" checked={form.isActive} onChange={(e) => handleChange('isActive', e.target.checked)} className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500" />
@@ -417,9 +402,6 @@ export default function TeamForm() {
           </div>
         </div>
 
-
-
-        {/* Aksi */}
         <div className="flex items-center justify-end gap-3 pt-4">
           <button type="button" onClick={() => navigate('/anggota')} className="px-5 py-2.5 border border-neutral-200 text-neutral-700 rounded-lg font-medium hover:bg-neutral-50 transition-colors" disabled={saving}>
             Batal

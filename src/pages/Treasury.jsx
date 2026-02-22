@@ -37,7 +37,7 @@ function formatCurrencyShort(value) {
 }
 
 export default function Treasury() {
-  const [tab, setTab] = useState('members'); // members | transactions (keduanya dalam bahasa inggris di kode, tapi UI pakai Indonesia)
+  const [tab, setTab] = useState('members'); // Datanya dari DB pake english (members/transactions), tp UI pake Indo
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +73,6 @@ export default function Treasury() {
       const response = await apiRequest('/treasury');
       setData(response?.data || []);
     } catch (err) {
-      // Error fetching treasury
       setError(err.message || 'Gagal memuat data rekapitulasi kas');
     } finally {
       setLoading(false);
@@ -89,7 +88,6 @@ export default function Treasury() {
       setTx(listRes?.data || []);
       setTxSummary(sumRes?.data || { totalIncome: 0, totalExpense: 0, net: 0, incomeCount: 0, expenseCount: 0 });
     } catch (err) {
-      // Error fetching transactions
       setTxError(err.message || 'Gagal memuat transaksi kas');
     } finally {
       setTxLoading(false);
@@ -116,7 +114,6 @@ export default function Treasury() {
     return acc;
   }, {});
 
-  // Export to Excel
   const exportToExcel = () => {
     const exportData = filteredData.map((row, idx) => {
       const rowData = {
@@ -131,7 +128,6 @@ export default function Treasury() {
       return rowData;
     });
 
-    // Add total row
     const totalRow = {
       No: '',
       Nama: 'TOTAL KESELURUHAN',
@@ -149,12 +145,10 @@ export default function Treasury() {
     XLSX.writeFile(wb, `Rekapitulasi-Kas-Anggota-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  // Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Header
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('REKAPITULASI KAS ANGGOTA', pageWidth / 2, 15, { align: 'center' });
@@ -163,13 +157,10 @@ export default function Treasury() {
     doc.text('GenBI Unsika - Periode 2024/2025', pageWidth / 2, 22, { align: 'center' });
     doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`, pageWidth / 2, 28, { align: 'center' });
 
-    // Table headers
     const headers = [['No', 'Nama', 'Jabatan', ...months.map((m) => m.label), 'Total']];
 
-    // Table body
     const body = filteredData.map((row, idx) => [row.no || idx + 1, row.nama, row.jabatan || '-', ...months.map((m) => formatCurrency(row[m.key] || 0)), formatCurrency(calculateTotal(row))]);
 
-    // Total row
     body.push(['', 'TOTAL KESELURUHAN', '', ...months.map((m) => formatCurrency(monthlyTotals[m.key])), formatCurrency(grandTotal)]);
 
     autoTable(doc, {
@@ -186,7 +177,6 @@ export default function Treasury() {
         2: { cellWidth: 30 },
       },
       didParseCell: (data) => {
-        // Style total row
         if (data.row.index === body.length - 1) {
           data.cell.styles.fontStyle = 'bold';
           data.cell.styles.fillColor = [226, 232, 240];
@@ -197,7 +187,6 @@ export default function Treasury() {
     doc.save(`Rekapitulasi-Kas-Anggota-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
-  // Export Transactions to Excel
   const exportTxToExcel = () => {
     const exportData = tx.map((row, idx) => ({
       No: idx + 1,
@@ -209,7 +198,6 @@ export default function Treasury() {
       'Dicatat oleh': row.createdBy?.profile?.name || row.createdBy?.email || '-',
     }));
 
-    // Add summary row
     exportData.push({});
     exportData.push({ No: '', Tanggal: 'RINGKASAN', Tipe: '', Nominal: '', Deskripsi: '', Referensi: '', 'Dicatat oleh': '' });
     exportData.push({ No: '', Tanggal: 'Total Pemasukan', Tipe: '', Nominal: txSummary.totalIncome, Deskripsi: '', Referensi: '', 'Dicatat oleh': '' });
@@ -222,12 +210,10 @@ export default function Treasury() {
     XLSX.writeFile(wb, `Kas-Umum-${txYear || 'All'}-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  // Export Transactions to PDF
   const exportTxToPDF = () => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Header
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('LAPORAN KAS UMUM', pageWidth / 2, 15, { align: 'center' });
@@ -236,7 +222,6 @@ export default function Treasury() {
     doc.text(`GenBI Unsika - Tahun ${txYear || 'Semua'}`, pageWidth / 2, 22, { align: 'center' });
     doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`, pageWidth / 2, 28, { align: 'center' });
 
-    // Summary
     doc.setFontSize(10);
     doc.text(`Total Pemasukan: ${formatCurrency(txSummary.totalIncome)}`, 14, 38);
     doc.text(`Total Pengeluaran: ${formatCurrency(txSummary.totalExpense)}`, 14, 44);
@@ -244,7 +229,6 @@ export default function Treasury() {
     doc.text(`Saldo Bersih: ${formatCurrency(txSummary.net)}`, 14, 50);
     doc.setFont('helvetica', 'normal');
 
-    // Table
     const headers = [['No', 'Tanggal', 'Tipe', 'Nominal', 'Deskripsi']];
     const body = tx.map((row, idx) => [idx + 1, new Date(row.occurredAt).toLocaleDateString('id-ID'), row.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran', formatCurrency(row.amount), row.description || '-']);
 
@@ -299,14 +283,12 @@ export default function Treasury() {
         body: editForm,
       });
 
-      // Update data lokal
       const updated = response?.data;
       if (updated) {
         setData((prev) => prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)));
       }
       closeEditModal();
     } catch (err) {
-      // Error saving treasury
       alert(err.message || 'Gagal menyimpan data kas');
     } finally {
       setSaving(false);
@@ -364,7 +346,6 @@ export default function Treasury() {
       closeTxModal();
       await fetchTransactions();
     } catch (err) {
-      // Error saving transaction
       alert(err.message || 'Gagal menyimpan transaksi kas');
     } finally {
       setTxSaving(false);
@@ -390,7 +371,6 @@ export default function Treasury() {
       await apiRequest(`/treasury/transactions/${id}`, { method: 'DELETE' });
       await fetchTransactions();
     } catch (err) {
-      // Error deleting transaction
       alert(err.message || 'Gagal menghapus transaksi');
     }
   };
@@ -442,7 +422,6 @@ export default function Treasury() {
             </>
           ) : (
             <>
-              {/* Export Buttons */}
               <button
                 onClick={exportToPDF}
                 disabled={data.length === 0}
@@ -470,7 +449,6 @@ export default function Treasury() {
         </div>
       </div>
 
-      {/* Tab Switcher */}
       <div className="mb-6 flex items-center gap-2">
         <button
           onClick={() => setTab('members')}
@@ -809,7 +787,6 @@ export default function Treasury() {
             </div>
 
             <div className="p-6 space-y-4">
-              {/* Tipe Transaksi - Segmented Control */}
               <div className="p-1 bg-neutral-100 rounded-lg flex">
                 <button
                   type="button"
@@ -827,7 +804,6 @@ export default function Treasury() {
                 </button>
               </div>
 
-              {/* Nominal with formatted display */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Nominal</label>
                 <div className="relative">
@@ -848,7 +824,6 @@ export default function Treasury() {
                 <p className="text-xs text-neutral-500 mt-1">Contoh: 1.000.000 (otomatis terformat)</p>
               </div>
 
-              {/* Tanggal */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Tanggal</label>
                 <input
@@ -859,7 +834,6 @@ export default function Treasury() {
                 />
               </div>
 
-              {/* Deskripsi (menggantikan Kategori) */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Deskripsi</label>
                 <textarea
@@ -871,7 +845,6 @@ export default function Treasury() {
                 />
               </div>
 
-              {/* Toggle More Options */}
               <div>
                 <button type="button" onClick={() => setMoreOptions(!moreOptions)} className="text-sm text-primary-600 font-medium hover:underline flex items-center gap-1">
                   {moreOptions ? 'Sembunyikan Opsi Tambahan' : 'Tampilkan Opsi Tambahan (Referensi)'}

@@ -57,7 +57,6 @@ export default function Profile() {
     return r ? r : '-';
   }, [me?.role]);
 
-  // Fetch functions
   const fetchMasterData = async () => {
     try {
       const [facultiesRes, divisionsRes] = await Promise.all([
@@ -67,7 +66,6 @@ export default function Profile() {
       setFaculties(facultiesRes.data || facultiesRes || []);
       setDivisions(divisionsRes.data || divisionsRes || []);
     } catch (err) {
-      // Error fetching master data
     }
   };
 
@@ -123,7 +121,6 @@ export default function Profile() {
     fetchMasterData().then(loadMe);
   }, []);
 
-  // Update study programs when faculty changes or initially loaded
   useEffect(() => {
     if (form.facultyId && faculties.length > 0) {
       const faculty = faculties.find((f) => f.id === parseInt(form.facultyId));
@@ -132,7 +129,6 @@ export default function Profile() {
       setStudyPrograms([]);
     }
   }, [form.facultyId, faculties]);
-
 
   const onPickAvatar = async (file) => {
     if (!file) return;
@@ -265,7 +261,6 @@ export default function Profile() {
 
         <form onSubmit={onSave} className="space-y-8">
 
-          {/* Informasi Dasar */}
           <div>
             <h3 className="text-base font-medium text-neutral-900 mb-4">Informasi Dasar</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -315,7 +310,6 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Data Akademik */}
           <div>
             <h3 className="text-base font-medium text-neutral-900 mb-4">Data Akademik</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -380,7 +374,6 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Keorganisasian & Bio */}
           <div>
             <h3 className="text-base font-medium text-neutral-900 mb-4">Keorganisasian & Bio</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
@@ -430,7 +423,6 @@ export default function Profile() {
 
           </div>
 
-          {/* Media Sosial */}
           <div>
             <h3 className="text-base font-medium text-neutral-900 mb-4">Media Sosial</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -446,7 +438,6 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Data Bank */}
           <div>
             <h3 className="text-base font-medium text-neutral-900 mb-4">Data Rekening Bank</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

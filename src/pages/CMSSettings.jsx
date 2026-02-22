@@ -170,7 +170,6 @@ export default function CMSSettings() {
   const [pendingUploads, setPendingUploads] = useState({});
   const objectUrlsRef = useRef(new Set());
 
-  // Content states
   const [heroContent, setHeroContent] = useState(defaultHeroContent);
   const [aboutContent, setAboutContent] = useState(defaultAboutContent);
   const [historyContent, setHistoryContent] = useState(defaultHistoryContent);
@@ -189,7 +188,7 @@ export default function CMSSettings() {
       try {
         URL.revokeObjectURL(url);
       } catch {
-        // ignore
+        // Sengaja dicuekin errornya, aman kok
       }
     }
     objectUrlsRef.current.clear();
@@ -203,7 +202,7 @@ export default function CMSSettings() {
         try {
           URL.revokeObjectURL(url);
         } catch {
-          // ignore
+          // Sengaja dicuekin errornya, aman kok
         }
       }
       urls.clear();
@@ -265,14 +264,12 @@ export default function CMSSettings() {
       }
       if (scholarshipPageRes.status === 'fulfilled' && scholarshipPageRes.value?.value) {
         const merged = { ...defaultScholarshipPage, ...scholarshipPageRes.value.value };
-        // Status pendaftaran di-handle oleh halaman /beasiswa (bukan CMS)
-        // Jangan tampilkan / simpan field ini dari CMS.
+        // HARAM: ini jgn sampe ditampilin/disimpen
         const sanitized = { ...merged };
         delete sanitized.isOpen;
         setScholarshipPage(sanitized);
       }
     } catch (err) {
-      // Failed to load CMS settings
     } finally {
       setLoading(false);
     }
@@ -326,7 +323,6 @@ export default function CMSSettings() {
       const visionMissionImageUrl = await uploadIfPending('visionMission', 'image');
       if (visionMissionImageUrl) nextVisionMission = { ...nextVisionMission, image: visionMissionImageUrl };
 
-      // Upload testimonial images
       let nextTestimonials = { ...testimonials };
       const testimonialUploads = Object.keys(pendingUploads).filter((key) => key.startsWith('testimonial.'));
       for (const key of testimonialUploads) {
@@ -336,7 +332,6 @@ export default function CMSSettings() {
           const result = await apiUpload('/site-settings/upload', pending.file);
           const imageUrl = result?.url;
           if (imageUrl) {
-            // key format: testimonial.{index}.photo_profile
             const parts = key.split('.');
             const idx = parseInt(parts[1], 10);
             if (!isNaN(idx) && nextTestimonials.items[idx]) {
@@ -347,11 +342,9 @@ export default function CMSSettings() {
             }
           }
         } catch (err) {
-          // Error uploading testimonial image
         }
       }
 
-      // Upload hero avatars images (keep stored payload as array of URL strings)
       const heroAvatarUploads = Object.keys(pendingUploads).filter((key) => key.startsWith('heroAvatar.'));
       if (heroAvatarUploads.length > 0) {
         const nextAvatars = [...(nextHeroAvatars.avatars || [])];
@@ -369,7 +362,6 @@ export default function CMSSettings() {
               nextAvatars[idx] = imageUrl;
             }
           } catch (err) {
-            // Error uploading hero avatar
           }
         }
         nextHeroAvatars = { ...nextHeroAvatars, avatars: nextAvatars };
@@ -406,7 +398,6 @@ export default function CMSSettings() {
       setSaveStatus('success');
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err) {
-      // Error saving CMS settings
       setSaveStatus('error');
     } finally {
       setSaving(false);
@@ -426,7 +417,7 @@ export default function CMSSettings() {
         try {
           URL.revokeObjectURL(existing.objectUrl);
         } catch {
-          // Ignore revoke errors
+          // Cuekin ae kl batalin token gagal
         }
         objectUrlsRef.current.delete(existing.objectUrl);
       }
@@ -448,7 +439,7 @@ export default function CMSSettings() {
         try {
           URL.revokeObjectURL(prev[key].objectUrl);
         } catch {
-          // Ignore revoke errors
+          // Cuekin ae kl batalin token gagal
         }
         objectUrlsRef.current.delete(prev[key].objectUrl);
       }
@@ -523,13 +514,12 @@ export default function CMSSettings() {
   };
 
   const removeTestimonial = (index) => {
-    // Clean up any pending upload for this testimonial
     const key = `testimonial.${index}.photo_profile`;
     if (pendingUploads[key]?.objectUrl) {
       try {
         URL.revokeObjectURL(pendingUploads[key].objectUrl);
       } catch {
-        // Ignore revoke errors
+        // Cuekin ae kl batalin token gagal
       }
       objectUrlsRef.current.delete(pendingUploads[key].objectUrl);
     }
@@ -564,7 +554,7 @@ export default function CMSSettings() {
         try {
           URL.revokeObjectURL(existing.objectUrl);
         } catch {
-          // Ignore revoke errors
+          // Cuekin ae kl batalin token gagal
         }
         objectUrlsRef.current.delete(existing.objectUrl);
       }
@@ -581,7 +571,7 @@ export default function CMSSettings() {
         try {
           URL.revokeObjectURL(prev[key].objectUrl);
         } catch {
-          // Ignore revoke errors
+          // Cuekin ae kl batalin token gagal
         }
         objectUrlsRef.current.delete(prev[key].objectUrl);
       }
@@ -657,13 +647,12 @@ export default function CMSSettings() {
   };
 
   const removeHeroAvatar = (index) => {
-    // Clean up any pending upload for this avatar, and reindex remaining pending keys
     const baseKey = `heroAvatar.${index}`;
     if (pendingUploads[baseKey]?.objectUrl) {
       try {
         URL.revokeObjectURL(pendingUploads[baseKey].objectUrl);
       } catch {
-        // ignore
+        // Sengaja dicuekin errornya, aman kok
       }
       objectUrlsRef.current.delete(pendingUploads[baseKey].objectUrl);
     }
@@ -714,7 +703,7 @@ export default function CMSSettings() {
         try {
           URL.revokeObjectURL(existing.objectUrl);
         } catch {
-          // ignore
+          // Sengaja dicuekin errornya, aman kok
         }
         objectUrlsRef.current.delete(existing.objectUrl);
       }
@@ -731,7 +720,7 @@ export default function CMSSettings() {
         try {
           URL.revokeObjectURL(prev[key].objectUrl);
         } catch {
-          // ignore
+          // Sengaja dicuekin errornya, aman kok
         }
         objectUrlsRef.current.delete(prev[key].objectUrl);
       }
@@ -1357,7 +1346,6 @@ export default function CMSSettings() {
                   </div>
 
                   <div className="flex flex-col md:flex-row gap-5">
-                    {/* Photo Profile Section */}
                     <div className="flex-shrink-0">
                       <label className="block text-xs font-medium text-neutral-600 mb-2">Foto Profil</label>
                       <ImageDropzone
@@ -1369,7 +1357,6 @@ export default function CMSSettings() {
                       />
                     </div>
 
-                    {/* Content Section */}
                     <div className="flex-1 space-y-3">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>

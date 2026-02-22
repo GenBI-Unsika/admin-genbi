@@ -26,12 +26,9 @@ export default function InfoCenter() {
   const [activeSectionId, setActiveSectionId] = useState(null);
   const [activeItemId, setActiveItemId] = useState(null);
 
-  // Edit Mode State
   const [isEditing, setIsEditing] = useState(false);
   const [editingItem, setEditingItem] = useState(null); // { sectionId, itemId, ...data }
   const [saving, setSaving] = useState(false);
-
-
 
   const containerRef = useRef(null);
   const topbarRef = useRef(null);
@@ -48,18 +45,14 @@ export default function InfoCenter() {
   };
 
   useEffect(() => {
-    // Inisialisasi + saat resize; hindari event scroll
     const onResize = () => recalcSticky();
     window.addEventListener('resize', onResize);
-    // Jalankan ulang setelah render pertama
     requestAnimationFrame(recalcSticky);
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
 
   useEffect(() => {
     let alive = true;
@@ -71,9 +64,7 @@ export default function InfoCenter() {
         const secs = Array.isArray(json?.sections) ? json.sections : [];
         setSections(secs);
 
-
         const defaults = Object.fromEntries(secs.map((s) => [s.id, false]));
-
 
         const firstSec = secs[0];
         const firstItem = firstSec?.items?.[0];
@@ -91,12 +82,10 @@ export default function InfoCenter() {
           }
         }
 
-        // Terapkan semua state setelah logika selesai
         setOpenSec(defaults);
         setActiveSectionId(activeSecId);
         setActiveItemId(activeItmId);
       } catch (e) {
-        // Error loading info center
         if (!alive) return;
         setLoadError(e);
       } finally {
@@ -109,7 +98,7 @@ export default function InfoCenter() {
     };
   }, [hash]);
 
-  // Ratakan item untuk pencarian
+  // Jejerin datanya biar gampang dicari ntar
   const flatItems = useMemo(() => sections.flatMap((sec) => (sec.items || []).map((it) => ({ ...it, __sectionId: sec.id, __sectionTitle: sec.title }))), [sections]);
 
   const activeItem = useMemo(() => {
@@ -117,7 +106,6 @@ export default function InfoCenter() {
     return sec?.items?.find((it) => it.id === activeItemId) || null;
   }, [sections, activeSectionId, activeItemId]);
 
-  // Hasil search
   const results = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return [];
@@ -130,7 +118,6 @@ export default function InfoCenter() {
       .slice(0, 30);
   }, [flatItems, searchTerm]);
 
-  // Shortcut ⌘K / Ctrl+K
   useEffect(() => {
     const onKey = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -142,12 +129,9 @@ export default function InfoCenter() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Helper: scroll ke paling atas
   const scrollContentToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  // --- CRUD Logic ---
 
   const handleSaveAll = async () => {
     setSaving(true);
@@ -155,7 +139,6 @@ export default function InfoCenter() {
       await apiRequest('/info-center', { method: 'PUT', body: { sections } });
       setIsEditing(false);
       setEditingItem(null);
-      // alert('Perubahan disimpan!');
     } catch (err) {
       alert('Gagal menyimpan: ' + err.message);
     } finally {
@@ -213,20 +196,16 @@ export default function InfoCenter() {
       };
     }));
 
-    // Auto expand section
     setOpenSec(prev => ({ ...prev, [secId]: true }));
   };
 
-  // Function to edit article content (enter editor mode for specific item)
   const startEditArticle = (secId, item) => {
     setEditingItem({ ...item, sectionId: secId });
-    // Also set active for preview
     setActiveSectionId(secId);
     setActiveItemId(item.id);
     scrollContentToTop();
   };
 
-  // Save single article changes to local state (not yet persisted to server)
   const saveArticleChanges = (updatedItem) => {
     setSections(sections.map(s => {
       if (s.id !== updatedItem.sectionId) return s;
@@ -254,12 +233,9 @@ export default function InfoCenter() {
     }
   };
 
-  // --- Render
   return (
     <div ref={containerRef} className="px-6 md:px-10 pb-0 pt-4 md:pt-6">
-      {/* Sticky Topbar (breadcrumb + header aksi) */}
       <div ref={topbarRef} className="border-b border-neutral-200 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/70" style={{ top: `var(--shell-offset, ${safeTop}px)` }}>
-        {/* Breadcrumb */}
         <nav className="px-1 pt-2 md:pt-3 pb-2 flex items-center text-sm text-neutral-600">
           <Link to="/dashboard" className="hover:text-neutral-800 hover:underline">
             Dashboard
@@ -268,7 +244,6 @@ export default function InfoCenter() {
           <span className="text-neutral-900 font-medium">Pusat Informasi</span>
         </nav>
 
-        {/* Header aksi (STICKY) */}
         <div className="flex items-center justify-between gap-3 bg-transparent px-1 pb-3">
           <h1 className="text-xl md:text-2xl font-semibold text-neutral-900">Dokumentasi & Bantuan</h1>
           <div className="flex items-center gap-2">
@@ -326,9 +301,7 @@ export default function InfoCenter() {
         </div>
       </div>
 
-      {/* Layout 2 kolom: Sidebar (collapsible) + Content */}
       <div className="flex items-start gap-x-6 mt-6">
-        {/* Sidebar */}
         <aside
           className="hidden md:block sticky w-[280px] flex-shrink-0 overflow-auto border-r border-neutral-200 pr-4 bg-white"
           style={{
@@ -356,7 +329,6 @@ export default function InfoCenter() {
                 const opened = !!openSec[sec.id];
                 return (
                   <div key={sec.id} className="mb-3 group/sec">
-                    {/* Section header: collapsible */}
                     <div className="flex items-center justify-between hover:bg-neutral-50 rounded-md pr-1">
                       <button
                         type="button"
@@ -385,7 +357,6 @@ export default function InfoCenter() {
                       )}
                     </div>
 
-                    {/* Items */}
                     {opened && (
                       <ul className="animate-[fadeIn_120ms_ease-out]">
                         {(sec.items || []).map((it) => {
@@ -445,7 +416,6 @@ export default function InfoCenter() {
           )}
         </aside>
 
-        {/* Content area */}
         <main ref={contentRef} className="w-full">
           {editingItem ? (
             <div className="mx-auto max-w-[900px]">
@@ -552,7 +522,6 @@ export default function InfoCenter() {
                 </article>
               )}
 
-              {/* Quick Start cards */}
               {!loading && !isEditing && (
                 <section className="mt-8">
                   <h3 className="mb-3 text-lg font-semibold text-neutral-900">Quick Start</h3>
@@ -595,7 +564,6 @@ export default function InfoCenter() {
         </main>
       </div>
 
-      {/* Search Modal */}
       {searchOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setSearchOpen(false)} />

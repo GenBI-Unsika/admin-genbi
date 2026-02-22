@@ -7,7 +7,7 @@ export default function FileUpload({
   label,
   accept = '*/*',
   multiple = false,
-  maxSize = 5 * 1024 * 1024, // 5MB default
+  maxSize = 5 * 1024 * 1024, // Paling mentok bgt 5MB ya defaultnya
   folder = 'uploads',
   value = [],
   onChange,
@@ -16,7 +16,7 @@ export default function FileUpload({
   showPreview = true,
   uploadEndpoint = '/upload',
   deferUpload = false,
-  useStaging = false, // BARU: Upload ke staging untuk preview, finalize saat submit
+  useStaging = false, // Upload ngungsi di sementara dulu buat preview, disimpen real pas dipencet submit
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -27,7 +27,6 @@ export default function FileUpload({
   const files = useMemo(() => (Array.isArray(value) ? value : value ? [value] : []), [value]);
 
   useEffect(() => {
-    // Cabut object URL yang tidak lagi direferensikan oleh `files`
     const activeUrls = new Set(files.map((f) => f?.url).filter((u) => typeof u === 'string' && u.startsWith('blob:')));
 
     for (const url of Array.from(objectUrlsRef.current)) {
@@ -35,7 +34,7 @@ export default function FileUpload({
         try {
           URL.revokeObjectURL(url);
         } catch {
-          // ignore
+          // Sengaja dicuekin errornya, aman kok
         }
         objectUrlsRef.current.delete(url);
       }
@@ -49,7 +48,7 @@ export default function FileUpload({
         try {
           URL.revokeObjectURL(url);
         } catch {
-          // ignore
+          // Sengaja dicuekin errornya, aman kok
         }
       }
       urls.clear();
@@ -89,7 +88,7 @@ export default function FileUpload({
     }
   };
 
-  // BARU: Upload ke staging untuk preview
+  // Upload ngungsi di sementara dulu
   const uploadToStaging = async (file) => {
     try {
       const result = await apiUploadStaging(file);
@@ -126,7 +125,6 @@ export default function FileUpload({
     setError('');
     const newFiles = Array.from(fileList);
 
-    // Validate all files first
     for (const file of newFiles) {
       const validationError = validateFile(file);
       if (validationError) {
@@ -135,7 +133,6 @@ export default function FileUpload({
       }
     }
 
-    // Tunda upload - simpan file secara lokal, upload nanti
     if (deferUpload) {
       const localFiles = newFiles.map(toLocalFileObject);
       const result = multiple ? [...files, ...localFiles] : localFiles;
@@ -143,7 +140,7 @@ export default function FileUpload({
       return;
     }
 
-    // Upload ke staging untuk preview (finalize saat submit form)
+    // Lempar dl ke tmpt sementara buat preview (finalize saat submit form)
     if (useStaging) {
       setUploading(true);
       try {
@@ -158,7 +155,6 @@ export default function FileUpload({
       return;
     }
 
-    // Upload langsung ke penyimpanan akhir
     setUploading(true);
     try {
       const uploadedFiles = await Promise.all(newFiles.map(uploadFile));
@@ -187,7 +183,6 @@ export default function FileUpload({
     if (selectedFiles.length > 0) {
       processFiles(selectedFiles);
     }
-    // Reset input so same file can be selected again
     if (inputRef.current) inputRef.current.value = '';
   };
 
@@ -197,7 +192,7 @@ export default function FileUpload({
       try {
         URL.revokeObjectURL(fileToRemove.url);
       } catch {
-        // ignore
+        // Sengaja dicuekin errornya, aman kok
       }
       objectUrlsRef.current.delete(fileToRemove.url);
     }
@@ -222,7 +217,6 @@ export default function FileUpload({
     <div className={className}>
       {label && <label className="mb-2 block text-sm font-medium text-neutral-700">{label}</label>}
 
-      {/* Zona Drop */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -247,7 +241,6 @@ export default function FileUpload({
         )}
       </div>
 
-      {/* Pesan Error */}
       {error && (
         <div className="mt-2 text-sm text-red-600 flex items-center gap-1">
           <X className="w-4 h-4" />
@@ -255,7 +248,6 @@ export default function FileUpload({
         </div>
       )}
 
-      {/* List File / Preview */}
       {showPreview && files.length > 0 && (
         <div className="mt-3 space-y-2">
           {files.map((file, index) => (
@@ -287,9 +279,7 @@ export default function FileUpload({
   );
 }
 
-
-
-// Komponen input link untuk lampiran URL
+// Komponen tempelan text link tmbhan URL lu
 export function LinkInput({ value = [], onChange, label, className = '' }) {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState('');
@@ -297,7 +287,6 @@ export function LinkInput({ value = [], onChange, label, className = '' }) {
   const addLink = () => {
     if (!inputValue.trim()) return;
 
-    // Validasi URL dasar
     try {
       new URL(inputValue);
     } catch {

@@ -142,7 +142,6 @@ const MenuBar = ({ editor }) => {
         <LinkIcon size={18} />
       </button>
 
-      {/* Image Upload Button - supports both URL and file upload */}
       <div className="relative group">
         <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className={`p-2 rounded hover:bg-neutral-200 transition text-neutral-700 ${uploading ? 'opacity-50' : ''}`} title="Upload Gambar">
           {uploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
@@ -183,7 +182,6 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Mulai m
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // Avoid duplicate extension name 'link' with explicit Link extension below.
         link: false,
       }),
       Link.configure({

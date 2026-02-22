@@ -44,7 +44,6 @@ describe('ConfirmDialog', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(onCancel).toHaveBeenCalledTimes(1);
 
-    // backdrop click uses onMouseDown on the container
     fireEvent.mouseDown(dialog, { target: dialog, currentTarget: dialog });
     expect(onCancel).toHaveBeenCalledTimes(2);
   });

@@ -30,9 +30,7 @@ export default function Articles() {
       params.set('sortBy', sortBy);
       params.set('sortOrder', sortOrder);
 
-      // Use manage endpoint to get drafts too
       const result = await apiGet(`/articles/manage?${params.toString()}`);
-      // Map API data to component format
       const mapped = (result.data || result || []).map((item) => ({
         id: item.id,
         title: item.title,
@@ -44,7 +42,7 @@ export default function Articles() {
         slug: item.slug,
         status: item.status,
         viewCount: item.viewCount || 0,
-        raw: item, // Keep original data for edit
+        raw: item, // Simpen data aslinya jg buat dikirim lg kalau diedit
       }));
 
       const enriched = mapped.map((a) => {
@@ -56,7 +54,7 @@ export default function Articles() {
 
         if (a.status === 'DRAFT') {
           badge = 'DRAFT';
-          badgeColor = '#EF4444'; // Red for draft
+          badgeColor = '#EF4444'; // Buat draft kasih warna merah biar jelas
         } else if (isNew) {
           badge = 'Terbaru';
           badgeColor = '#10B981';
@@ -79,7 +77,7 @@ export default function Articles() {
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchArticles();
-    }, 300); // Debounce search
+    }, 300); // Kasih jeda tik-tok pas ngetik biar ga nge-lag/lemot pencariannya
     return () => clearTimeout(timer);
   }, [fetchArticles]);
 

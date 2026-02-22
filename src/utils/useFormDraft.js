@@ -1,34 +1,11 @@
-/**
- * useFormDraft — localStorage auto-save for long forms
- *
- * Saves form data to localStorage on every change (debounced),
- * restores it on mount, and clears it on explicit discard or successful submit.
- *
- * Does NOT save File objects or blob URLs (they can't be serialized).
- * Only saves serializable text/select/checkbox fields.
- *
- * Usage:
- *   const { restoreDraft, saveDraft, clearDraft, hasDraft } = useFormDraft('article-create');
- *
- *   // On mount: restore
- *   useEffect(() => {
- *     const saved = restoreDraft();
- *     if (saved) setForm(prev => ({ ...prev, ...saved.form }));
- *   }, []);
- *
- *   // On change: save (debounced internally)
- *   useEffect(() => { saveDraft({ form }); }, [form]);
- *
- *   // On submit success: clear
- *   clearDraft();
- */
+// Hook buat auto-save form panjang ke localStorage tiap kali ada perubahan. Cuma nyimpen teks/checkbox, ga bisa nyimpen file.
 
 import { useCallback, useRef, useEffect } from 'react';
 
 const DRAFT_PREFIX = 'admin_draft_';
 const DEBOUNCE_MS = 800;
 
-/** Fields that should NOT be persisted (security / non-serializable) */
+// Daftar field yang haram disimpan ke localStorage (bahaya cuy)
 const EXCLUDED_FIELDS = new Set(['password', 'confirmPassword']);
 
 function sanitizeForStorage(data) {
@@ -38,7 +15,6 @@ function sanitizeForStorage(data) {
     if (EXCLUDED_FIELDS.has(key)) continue;
     if (value instanceof File || value instanceof Blob || typeof value === 'function') continue;
     if (value === null || value === undefined) continue;
-    // For cover/photo objects, only save url+name (not File)
     if (typeof value === 'object' && !Array.isArray(value) && value instanceof File === false) {
       if (value.url) {
         cleaned[key] = { url: value.url, name: value.name };
@@ -65,13 +41,7 @@ function sanitizeForStorage(data) {
   return cleaned;
 }
 
-/**
- * Custom hook for localStorage form draft persistence
- * @param {string} formKey — unique key per form (e.g. 'article-create')
- * @param {object} [options]
- * @param {number} [options.debounceMs=800]
- * @param {number} [options.maxAgeMs=3*24*60*60*1000] — default: 3 days
- */
+// Hook utama buat nyimpen draft form
 export function useFormDraft(formKey, options = {}) {
   const { debounceMs = DEBOUNCE_MS, maxAgeMs = 3 * 24 * 60 * 60 * 1000 } = options;
   const storageKey = `${DRAFT_PREFIX}${formKey}`;
@@ -115,7 +85,6 @@ export function useFormDraft(formKey, options = {}) {
           };
           localStorage.setItem(storageKey, JSON.stringify(payload));
         } catch (e) {
-          // Failed to save draft
         }
       }, debounceMs);
     },

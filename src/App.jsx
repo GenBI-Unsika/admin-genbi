@@ -41,7 +41,7 @@ const RequireAuth = ({ children }) => {
           try {
             await authRefresh();
           } catch {
-            // ignore; user will be redirected to /login
+            // Cuekin errornya; ntar disuruh login lg ttp
           }
         }
 
@@ -55,23 +55,18 @@ const RequireAuth = ({ children }) => {
                 await authRefresh();
                 me = await fetchMeViaTrpc();
               } catch {
-                // fallback to REST (keeps compatibility during migration)
                 me = await fetchMe();
               }
             }
 
-            // If we still can't resolve the current user, treat it as unauthenticated.
-            // Server-side admin panel roles: super_admin, admin, koordinator.
             const allowedRoles = new Set(['super_admin', 'admin', 'koordinator']);
 
-            // Handle both string and object (relation) formats for role
             const userRole = typeof me?.role === 'object' ? me.role?.name : me?.role;
 
             if (!me || !allowedRoles.has(userRole)) {
               await authLogout();
             }
           } catch {
-            // Any unexpected failure in auth bootstrap should not leave a stale token behind.
             await authLogout();
           }
         }
@@ -96,7 +91,6 @@ export default function App() {
     <React.Suspense fallback={<div className="p-6 text-sm text-neutral-500">Memuat...</div>}>
       <Routes>
         <Route index element={<Navigate to="/login" replace />} />
-        {/* Public */}
         <Route path="/login" element={<Login />} />
         <Route
           element={
@@ -118,12 +112,10 @@ export default function App() {
           <Route path="/artikel/new" element={<ArticleForm mode="create" />} />
           <Route path="/artikel/:id/edit" element={<ArticleForm mode="edit" />} />
 
-          {/* Divisi */}
           <Route path="/divisi" element={<Divisions />} />
           <Route path="/divisi/new" element={<DivisionForm />} />
           <Route path="/divisi/:id/edit" element={<DivisionForm />} />
 
-          {/* Anggota */}
           <Route path="/anggota" element={<Teams />} />
           <Route path="/anggota/new" element={<TeamForm />} />
           <Route path="/anggota/:id/edit" element={<TeamForm />} />

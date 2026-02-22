@@ -30,7 +30,6 @@ export default function Activities() {
       params.set('sortBy', sortBy);
       params.set('sortOrder', sortOrder);
       const result = await apiGet(`/activities?${params.toString()}`);
-      // Map API data to component format
       const mapped = (result.data || result || []).map((item) => {
         const division = item.division || 'GenBI';
         const location = item.location ? `• ${item.location}` : '';
@@ -45,9 +44,9 @@ export default function Activities() {
           cover: item.coverImage || null,
           description: item.description || '',
           status: item.status,
-          badge: item.status === 'DRAFT' ? 'DRAFT' : (item.status === 'PLANNED' ? 'Planned' : item.status), // Display status
+          badge: item.status === 'DRAFT' ? 'DRAFT' : (item.status === 'PLANNED' ? 'Planned' : item.status), // Tampilan status yang bisa kebaca
           badgeColor: item.status === 'DRAFT' ? '#EF4444' : (item.status === 'PLANNED' ? '#3B82F6' : '#10B981'),
-          raw: item, // Keep original data for edit
+          raw: item, // Simpen data aslinya jg buat dikirim lg kalau diedit
         };
       });
       setActivities(mapped);
@@ -61,7 +60,7 @@ export default function Activities() {
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchActivities();
-    }, 300); // Debounce search
+    }, 300); // Kasih jeda tik-tok pas ngetik biar ga nge-lag/lemot pencariannya
     return () => clearTimeout(timer);
   }, [fetchActivities]);
 
@@ -127,12 +126,10 @@ export default function Activities() {
       </nav>
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
-          {/* judul diperkecil */}
           <h2 className="text-lg md:text-xl font-semibold text-neutral-900">Event & Proker</h2>
           <p className="text-sm text-neutral-600">Kelola aktivitas GenBI.</p>
         </div>
 
-        {/* tombol kecil agar tidak memenuhi parent */}
         <Link
           to="/aktivitas/new"
           className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-primary-600/20 bg-primary-500 px-3 py-2 text-sm font-medium text-white hover:bg-primary-600 active:scale-[0.99] shadow-sm hover:shadow-md-primary-500/30"
@@ -141,7 +138,6 @@ export default function Activities() {
         </Link>
       </div>
 
-      {/* Toolbar */}
       <div className="mb-6 space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="md:col-span-2 relative">

@@ -1,4 +1,3 @@
-// src/pages/ScholarshipInterview.jsx
 import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Avatar from '../components/Avatar';
@@ -40,7 +39,6 @@ export default function ScholarshipInterview() {
     (async () => {
       setRowsLoading(true);
       try {
-        // Fetch only LOLOS_ADMINISTRASI applicants
         const payload = await apiRequest('/scholarships/applications?status=LOLOS_ADMINISTRASI', { method: 'GET' });
         const data = Array.isArray(payload?.data) ? payload.data : [];
         const mapped = data.map((r) => ({
@@ -77,7 +75,6 @@ export default function ScholarshipInterview() {
     });
   }, [rows, q, statusFilter]);
 
-  // Schedule modal
   const [schedModal, setSchedModal] = useState(null);
   const [schedForm, setSchedForm] = useState({ date: '', time: '', location: '' });
   const [schedSubmitting, setSchedSubmitting] = useState(false);
@@ -87,9 +84,7 @@ export default function ScholarshipInterview() {
   const normalizeTimeForInput = (value) => {
     const raw = String(value || '').trim();
     if (!raw) return '';
-    // Accept "HH:MM" directly
     if (/^\d{2}:\d{2}$/.test(raw)) return raw;
-    // Try to extract first "HH:MM" from any string
     const m = raw.match(/(\d{1,2})[:.](\d{2})/);
     if (!m) return '';
     const hh = String(m[1]).padStart(2, '0');
@@ -145,7 +140,6 @@ export default function ScholarshipInterview() {
     }
   };
 
-  // Decision modal (lolos/ditolak wawancara)
   const [decModal, setDecModal] = useState(null);
   const openDecisionModal = (type, row) => setDecModal({ type, row, notes: '', confirm: false });
 
@@ -168,7 +162,6 @@ export default function ScholarshipInterview() {
 
   return (
     <div className="px-6 md:px-10 py-6 space-y-6">
-      {/* Header */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-2xl font-bold text-neutral-900">Seleksi Wawancara</h2>
@@ -179,9 +172,7 @@ export default function ScholarshipInterview() {
         <p className="text-sm text-neutral-600">Kelola jadwal dan hasil wawancara pendaftar yang lolos administrasi.</p>
       </div>
 
-      {/* Main Content */}
       <div className="rounded-2xl border border-neutral-200 bg-white p-4 md:p-6">
-        {/* Search + Filter */}
         <div className="mb-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative flex-1 max-w-md">
@@ -211,7 +202,6 @@ export default function ScholarshipInterview() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
@@ -343,7 +333,6 @@ export default function ScholarshipInterview() {
           </table>
         </div>
 
-        {/* Footer */}
         <div className="mt-6 flex items-center justify-between border-t border-neutral-200 pt-4">
           <div className="text-sm text-neutral-500">
             Menampilkan <span className="font-semibold text-neutral-900">{filtered.length}</span> dari <span className="font-semibold text-neutral-900">{rows.length}</span> peserta
@@ -362,7 +351,6 @@ export default function ScholarshipInterview() {
         </div>
       </div>
 
-      {/* Schedule Modal */}
       {schedModal && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
@@ -436,7 +424,6 @@ export default function ScholarshipInterview() {
         </div>
       )}
 
-      {/* Decision Modal */}
       {decModal && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">

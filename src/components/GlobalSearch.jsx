@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Search, FileText, Layers, X, Loader2, ArrowRight } from 'lucide-react';
 import { CalendarIcon, ProfileIcon, ArticleIcon, ActivityIcon, DivisionIcon, MembersIcon } from './icons/CustomIcons';
 
-// Sample search categories for filtering
 const SEARCH_CATEGORIES = [
   { key: 'all', label: 'Semua', icon: Search },
   { key: 'artikel', label: 'Artikel', icon: ArticleIcon },
@@ -22,7 +21,6 @@ export default function GlobalSearch({ className = '' }) {
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -33,7 +31,6 @@ export default function GlobalSearch({ className = '' }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Keyboard shortcut (Ctrl+K or Cmd+K)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -50,7 +47,6 @@ export default function GlobalSearch({ className = '' }) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Debounced search
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
@@ -67,10 +63,7 @@ export default function GlobalSearch({ className = '' }) {
   const performSearch = async (searchQuery, searchCategory) => {
     setLoading(true);
     try {
-      // Mock search results - in production, call actual API
 
-
-      // Mock data for demonstration
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       const mockResults = [
@@ -82,7 +75,6 @@ export default function GlobalSearch({ className = '' }) {
 
       setResults(mockResults);
     } catch (error) {
-      // Search error
       setResults([]);
     } finally {
       setLoading(false);
@@ -141,10 +133,8 @@ export default function GlobalSearch({ className = '' }) {
         </div>
       </div>
 
-      {/* Dropdown */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-neutral-200 shadow-lg overflow-hidden z-50">
-          {/* Category Filter */}
           <div className="flex items-center gap-1 p-2 border-b border-neutral-100 overflow-x-auto">
             {SEARCH_CATEGORIES.map((cat) => (
               <button
@@ -159,7 +149,6 @@ export default function GlobalSearch({ className = '' }) {
             ))}
           </div>
 
-          {/* Results */}
           <div className="max-h-80 overflow-y-auto">
             {loading ? (
               <div className="flex items-center justify-center py-8">
@@ -193,7 +182,6 @@ export default function GlobalSearch({ className = '' }) {
             )}
           </div>
 
-          {/* Quick Actions */}
           {!query && (
             <div className="border-t border-neutral-100 p-3">
               <p className="text-xs text-neutral-400 mb-2">Pintasan Cepat</p>

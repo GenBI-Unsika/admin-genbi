@@ -27,7 +27,6 @@ export default function Teams() {
       const response = await apiRequest(`/members/admin/all${params.toString() ? `?${params.toString()}` : ''}`);
       setMembers(response?.data || []);
     } catch (err) {
-      // Error fetching members
       setError(err.message || 'Gagal memuat data anggota');
     } finally {
       setLoading(false);
@@ -144,7 +143,6 @@ export default function Teams() {
                   <th className="text-left p-4 font-semibold text-neutral-700">Email</th>
                   <th className="text-left p-4 font-semibold text-neutral-700">NPM</th>
                   <th className="text-left p-4 font-semibold text-neutral-700">Prodi</th>
-                  {/* <th className="text-left p-4 font-semibold text-neutral-700">Role</th> */}
                   <th className="text-left p-4 font-semibold text-neutral-700">Status</th>
                 </tr>
               </thead>
@@ -160,7 +158,6 @@ export default function Teams() {
                     <td className="p-4 text-neutral-600 truncate">{member.email || '-'}</td>
                     <td className="p-4 text-neutral-600">{member.npm || '-'}</td>
                     <td className="p-4 text-neutral-600">{member.studyProgram || '-'}</td>
-                    {/* <td className="p-4 text-neutral-700">{ROLE_LABEL[String(member.role)] || member.role || '-'}</td> */}
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${member.isActive ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-600'}`}>{member.isActive ? 'Aktif' : 'Nonaktif'}</span>
                     </td>

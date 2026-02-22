@@ -14,7 +14,6 @@ export default function MasterData() {
         <p className="text-gray-600">Kelola data referensi sistem (Fakultas, Prodi, Role)</p>
       </div>
 
-      {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
           <button
@@ -38,7 +37,6 @@ export default function MasterData() {
         </nav>
       </div>
 
-      {/* Content */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         {activeTab === 'faculties' && <FacultiesTab />}
         {activeTab === 'study-programs' && <StudyProgramsTab />}
@@ -54,7 +52,6 @@ function FacultiesTab() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  // Form State
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -173,7 +170,6 @@ function FacultiesTab() {
         </div>
       )}
 
-      {/* Modal Form */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] overflow-y-auto">
           <div className="flex min-h-screen items-center justify-center px-4 pb-20 text-center sm:p-0">
@@ -234,7 +230,6 @@ function StudyProgramsTab() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  // Form State
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -361,7 +356,6 @@ function StudyProgramsTab() {
         </div>
       )}
 
-      {/* Modal Form */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] overflow-y-auto">
           <div className="flex min-h-screen items-center justify-center px-4 pb-20 text-center sm:p-0">
@@ -442,7 +436,6 @@ function RolesTab() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  // Form State
   const [formData, setFormData] = useState({
     name: '',
     displayName: '',
@@ -559,7 +552,6 @@ function RolesTab() {
         </div>
       )}
 
-      {/* Modal Form */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] overflow-y-auto">
           <div className="flex min-h-screen items-center justify-center px-4 pb-20 text-center sm:p-0">

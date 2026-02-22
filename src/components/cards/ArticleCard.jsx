@@ -5,7 +5,6 @@ import MediaPlaceholder from '../shared/MediaPlaceholder';
 import { formatDateID, stripHtml } from '../../utils/formatters';
 
 export default function ArticleCard({ title, excerpt, image, description, date, readTime, badge, badgeColor, href, to, state, onDelete, className = '' }) {
-  // Use a div for the inner wrapper if there's an outer Link or anchor
   const InnerWrapper = 'div';
 
   const Card = (
