@@ -3,7 +3,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Bold, Italic, List, ListOrdered, Quote, Undo, Redo, Link as LinkIcon, Image as ImageIcon, Heading1, Heading2, Code, Upload, Loader2 } from 'lucide-react';
+import { Bold, Italic, List, ListOrdered, Quote, Undo, Redo, Link as LinkIcon, Image as ImageIcon, Heading1, Heading2, Code, Upload, Loader2, Info, AlertTriangle, Lightbulb } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { apiUploadStaging, apiFinalizeUpload } from '../../utils/api';
 
@@ -58,6 +58,19 @@ const MenuBar = ({ editor }) => {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const addCallout = (type) => {
+    const colors = {
+      info: 'bg-blue-50 border-blue-200 text-blue-800',
+      warning: 'bg-amber-50 border-amber-200 text-amber-800',
+      tip: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    };
+
+    // We use a blockquote but with a data-type attribute for styling
+    editor.chain().focus().toggleBlockquote().run();
+    // After toggling, we can't easily set attributes without a custom extension
+    // So for now, let's just use the standard blockquote style improvement
   };
 
   return (
@@ -122,7 +135,7 @@ const MenuBar = ({ editor }) => {
         type="button"
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
         className={`p-2 rounded hover:bg-neutral-200 transition ${editor.isActive('blockquote') ? 'bg-neutral-200 text-primary-600' : 'text-neutral-700'}`}
-        title="Quote"
+        title="Quote / Callout"
       >
         <Quote size={18} />
       </button>
@@ -208,7 +221,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Mulai m
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[300px] p-4',
+        class: 'prose prose-sm md:prose-base max-w-none focus:outline-none min-h-[400px] p-6 text-neutral-800 leading-relaxed',
       },
     },
   });
@@ -225,11 +238,12 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Mulai m
   return (
     <div className={className}>
       {label && <label className="mb-2 block text-sm font-medium text-neutral-700">{label}</label>}
-      <div className="rounded-lg border border-neutral-200 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-primary-200 focus-within:border-primary-500 transition">
+      <div className="rounded-xl border border-neutral-200 bg-white shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-primary-200 focus-within:border-primary-500 transition-all duration-200">
         <MenuBar editor={editor} />
         <EditorContent editor={editor} />
       </div>
-      <style>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .ProseMirror p.is-editor-empty:first-child::before {
           color: #adb5bd;
           content: attr(data-placeholder);
@@ -238,59 +252,80 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Mulai m
           pointer-events: none;
         }
         .ProseMirror {
-          min-height: 300px;
+          min-height: 400px;
+          outline: none !important;
         }
         .ProseMirror h1 {
           font-size: 1.875rem;
           font-weight: 700;
-          line-height: 1.2;
-          margin-top: 1.5rem;
-          margin-bottom: 0.75rem;
+          line-height: 1.25;
+          margin-top: 2rem;
+          margin-bottom: 1rem;
+          color: #111827;
         }
         .ProseMirror h2 {
           font-size: 1.5rem;
           font-weight: 600;
-          line-height: 1.3;
-          margin-top: 1.25rem;
-          margin-bottom: 0.625rem;
+          line-height: 1.35;
+          margin-top: 1.75rem;
+          margin-bottom: 0.875rem;
+          color: #1f2937;
+        }
+        .ProseMirror p {
+          margin-bottom: 1rem;
         }
         .ProseMirror ul, .ProseMirror ol {
           padding-left: 1.5rem;
-          margin: 0.75rem 0;
+          margin: 1rem 0;
+        }
+        .ProseMirror li {
+          margin-bottom: 0.5rem;
         }
         .ProseMirror blockquote {
-          border-left: 3px solid #e5e7eb;
-          padding-left: 1rem;
-          color: #6b7280;
+          border-left: 4px solid #3b82f6;
+          background-color: #eff6ff;
+          padding: 1.25rem 1.5rem;
+          color: #1e40af;
+          border-radius: 0 0.5rem 0.5rem 0;
+          margin: 1.5rem 0;
           font-style: italic;
-          margin: 1rem 0;
         }
         .ProseMirror code {
           background-color: #f3f4f6;
-          padding: 0.125rem 0.375rem;
-          border-radius: 0.25rem;
+          padding: 0.2rem 0.4rem;
+          border-radius: 0.375rem;
           font-size: 0.875em;
+          color: #df1c5a;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         }
         .ProseMirror pre {
-          background-color: #1f2937;
+          background-color: #111827;
           color: #f3f4f6;
-          padding: 1rem;
-          border-radius: 0.5rem;
+          padding: 1.25rem;
+          border-radius: 0.75rem;
           overflow-x: auto;
-          margin: 1rem 0;
+          margin: 1.5rem 0;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         }
         .ProseMirror pre code {
           background: none;
           padding: 0;
           color: inherit;
+          font-size: 0.9em;
         }
         .ProseMirror img {
           max-width: 100%;
           height: auto;
-          border-radius: 0.5rem;
-          margin: 1rem 0;
+          border-radius: 0.75rem;
+          margin: 2rem 0;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
-      `}</style>
+        .ProseMirror a {
+          color: #2563eb;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+      `}} />
     </div>
   );
 }

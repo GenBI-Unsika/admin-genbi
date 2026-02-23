@@ -16,7 +16,6 @@ const ArticleForm = React.lazy(() => import('./pages/ArticleForm'));
 const CMSSettings = React.lazy(() => import('./pages/CMSSettings'));
 
 const MasterData = React.lazy(() => import('./pages/MasterData'));
-const InfoCenter = React.lazy(() => import('./pages/InfoCenter'));
 const Login = React.lazy(() => import('./pages/Login'));
 const AdminUsers = React.lazy(() => import('./pages/AdminUsers'));
 const AdminUserForm = React.lazy(() => import('./pages/AdminUserForm'));
@@ -88,7 +87,11 @@ const RequireAuth = ({ children }) => {
 
 export default function App() {
   return (
-    <React.Suspense fallback={<div className="p-6 text-sm text-neutral-500">Memuat...</div>}>
+    <React.Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-primary-600" />
+      </div>
+    }>
       <Routes>
         <Route index element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
@@ -129,8 +132,6 @@ export default function App() {
           <Route path="/cms" element={<CMSSettings />} />
           <Route path="/master-data" element={<MasterData />} />
           <Route path="/profile" element={<Profile />} />
-
-          <Route path="/pusat-informasi" element={<InfoCenter />} />
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

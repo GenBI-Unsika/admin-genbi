@@ -188,7 +188,11 @@ export default function ScholarshipDetail() {
         ← Kembali
       </Link>
 
-      {loading && <div className="mt-4 text-sm text-neutral-600">Memuat...</div>}
+      {loading && (
+        <div className="flex items-center justify-center p-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-primary-600" />
+        </div>
+      )}
       {!loading && !error && !d && (
         <div className="mt-4">
           <EmptyState

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, ChevronDown } from 'lucide-react';
+import { Menu, ChevronDown, FileText, Edit } from 'lucide-react';
 import {
   HomeIcon, AcademicIcon, FileIcon, CalendarIcon, ProfileIcon, LogoutIcon,
   ArticleIcon, ActivityIcon, DivisionIcon, WebContentIcon, MembersIcon, InfoCenterIcon, PortalIcon, PointIcon, MasterDataIcon, TreasuryIcon
@@ -30,7 +30,6 @@ const navItems = [
   { to: '/admin/users', label: 'Kelola User', icon: MembersIcon },
   { to: '/master-data', label: 'Master Data', icon: MasterDataIcon },
   { to: '/cms', label: 'Kelola Konten Web', icon: WebContentIcon },
-  { to: '/pusat-informasi', label: 'Pusat Informasi', icon: InfoCenterIcon },
   {
     label: 'Menu Portal GenBI',
     icon: PortalIcon, // Ikon menu induk
